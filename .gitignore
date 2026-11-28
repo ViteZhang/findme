@@ -3,5 +3,6 @@
 !.env.example
 .vercel/
 supabase/.temp/
+.local-pgdata/
 node_modules/
 dist/
