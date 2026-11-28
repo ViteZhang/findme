@@ -1,0 +1,786 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>照见 · 设计稿 第 1 批：主循环</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+<style>
+/* 设计令牌：沿用 v0.2「研究笔记」，不做任何改动 */
+:root{
+  --page-bg:#FAFAFA;--page-surface:#FFFFFF;--page-raised:#F4F4F5;
+  --page-line:rgba(23,23,23,.08);--page-line-2:rgba(23,23,23,.14);
+  --page-ink:#171717;--page-ink-2:#525252;--page-ink-3:#737373;
+  --page-accent:#23406E;--page-accent-700:#1A3154;--page-accent-50:#EDF1F7;
+  --page-neg:#B4332B;--page-neg-50:#FBEFEE;
+  --page-sans:'Noto Sans SC','PingFang SC','Microsoft YaHei',system-ui,sans-serif;
+  --page-mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  --page-ease:cubic-bezier(.22,1,.36,1);
+}
+/* ===== 画布外壳 ===== */
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:#E5E5E5;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;color:#1e1e1e}
+.fx-app{display:grid;grid-template-rows:44px 1fr;grid-template-columns:240px 1fr 260px;height:100vh}
+.fx-top{grid-column:1/-1;display:flex;align-items:center;gap:12px;padding:0 12px;background:#2C2C2C;color:#fff;font-size:12px}
+.fx-top b{font-weight:600}.fx-top .s{color:#B3B3B3}.fx-top .sp{flex:1}
+.fx-btn{background:transparent;border:0;color:#fff;height:28px;min-width:28px;padding:0 8px;border-radius:5px;font:inherit;cursor:pointer}
+.fx-btn:hover{background:#444}.fx-zoom{min-width:48px;text-align:center}
+.fx-side{background:#fff;border-right:1px solid #E5E5E5;overflow:auto;font-size:12px}
+.fx-side.r{border-right:0;border-left:1px solid #E5E5E5}
+.fx-sec{padding:12px 0;border-bottom:1px solid #EEE}
+.fx-sec h4{margin:0 0 6px;padding:0 16px;font-size:11px;font-weight:600}
+.fx-item{display:flex;align-items:center;gap:8px;padding:6px 16px;cursor:pointer;color:#333;border:0;background:none;width:100%;text-align:left;font:inherit}
+.fx-item:hover{background:#F5F5F5}.fx-item.on{background:#E5F4FF;color:#0B6BB3;font-weight:600}
+.fx-item svg{width:14px;height:14px;stroke-width:1.6;flex:none}
+.fx-kv{display:grid;grid-template-columns:48px 1fr;gap:6px 8px;padding:0 16px;color:#555}.fx-kv b{color:#1e1e1e;font-weight:500}
+.fx-note{padding:0 16px;color:#555;line-height:1.6}
+.fx-canvas{position:relative;overflow:hidden;cursor:grab;background-color:#E5E5E5;background-image:radial-gradient(#CFCFCF 1px,transparent 1px);background-size:20px 20px}
+.fx-canvas.drag{cursor:grabbing}
+.fx-world{position:absolute;left:0;top:0;transform-origin:0 0}
+.fx-ab{position:absolute}
+.fx-ab-label{position:absolute;left:0;top:-22px;font-size:12px;color:#7A7A7A;white-space:nowrap}
+.fx-ab-label span{color:#AAA;margin-left:8px}
+.fx-ab.sel .fx-ab-label{color:#0D99FF}.fx-ab.sel>.ab{outline:2px solid #0D99FF}
+.fx-page{display:none}.fx-page.on{display:block}
+.fx-hint{position:absolute;left:12px;bottom:12px;font-size:11px;color:#666;background:rgba(255,255,255,.9);padding:6px 10px;border-radius:6px}
+
+/* ===== 产品基础 ===== */
+.ab{position:relative;background:var(--page-bg);font-family:var(--page-sans);color:var(--page-ink);overflow:hidden;font-size:14px;line-height:22px;font-variant-numeric:tabular-nums}
+.ab *{box-sizing:border-box}
+.ab svg.lucide{width:16px;height:16px;stroke-width:1.5;color:var(--page-ink-3);flex:none}
+.mono{font-family:var(--page-mono);font-size:12px;line-height:16px;color:var(--page-ink-3)}
+.c2{color:var(--page-ink-2)}.c3{color:var(--page-ink-3)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 16px;border-radius:8px;border:1px solid transparent;font:500 14px/1 var(--page-sans);white-space:nowrap}
+.btn-p{background:var(--page-accent);color:#fff}
+.btn-s{background:var(--page-raised);color:var(--page-ink);border-color:var(--page-line)}
+.btn-t{background:none;color:var(--page-ink-2);padding:0 4px;height:32px}
+.btn-sm{height:32px;padding:0 12px;font-size:13px}
+.btn-lg{height:44px;padding:0 20px}
+.ibtn{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;background:var(--page-ink)}
+.ibtn svg.lucide{color:#fff}
+.ibtn.off{background:var(--page-raised)}.ibtn.off svg.lucide{color:#A3A3A3}
+.tag{display:inline-flex;align-items:center;height:20px;padding:0 6px;border-radius:4px;font-size:12px;line-height:16px;color:var(--page-ink-2);background:var(--page-raised);white-space:nowrap}
+.tag.dash{background:none;border:1px dashed var(--page-line-2)}
+.tag.ok{background:var(--page-accent-50);color:var(--page-accent)}
+.tally{display:inline-flex;align-items:flex-end;gap:4px;height:20px;vertical-align:middle}
+.tally i{display:block;width:2px;border-radius:1px;background:var(--page-accent)}
+.tally i.s{height:20px}.tally i.m{height:14px}.tally i.w{height:8px}
+.tally i.self{height:14px;background:repeating-linear-gradient(to top,var(--page-ink-3) 0 2px,transparent 2px 4px)}
+.tally i.slot{height:20px;background:rgba(23,23,23,.12)}
+.tally i.new{box-shadow:0 0 0 3px var(--page-accent-50)}
+.tally.lg{height:40px;gap:8px}.tally.lg i{width:3px;border-radius:2px}
+.tally.lg i.s{height:40px}.tally.lg i.m{height:28px}.tally.lg i.slot{height:40px}
+
+/* 侧栏 */
+.side{background:var(--page-bg);border-right:1px solid var(--page-line);display:flex;flex-direction:column;padding:0 12px 16px}
+.brand{height:56px;display:flex;align-items:center;gap:10px;padding:0 8px}
+.brand .mk{display:inline-flex;align-items:flex-end;gap:3px;height:16px}
+.brand .mk i{display:block;width:3px;border-radius:1px;background:var(--page-accent)}
+.brand b{font-size:16px;font-weight:500;line-height:1}
+.nav{display:flex;flex-direction:column;gap:2px;margin-top:8px}
+.nav a{height:36px;display:flex;align-items:center;gap:10px;padding:0 8px;border-radius:8px;color:var(--page-ink-2);font-size:14px}
+.nav a.on{background:var(--page-raised);color:var(--page-ink);box-shadow:inset 0 0 0 1px var(--page-line)}
+.nav a.on svg.lucide{color:var(--page-ink)}
+.nav a .n{margin-left:auto}
+.slab{font-size:12px;color:var(--page-ink-3);padding:0 8px;margin:24px 0 8px}
+.story{height:36px;display:flex;align-items:center;gap:10px;padding:0 8px;border-radius:8px;font-size:13px;color:var(--page-ink-2)}
+.story span:first-child{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.story.on{background:var(--page-raised);color:var(--page-ink)}
+.story.all{color:var(--page-ink-3)}
+.side .grow{flex:1}
+.me{height:44px;display:flex;align-items:center;gap:10px;padding:8px 8px 0;border-top:1px solid var(--page-line);margin-top:8px}
+.av{width:24px;height:24px;border-radius:6px;background:var(--page-raised);display:grid;place-items:center;font-size:12px;color:var(--page-ink-2);box-shadow:inset 0 0 0 1px var(--page-line)}
+.hdr{height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 32px;border-bottom:1px solid var(--page-line);flex:none}
+.hdr h2{margin:0;font-size:15px;font-weight:500}
+.hdr .l{display:flex;align-items:center;gap:16px}
+
+/* ===== 对话页 ===== */
+.cv{width:1440px;height:1000px;display:grid;grid-template-columns:248px 1fr}
+.cv-main{display:flex;flex-direction:column;min-width:0}
+.cv-body{flex:1;display:grid;grid-template-columns:minmax(0,1fr) 320px;min-height:0}
+.cv-col{display:flex;flex-direction:column;min-height:0;border-right:1px solid var(--page-line)}
+.stream{flex:1;overflow:hidden;padding:32px 64px 24px;display:flex;flex-direction:column;gap:24px}
+.stream>*{max-width:680px}
+.seg3{display:inline-flex;background:var(--page-raised);border-radius:8px;padding:2px;gap:2px}
+.seg3 span{height:28px;padding:0 10px;display:inline-flex;align-items:center;border-radius:6px;font-size:13px;color:var(--page-ink-2)}
+.seg3 span.on{background:var(--page-surface);color:var(--page-ink);box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.coach{display:grid;grid-template-columns:24px 1fr;gap:12px}
+.mk2{height:26px;display:flex;align-items:flex-end;gap:2px;padding:0 0 6px 6px}
+.mk2 i{width:2px;border-radius:1px;background:var(--page-accent);display:block}
+.coach p{margin:0;font-size:15px;line-height:26px}
+.mine{align-self:flex-end;max-width:440px;background:var(--page-raised);border-radius:12px;padding:10px 14px;font-size:15px;line-height:26px}
+.rule{display:flex;align-items:center;gap:12px;max-width:680px}
+.rule:before,.rule:after{content:"";height:1px;background:var(--page-line);flex:1}
+.rule:before{flex:0 0 0}
+.fold{font-size:13px;color:var(--page-ink-3);padding-left:36px}
+/* 内联组件 */
+.inl{margin-left:36px;max-width:560px}
+.xcard{border:1px solid var(--page-line-2);border-radius:12px;padding:16px;background:var(--page-surface)}
+.xcard .k{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--page-ink-3)}
+.xcard .s{font-size:16px;line-height:24px;font-weight:500;margin:8px 0 4px}
+.xcard .w{font-size:13px;line-height:20px;color:var(--page-ink-2)}
+.xcard .a{display:flex;gap:8px;margin-top:12px}
+.xcard.done{padding:12px 16px;background:var(--page-bg);border-color:var(--page-line)}
+.xcard.done .s{font-size:14px;line-height:22px;margin:4px 0 0}
+.xcard.no .s{color:var(--page-ink-3)}
+.ta{border:1px solid var(--page-accent);border-radius:8px;padding:8px 12px;font-size:15px;line-height:24px;margin:8px 0 4px;background:var(--page-surface);box-shadow:0 0 0 3px var(--page-accent-50)}
+.merge{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:12px;background:var(--page-surface);border:1px solid var(--page-line)}
+.merge .t{flex:1;font-size:13px;line-height:20px;color:var(--page-ink-2)}
+.merge .t b{font-weight:500;color:var(--page-ink)}
+.lvl{display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center;padding:16px;border-radius:12px;border:1px solid var(--page-accent);background:var(--page-accent-50)}
+.lvl .t b{display:block;font-weight:500;font-size:15px;line-height:24px}
+.lvl .t span{font-size:13px;color:var(--page-ink-2)}
+.lvl.down{border-color:var(--page-line);background:var(--page-surface)}
+.sum{border:1px solid var(--page-line-2);border-radius:16px;background:var(--page-surface);padding:20px 24px;box-shadow:0 8px 24px rgba(0,0,0,.06)}
+.sum h4{margin:0;font-size:15px;font-weight:500}
+.sum .nums{display:grid;grid-template-columns:repeat(3,1fr);margin:16px 0;border-top:1px solid var(--page-line);border-bottom:1px solid var(--page-line)}
+.sum .nums div{padding:12px 0}
+.sum .nums b{display:block;font-family:var(--page-mono);font-size:22px;line-height:28px;font-weight:500}
+.sum .li{display:flex;align-items:center;gap:12px;padding:8px 0;font-size:14px}
+.sum .li span:nth-child(2){flex:1}
+.sum .next{margin-top:12px;padding-top:16px;border-top:1px solid var(--page-line);display:flex;align-items:center;justify-content:space-between;gap:16px}
+.sum .next p{margin:0;font-size:13px;line-height:20px;color:var(--page-ink-2)}
+.sum .next p b{display:block;color:var(--page-ink);font-weight:500;font-size:14px}
+.qr{display:flex;gap:8px;margin-left:36px}
+.qr span{height:32px;padding:0 12px;display:inline-flex;align-items:center;border:1px solid var(--page-line-2);border-radius:8px;font-size:13px;background:var(--page-surface)}
+/* 输入区 */
+.dock{padding:12px 64px 24px;flex:none}
+.dock .in{max-width:680px}
+.comp{background:var(--page-surface);border:1px solid var(--page-line-2);border-radius:12px;padding:12px 12px 12px 16px;display:flex;align-items:flex-end;gap:12px}
+.comp .ph{flex:1;color:var(--page-ink-3);font-size:15px;line-height:24px;padding:4px 0;min-height:32px}
+.comp .ph.has{color:var(--page-ink)}
+.comp .tools{display:flex;gap:4px;align-items:center}
+.tb{width:32px;height:32px;display:grid;place-items:center;border-radius:8px}
+.skip{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.dock .foot{margin-top:8px;display:flex;justify-content:space-between}
+/* 本次发现面板 */
+.disc{padding:24px;display:flex;flex-direction:column;gap:24px;background:var(--page-bg)}
+.disc h3{margin:0;font-size:15px;line-height:24px;font-weight:500}
+.disc h5{margin:0 0 8px;font-size:12px;font-weight:400;color:var(--page-ink-3)}
+.star{list-style:none;margin:0;padding:0}
+.star li{height:32px;display:flex;align-items:center;gap:10px;font-size:13px;border-bottom:1px solid var(--page-line)}
+.star li .v{margin-left:auto}
+.ck{width:14px;height:14px;border-radius:4px;border:1.5px solid var(--page-line-2);display:grid;place-items:center;flex:none}
+.ck.on{background:var(--page-accent);border-color:var(--page-accent)}
+.ck.on svg.lucide{width:10px;height:10px;color:#fff;stroke-width:3}
+.ck.cur{border-color:var(--page-accent)}
+.chg{padding:10px 0;border-bottom:1px solid var(--page-line)}
+.chg .s{font-size:13px;line-height:20px}
+.chg .m{display:flex;align-items:center;gap:10px;margin-top:6px}
+
+/* ===== 首页 ===== */
+.d{width:1440px;height:1000px;display:grid;grid-template-columns:248px 1fr}
+.main{display:flex;flex-direction:column;min-width:0}
+.wrap{padding:48px 32px 32px;display:flex;flex-direction:column;gap:56px}
+.hero{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:48px;align-items:center}
+.hero .meta{display:flex;gap:12px;align-items:center}
+.hero h1{margin:16px 0 16px;font-size:36px;line-height:44px;font-weight:500;letter-spacing:-.01em}
+.hero p{margin:0;font-size:16px;line-height:26px;color:var(--page-ink-2);max-width:36em}
+.hero .comp{margin-top:32px}
+.hero .comp .ph{min-height:56px}
+.resume{display:flex;align-items:center;gap:8px;margin-top:16px;font-size:13px;color:var(--page-ink-2)}
+.resume b{font-weight:500;color:var(--page-ink)}
+.card{background:var(--page-surface);border:1px solid var(--page-line);border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,.06);padding:24px 28px}
+.card .top{display:flex;align-items:center;justify-content:space-between}
+.card h3{margin:12px 0 20px;font-size:22px;line-height:30px;font-weight:500}
+.starters{list-style:none;margin:0;padding:0;border-top:1px solid var(--page-line)}
+.starters li{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid var(--page-line)}
+.starters li b{display:block;font-weight:500;font-size:15px;line-height:24px}
+.starters li span.d2{font-size:13px;color:var(--page-ink-2)}
+.how{display:flex;align-items:flex-end;gap:16px;padding:20px 0 0}
+.how p{margin:0;font-size:13px;line-height:20px;color:var(--page-ink-2)}
+.ev{display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:baseline;padding:10px 0}
+.ev .src{font-size:12px;color:var(--page-ink-3)}
+.ev.dim .q{color:var(--page-ink-3)}
+.gate{display:grid;grid-template-columns:72px 1fr 56px;align-items:center;gap:12px;height:28px}
+.gate .lab{font-size:13px;color:var(--page-ink-2)}
+.gate .bar{height:4px;border-radius:2px;background:var(--page-raised);position:relative;overflow:hidden}
+.gate .bar b{position:absolute;left:0;top:0;bottom:0;background:var(--page-accent);border-radius:2px}
+.gate .v{font-family:var(--page-mono);font-size:12px;color:var(--page-ink);text-align:right}
+.need{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-top:20px;margin-top:12px;border-top:1px solid var(--page-line)}
+.need p{margin:0;font-size:13px;line-height:20px;color:var(--page-ink-2);max-width:22em}
+.row{display:grid;grid-template-columns:minmax(0,8fr) minmax(0,4fr);gap:48px}
+.blk-h{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px}
+.blk-h h3{margin:0;font-size:15px;line-height:24px;font-weight:500}
+table.cl{width:100%;border-collapse:collapse}
+table.cl th{height:36px;font-size:12px;font-weight:400;color:var(--page-ink-3);text-align:left;border-bottom:1px solid var(--page-line-2);padding:0 12px}
+table.cl td{height:48px;padding:0 12px;border-bottom:1px solid var(--page-line);font-size:14px}
+table.cl th:first-child,table.cl td:first-child{padding-left:0}
+table.cl td.r,table.cl th.r{text-align:right;padding-right:0}
+table.cl tr.sel td{background:var(--page-accent-50)}
+table.cl tr.sel td:first-child{box-shadow:inset 2px 0 0 var(--page-accent);padding-left:12px}
+.empty{padding:28px 0;border-bottom:1px solid var(--page-line);display:flex;align-items:center;gap:16px;color:var(--page-ink-2);font-size:14px}
+.steps{list-style:none;margin:0;padding:0}
+.steps li{height:44px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--page-line);font-size:14px}
+.steps li .st{margin-left:auto}
+.steps li.cur{font-weight:500}.steps li.lock{color:var(--page-ink-3)}
+.dot{width:8px;height:8px;border-radius:50%;border:1.5px solid var(--page-line-2);flex:none}
+.dot.done{background:var(--page-ink-3);border-color:var(--page-ink-3)}
+.dot.cur{background:var(--page-accent);border-color:var(--page-accent)}
+.seg{display:grid;grid-template-columns:repeat(10,1fr);border:1px solid var(--page-line-2);border-radius:8px;overflow:hidden;margin-top:8px}
+.seg span{height:36px;display:grid;place-items:center;font-family:var(--page-mono);font-size:13px;color:var(--page-ink-2);background:var(--page-surface);border-left:1px solid var(--page-line)}
+.seg span:first-child{border-left:0}
+
+/* ===== 移动 ===== */
+.m{width:390px;height:844px;display:flex;flex-direction:column}
+.m-sb{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:14px;font-weight:500;flex:none}
+.m-sb .ic{display:flex;gap:6px}.m-sb .ic svg.lucide{color:var(--page-ink)}
+.m-hd{height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 12px 0 8px;border-bottom:1px solid var(--page-line);flex:none}
+.m-hd .l{display:flex;align-items:center;gap:4px}
+.m-hd h2{margin:0;font-size:15px;font-weight:500}
+.m-hd .back{width:36px;height:36px;display:grid;place-items:center}
+.m-hd .back svg.lucide{width:20px;height:20px;color:var(--page-ink)}
+.m-stream{flex:1;overflow:hidden;padding:20px 20px 12px;display:flex;flex-direction:column;gap:18px}
+.m-stream .coach p{font-size:15px;line-height:25px}
+.m-stream .mine{max-width:300px}
+.m-stream .inl{margin-left:36px}
+.m-dock{padding:8px 12px 12px;border-top:1px solid var(--page-line);background:var(--page-bg);flex:none}
+.m-dock .comp{padding:8px 8px 8px 14px;align-items:center}
+.m-dock .comp .ph{min-height:0;font-size:14px}
+.m-home-hd{height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;flex:none}
+.m-home-hd h2{margin:0;font-size:15px;font-weight:500}
+.m-bd{flex:1;padding:8px 20px 0;overflow:hidden}
+.m-bd h1{margin:0 0 8px;font-size:24px;line-height:32px;font-weight:500}
+.m-bd>p{margin:0 0 20px;font-size:14px;line-height:22px;color:var(--page-ink-2)}
+.m-comp{margin:0 12px 8px;background:var(--page-surface);border:1px solid var(--page-line-2);border-radius:12px;height:48px;display:flex;align-items:center;gap:8px;padding:0 8px 0 16px;color:var(--page-ink-3);font-size:14px;flex:none}
+.m-comp span{flex:1}
+.m-tab{height:83px;border-top:1px solid var(--page-line);background:var(--page-surface);display:grid;grid-template-columns:repeat(4,1fr);padding-top:8px;flex:none}
+.m-tab a{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;line-height:14px;color:var(--page-ink-3)}
+.m-tab a svg.lucide{width:22px;height:22px}
+.m-tab a.on,.m-tab a.on svg.lucide{color:var(--page-ink)}
+
+/* ===== 组件状态板 / 清单 ===== */
+.spec{padding:48px 56px;background:var(--page-surface)}
+.sh{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:16px;border-bottom:1px solid var(--page-ink);margin-bottom:32px}
+.sh h2{margin:0;font-size:28px;line-height:36px;font-weight:500}
+.spec h4{margin:0 0 12px;font-size:13px;line-height:20px;font-weight:500;color:var(--page-ink-2)}
+.st-row{display:grid;gap:24px;margin-bottom:40px}
+.st-row.c5{grid-template-columns:repeat(5,minmax(0,1fr))}
+.st-row.c4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.st-row.c3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.st-row.c2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.st{min-width:0}
+.st .lab{display:flex;justify-content:space-between;margin-bottom:8px}
+.st .lab b{font-size:13px;font-weight:500}
+.st .cap{margin-top:8px;font-size:12px;line-height:18px;color:var(--page-ink-3)}
+.stage{background:var(--page-bg);border-radius:12px;padding:16px}
+.up{display:grid;grid-template-columns:32px 1fr auto;gap:12px;align-items:center;padding:12px 14px;border:1px solid var(--page-line-2);border-radius:12px;background:var(--page-surface)}
+.up .f{width:32px;height:32px;border-radius:8px;background:var(--page-raised);display:grid;place-items:center}
+.up .n{font-size:14px;line-height:20px}
+.up .p{height:3px;border-radius:2px;background:var(--page-raised);margin-top:6px;position:relative;overflow:hidden}
+.up .p b{position:absolute;left:0;top:0;bottom:0;background:var(--page-accent)}
+.up.err{border-color:var(--page-ink-2)}
+.fail{display:flex;align-items:center;gap:8px;justify-content:flex-end;margin-top:6px;font-size:12px;color:var(--page-ink-2)}
+.fail u{text-decoration:none;color:var(--page-accent);font-weight:500}
+.thinking .mk2 i{opacity:.35}
+.thinking .mk2 i:nth-child(1){opacity:1}
+table.chk{width:100%;border-collapse:collapse}
+table.chk th{font-size:12px;font-weight:400;color:var(--page-ink-3);text-align:left;padding:0 12px 8px 0;border-bottom:1px solid var(--page-line-2)}
+table.chk td{font-size:13px;line-height:20px;padding:10px 12px 10px 0;border-bottom:1px solid var(--page-line);vertical-align:top}
+table.chk td.ok{color:var(--page-accent);font-family:var(--page-mono);white-space:nowrap}
+table.chk td.later{color:var(--page-ink-3);font-family:var(--page-mono);white-space:nowrap}
+</style>
+</head>
+<body>
+<div class="fx-app">
+  <div class="fx-top">
+    <b>照见（暂定名）</b><span class="s">/ 设计稿 第 1 批：主循环 · 基于 v0.2 规范</span>
+    <span class="sp"></span>
+    <button class="fx-btn" id="zOut">−</button><span class="fx-zoom" id="zLab">100%</span><button class="fx-btn" id="zIn">+</button>
+    <button class="fx-btn" id="zFit">适应画布</button><button class="fx-btn" id="z100">100%</button>
+  </div>
+  <aside class="fx-side">
+    <div class="fx-sec"><h4>页面</h4>
+      <button class="fx-item" data-page="p2"><i data-lucide="file"></i>P2 对话 · 经历挖掘</button>
+      <button class="fx-item" data-page="cmp"><i data-lucide="file"></i>P2 对话 · 内联组件状态</button>
+      <button class="fx-item" data-page="p1"><i data-lucide="file"></i>P1 首页 · S1 / S2</button>
+      <button class="fx-item" data-page="chk"><i data-lucide="file"></i>第 1 批检查清单</button>
+    </div>
+    <div class="fx-sec"><h4>画板</h4><div id="layers"></div></div>
+  </aside>
+
+  <main class="fx-canvas" id="canvas"><div class="fx-world" id="world">
+
+  <!-- ================= P2 对话 ================= -->
+  <section class="fx-page" data-page="p2">
+
+    <!-- A 进行中 -->
+    <div class="fx-ab" data-name="P2.2 经历挖掘 · 高光 · 进行中 · 桌面" data-desc="流程 F2。第 2 个高光故事讲到关键追问之后：一条已有线索刚长出第二笔（合并提示），一条新线索等你回应。右侧本次发现面板实时更新，STAR 进度也在这里。" style="left:0;top:0">
+      <div class="fx-ab-label">P2.2 经历挖掘 · 高光 · 进行中 · 桌面<span>1440 × 1000</span></div>
+      <div class="ab cv">
+        <aside class="side">
+          <div class="brand"><span class="mk"><i style="height:16px"></i><i style="height:11px"></i><i style="height:6px"></i></span><b>照见</b></div>
+          <nav class="nav">
+            <a><i data-lucide="house"></i>首页</a>
+            <a class="on"><i data-lucide="message-circle"></i>对话<span class="n mono">进行中</span></a>
+            <a><i data-lucide="list"></i>线索<span class="n mono">2</span></a>
+            <a><i data-lucide="user-round"></i>画像<span class="n mono">未生成</span></a>
+            <a><i data-lucide="calendar-check"></i>打卡<span class="n mono">2 天</span></a>
+          </nav>
+          <div class="slab">你讲过的故事</div>
+          <div class="story on"><span>接手无文档的项目</span><span class="mono">进行中</span></div>
+          <div class="story"><span>大学组织 200 人活动</span><span class="mono">11-19</span></div>
+          <div class="story all"><span>全部故事</span><span class="mono">2</span></div>
+          <div class="grow"></div>
+          <nav class="nav"><a><i data-lucide="settings"></i>设置</a></nav>
+          <div class="me"><span class="av">W</span><span style="font-size:13px">Wortley</span></div>
+        </aside>
+        <div class="cv-main">
+          <div class="hdr">
+            <div class="l"><h2>经历挖掘</h2><span class="seg3"><span class="on">高光</span><span>低谷</span><span>日常</span></span></div>
+            <div class="l"><span class="mono">第 2 个高光故事 · 11-20</span><span class="btn btn-s btn-sm">结束本次</span></div>
+          </div>
+          <div class="cv-body">
+            <div class="cv-col">
+              <div class="stream">
+                <div class="coach"><span class="mk2"><i style="height:14px"></i><i style="height:9px"></i><i style="height:5px"></i></span><p>再聊一个高光故事。最近一两年，工作里有没有哪件事让你特别有劲？</p></div>
+                <div class="mine">去年接手一个烂摊子项目，交接文档几乎没有。我花了两周，把需求、接口、负责人全部重新梳理了一遍。</div>
+                <div class="fold">情境、任务、行动、结果 4 轮追问 · 展开</div>
+                <div class="coach"><span class="mk2"><i style="height:14px"></i><i style="height:9px"></i><i style="height:5px"></i></span><p>整个过程里，哪个环节你最投入，时间过得最快？</p></div>
+                <div class="mine">画那张系统关系图的时候，画完感觉整个项目一下子通了。</div>
+                <div class="inl merge">
+                  <span class="tally"><i class="s"></i><i class="m new"></i><i class="slot"></i></span>
+                  <span class="t"><b>在混乱的局面里，擅长先梳理结构再推进</b><br>这已经是第 2 次出现了，这个故事记为第 2 条证据</span>
+                  <span class="btn btn-t btn-sm">查看线索</span>
+                </div>
+                <div class="coach"><span class="mk2"><i style="height:14px"></i><i style="height:9px"></i><i style="height:5px"></i></span>
+                  <div><p>另外有个细节：你两次都提到画图、画表。我先记成一条新线索，你看准不准</p>
+                    <div class="xcard" style="margin-top:12px">
+                      <div class="k"><span class="tally"><i class="m"></i></span>新线索 · 行为模式</div>
+                      <div class="s">习惯用画图、画表的方式理清思路</div>
+                      <div class="w">依据：这次是系统关系图，上次活动是流程表</div>
+                      <div class="a"><span class="btn btn-s btn-sm">准</span><span class="btn btn-s btn-sm">部分准，我改一下</span><span class="btn btn-t btn-sm">不准</span></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="dock"><div class="in">
+                <div class="comp"><div class="ph">回答，或者直接点上面的按钮</div><div class="tools"><span class="tb"><i data-lucide="paperclip"></i></span><span class="tb"><i data-lucide="mic"></i></span><span class="ibtn off"><i data-lucide="arrow-up"></i></span></div></div>
+                <div class="foot"><span class="mono">Enter 发送 · Shift + Enter 换行</span><span class="mono">自动保存</span></div>
+              </div></div>
+            </div>
+            <aside class="disc">
+              <h3>本次发现</h3>
+              <div>
+                <h5>这个故事</h5>
+                <div style="font-size:14px;font-weight:500;margin-bottom:8px">接手无文档的项目</div>
+                <ul class="star">
+                  <li><span class="ck on"><i data-lucide="check"></i></span>情境</li>
+                  <li><span class="ck on"><i data-lucide="check"></i></span>任务</li>
+                  <li><span class="ck on"><i data-lucide="check"></i></span>行动</li>
+                  <li><span class="ck on"><i data-lucide="check"></i></span>结果</li>
+                  <li><span class="ck on"><i data-lucide="check"></i></span>最投入的环节</li>
+                </ul>
+              </div>
+              <div>
+                <h5>线索变化</h5>
+                <div class="chg"><div class="s">在混乱的局面里，擅长先梳理结构再推进</div><div class="m"><span class="tally"><i class="s"></i><i class="m new"></i><i class="slot"></i></span><span class="mono">+1 证据 · 中</span></div></div>
+                <div class="chg"><div class="s">习惯用画图、画表的方式理清思路</div><div class="m"><span class="tally"><i class="m"></i><i class="slot"></i><i class="slot"></i></span><span class="tag dash">等你回应</span></div></div>
+              </div>
+              <p class="mono" style="margin:0">随时可以离开，回来从这里继续</p>
+            </aside>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- B 本次结束 -->
+    <div class="fx-ab" data-name="P2.2 经历挖掘 · 本次结束 · 桌面" data-desc="会话结束（Q4：每个技能一次会话）。本次小结给出数字、变化和建议下一步，建议的理由来自路由规则：高光故事 2 / 3。" style="left:1540px;top:0">
+      <div class="fx-ab-label">P2.2 经历挖掘 · 本次结束 · 桌面<span>1440 × 1000</span></div>
+      <div class="ab cv">
+        <aside class="side">
+          <div class="brand"><span class="mk"><i style="height:16px"></i><i style="height:11px"></i><i style="height:6px"></i></span><b>照见</b></div>
+          <nav class="nav">
+            <a><i data-lucide="house"></i>首页</a>
+            <a class="on"><i data-lucide="message-circle"></i>对话</a>
+            <a><i data-lucide="list"></i>线索<span class="n mono">2</span></a>
+            <a><i data-lucide="user-round"></i>画像<span class="n mono">未生成</span></a>
+            <a><i data-lucide="calendar-check"></i>打卡<span class="n mono">2 天</span></a>
+          </nav>
+          <div class="slab">你讲过的故事</div>
+          <div class="story on"><span>接手无文档的项目</span><span class="mono">11-20</span></div>
+          <div class="story"><span>大学组织 200 人活动</span><span class="mono">11-19</span></div>
+          <div class="story all"><span>全部故事</span><span class="mono">2</span></div>
+          <div class="grow"></div>
+          <nav class="nav"><a><i data-lucide="settings"></i>设置</a></nav>
+          <div class="me"><span class="av">W</span><span style="font-size:13px">Wortley</span></div>
+        </aside>
+        <div class="cv-main">
+          <div class="hdr">
+            <div class="l"><h2>经历挖掘</h2><span class="seg3"><span class="on">高光</span><span>低谷</span><span>日常</span></span></div>
+            <div class="l"><span class="mono">已结束 · 11-20 · 14 分钟</span></div>
+          </div>
+          <div class="cv-body">
+            <div class="cv-col">
+              <div class="stream">
+                <div class="fold" style="padding-left:0">前面 9 条消息 · 展开</div>
+                <div class="inl xcard done" style="margin-left:36px"><div class="k"><span class="tally"><i class="m"></i></span>已记下 · 你认同</div><div class="s">习惯用画图、画表的方式理清思路</div></div>
+                <div class="coach"><span class="mk2"><i style="height:14px"></i><i style="height:9px"></i><i style="height:5px"></i></span><p>这个故事讲完整了。两次高光都落在同一个地方：先把乱的东西理清楚。下次我们可以再找一个，看看它会不会第三次出现。</p></div>
+                <div class="inl sum" style="margin-left:36px;max-width:600px">
+                  <h4>这次聊出来的</h4>
+                  <div class="nums">
+                    <div><b>1</b><span class="mono">新故事</span></div>
+                    <div><b>1</b><span class="mono">新线索</span></div>
+                    <div><b>2</b><span class="mono">新证据</span></div>
+                  </div>
+                  <div class="li"><span class="tally"><i class="s"></i><i class="m"></i><i class="slot"></i></span><span>在混乱的局面里，擅长先梳理结构再推进</span><span class="mono">中 · +1</span></div>
+                  <div class="li"><span class="tally"><i class="m"></i><i class="slot"></i><i class="slot"></i></span><span>习惯用画图、画表的方式理清思路</span><span class="mono">新 · 中</span></div>
+                  <div class="next">
+                    <p><b>建议下一步：再讲 1 个高光故事</b>高光故事 2 / 3，讲满 3 个就可以开始低谷模式</p>
+                    <div style="display:flex;gap:8px"><span class="btn btn-p">再聊一个</span><span class="btn btn-s">回首页</span></div>
+                  </div>
+                </div>
+              </div>
+              <div class="dock"><div class="in">
+                <div class="comp"><div class="ph">这次已经结束。想补充什么，可以接着说</div><div class="tools"><span class="ibtn off"><i data-lucide="arrow-up"></i></span></div></div>
+              </div></div>
+            </div>
+            <aside class="disc">
+              <h3>本次发现</h3>
+              <div>
+                <h5>这个故事</h5>
+                <div style="font-size:14px;font-weight:500">接手无文档的项目</div>
+                <p class="mono" style="margin:6px 0 0">STAR 完整 · 产生 2 条证据</p>
+                <span class="btn btn-t btn-sm" style="margin-top:8px;padding:0">打开故事详情</span>
+              </div>
+              <div>
+                <h5>进度</h5>
+                <ul class="star">
+                  <li><span class="ck on"><i data-lucide="check"></i></span>高光故事<span class="v mono">2 / 3</span></li>
+                  <li><span class="ck"></span>低谷故事<span class="v mono">0 / 2</span></li>
+                </ul>
+              </div>
+            </aside>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- C 移动 低谷 -->
+    <div class="fx-ab" data-name="P2.2 经历挖掘 · 低谷 · 移动" data-desc="对话全屏（Q2）。低谷模式：输入框上方常驻「跳过这个话题」。一段材料同时指向价值观和能量消耗，拆成两条相关线索，用一张卡片一起确认。" style="left:3080px;top:0">
+      <div class="fx-ab-label">P2.2 经历挖掘 · 低谷 · 移动<span>390 × 844</span></div>
+      <div class="ab m">
+        <div class="m-sb"><span>21:50</span><span class="ic"><i data-lucide="signal"></i><i data-lucide="wifi"></i><i data-lucide="battery-full"></i></span></div>
+        <div class="m-hd"><div class="l"><span class="back"><i data-lucide="chevron-left"></i></span><h2>经历挖掘 · 低谷</h2></div><span class="btn btn-t btn-sm">结束</span></div>
+        <div class="m-stream">
+          <div class="coach"><span class="mk2"><i style="height:14px"></i><i style="height:9px"></i><i style="height:5px"></i></span><p>这一段可能会勾起不舒服的感受，随时可以跳过，或者今天先到这里。</p></div>
+          <div class="mine">第一份工作的主管，每天让我汇报三次进度，连邮件措辞都要改。那半年特别压抑。</div>
+          <div class="coach"><span class="mk2"><i style="height:14px"></i><i style="height:9px"></i><i style="height:5px"></i></span><p>听起来那半年确实不好受。最难受的是哪个点？</p></div>
+          <div class="mine">事情不难，难受的是完全没有自主权，像个执行机器。</div>
+          <div class="coach"><span class="mk2"><i style="height:14px"></i><i style="height:9px"></i><i style="height:5px"></i></span>
+            <div><p>我注意到两条相关的线索</p>
+              <div class="xcard" style="margin-top:10px;padding:14px">
+                <div class="k">价值观</div>
+                <div class="s" style="font-size:15px;margin:4px 0 10px">自主权对我很重要</div>
+                <div class="k" style="padding-top:10px;border-top:1px solid var(--page-line)">能量消耗</div>
+                <div class="s" style="font-size:15px;margin:4px 0 0">被管得过细会明显消耗我</div>
+                <div class="a"><span class="btn btn-s btn-sm">都准</span><span class="btn btn-s btn-sm">分别看看</span></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="m-dock">
+          <div class="skip"><span class="btn btn-t btn-sm" style="padding:0"><i data-lucide="corner-up-right"></i>跳过这个话题</span><span class="mono">低谷模式</span></div>
+          <div class="comp"><div class="ph">回答，或者跳过</div><span class="tb"><i data-lucide="mic"></i></span><span class="ibtn off"><i data-lucide="arrow-up"></i></span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 内联组件状态 ================= -->
+  <section class="fx-page" data-page="cmp">
+    <div class="fx-ab" data-name="内联组件 · 全部状态" data-desc="框架文档 P2 节列出的 6 种内联组件和通用状态，每个状态都画出。安全卡片沿用 v0.2 规范，第 6 批再补完整流程。" style="left:0;top:0">
+      <div class="fx-ab-label">内联组件 · 全部状态<span>1600 × 1640</span></div>
+      <div class="ab spec" style="width:1600px;height:1640px">
+        <div class="sh"><h2>每个内联组件都有终点状态，对话往回翻时看得懂</h2><span class="mono">P2 · 内联组件</span></div>
+
+        <h4>线索提炼卡 · 5 个状态</h4>
+        <div class="st-row c5">
+          <div class="st"><div class="lab"><b>待回应</b><span class="mono">默认</span></div><div class="stage"><div class="xcard"><div class="k"><span class="tally"><i class="s"></i></span>新线索 · 能力</div><div class="s">在混乱的局面里，擅长先梳理结构再推进</div><div class="w">依据：最投入的是理清乱麻那段</div><div class="a"><span class="btn btn-s btn-sm">准</span><span class="btn btn-s btn-sm">部分准</span><span class="btn btn-t btn-sm">不准</span></div></div></div><div class="cap">三个按钮都是次按钮，不替用户选</div></div>
+          <div class="st"><div class="lab"><b>已认同</b><span class="mono">准</span></div><div class="stage"><div class="xcard done"><div class="k"><span class="tally"><i class="s"></i></span>已记下 · 你认同</div><div class="s">在混乱的局面里，擅长先梳理结构再推进</div></div></div><div class="cap">收起为一行，刻痕保留；点击打开线索详情</div></div>
+          <div class="st"><div class="lab"><b>改写中</b><span class="mono">部分准</span></div><div class="stage"><div class="xcard"><div class="k">改成你觉得准的说法</div><div class="ta">在乱的时候，我会先把事情列清楚再动手</div><div class="a"><span class="btn btn-p btn-sm">保存</span><span class="btn btn-t btn-sm">取消</span></div></div></div><div class="cap">原地编辑，原说法预填；Enter 保存</div></div>
+          <div class="st"><div class="lab"><b>已改写</b><span class="mono">部分准 → 保存</span></div><div class="stage"><div class="xcard done"><div class="k"><span class="tally"><i class="s"></i></span>已记下 · <span class="tag" style="height:18px">你修改过</span></div><div class="s">在乱的时候，我会先把事情列清楚再动手</div></div></div><div class="cap">之后所有地方都用你的说法</div></div>
+          <div class="st"><div class="lab"><b>已否认</b><span class="mono">不准</span></div><div class="stage"><div class="xcard done no"><div class="k">先不记这条</div><div class="s">在混乱的局面里，擅长先梳理结构再推进</div></div><div class="coach" style="margin-top:12px"><span class="mk2"><i style="height:14px"></i><i style="height:9px"></i><i style="height:5px"></i></span><p style="font-size:14px;line-height:22px">那你觉得更准确的说法是什么？</p></div></div><div class="cap">第 1 次否认降一级；第 2 次归档，卡片写「这条我不再提了」</div></div>
+        </div>
+
+        <h4>合并提示 · 2 种</h4>
+        <div class="st-row c2">
+          <div class="st"><div class="lab"><b>自动合并</b><span class="mono">线索未被你确认过</span></div><div class="stage"><div class="merge"><span class="tally"><i class="s"></i><i class="m new"></i><i class="slot"></i></span><span class="t"><b>在混乱的局面里，擅长先梳理结构再推进</b><br>这已经是第 2 次出现了</span><span class="btn btn-t btn-sm">查看线索</span></div></div><div class="cap">不打断对话；新的一笔用 400ms 长出来，外圈浅色描边 2 秒后消失。生成画像前统一过目</div></div>
+          <div class="st"><div class="lab"><b>询问合并</b><span class="mono">线索已被你确认过</span></div><div class="stage"><div class="merge"><span class="tally"><i class="s"></i><i class="slot"></i><i class="slot"></i></span><span class="t">这次说的「讨厌被催进度」，和<b>「自主权对我很重要」</b>很像，要并在一起吗</span></div><div style="display:flex;gap:8px;margin-top:8px;padding-left:16px"><span class="btn btn-s btn-sm">并在一起</span><span class="btn btn-s btn-sm">分开记</span></div></div><div class="cap">选「分开记」则新建线索并标记「相关」</div></div>
+        </div>
+
+        <h4>等级变化 · 2 种</h4>
+        <div class="st-row c2">
+          <div class="st"><div class="lab"><b>升级 中 → 高</b><span class="mono">唯一用强调色描边的提示</span></div><div class="stage"><div class="lvl"><span class="tally lg"><i class="s"></i><i class="m"></i><i class="m new"></i></span><div class="t"><b>「梳理结构」可以写进画像了</b><span>3 条证据，来自经历和测评两种来源，加权分 3.0</span></div><span class="btn btn-s btn-sm">查看线索</span></div></div><div class="cap">刻痕最后一笔从空位长出；下次打开首页时作为开场句素材</div></div>
+          <div class="st"><div class="lab"><b>降级 / 归档</b><span class="mono">中性语气，不用警示色</span></div><div class="stage"><div class="lvl down"><span class="tally lg"><i class="s"></i><i class="slot"></i><i class="slot"></i></span><div class="t"><b>「协调者」这条先往后放</b><span>你说不太像你，我把它降到「线索」。再遇到相关的事我会先问你</span></div><span class="btn btn-t btn-sm">撤销</span></div></div><div class="cap">第 2 次否认时文案为「这条我不再提了」，按钮为「恢复」</div></div>
+        </div>
+
+        <h4>上传卡片 · 5 个状态（测评）</h4>
+        <div class="st-row c5">
+          <div class="st"><div class="lab"><b>上传中</b></div><div class="stage"><div class="up"><span class="f"><i data-lucide="file-text"></i></span><div><div class="n">大五人格结果.pdf</div><div class="p"><b style="width:45%"></b></div></div><span class="mono">45%</span></div></div></div>
+          <div class="st"><div class="lab"><b>解析中</b></div><div class="stage"><div class="up"><span class="f"><i data-lucide="file-text"></i></span><div><div class="n">大五人格结果.pdf</div><div class="mono" style="margin-top:4px">正在读取分数 · 可以先离开</div></div><span class="mono">约 20 秒</span></div></div></div>
+          <div class="st"><div class="lab"><b>成功</b></div><div class="stage"><div class="up"><span class="f"><i data-lucide="file-text"></i></span><div><div class="n">大五人格 · 5 个维度</div><div class="mono" style="margin-top:4px">已识别 · 下面逐条看</div></div><span class="tag ok">可计入</span></div></div></div>
+          <div class="st"><div class="lab"><b>失败</b></div><div class="stage"><div class="up err"><span class="f"><i data-lucide="file-text"></i></span><div><div class="n">截图_1124.png</div><div class="mono" style="margin-top:4px;color:var(--page-ink-2)">没读到分数，图片可能太模糊</div></div><span></span></div><div class="fail"><u>重新上传</u>·<u>改为粘贴文字</u></div></div></div>
+          <div class="st"><div class="lab"><b>不计入（MBTI）</b></div><div class="stage"><div class="up"><span class="f"><i data-lucide="file-text"></i></span><div><div class="n">MBTI · INTJ</div><div class="mono" style="margin-top:4px">用来聊天，不算证据</div></div><span class="tag">不计入</span></div></div><div class="cap">接着教练追问「哪一点最像你，举个例子」</div></div>
+        </div>
+
+        <h4>通用状态</h4>
+        <div class="st-row c4">
+          <div class="st"><div class="lab"><b>教练正在想</b></div><div class="stage"><div class="coach thinking"><span class="mk2"><i style="height:14px"></i><i style="height:9px"></i><i style="height:5px"></i></span><p class="c3" style="font-size:14px">　</p></div></div><div class="cap">三道刻痕依次变实，循环；不显示「正在输入」文字。prefers-reduced-motion 时静止</div></div>
+          <div class="st"><div class="lab"><b>没发出去</b></div><div class="stage" style="display:flex;flex-direction:column"><div class="mine" style="align-self:flex-end;max-width:240px">画那张系统关系图的时候</div><div class="fail"><i data-lucide="circle-alert"></i>没发出去 · <u>重试</u></div></div><div class="cap">内容保留在气泡里，不清空</div></div>
+          <div class="st"><div class="lab"><b>生成失败</b></div><div class="stage"><div class="coach"><span class="mk2"><i style="height:14px;background:var(--page-ink-3)"></i><i style="height:9px;background:var(--page-ink-3)"></i><i style="height:5px;background:var(--page-ink-3)"></i></span><div><p style="font-size:14px;line-height:22px" class="c2">我刚才没想好，再试一次</p><span class="btn btn-s btn-sm" style="margin-top:8px"><i data-lucide="rotate-cw"></i>重新生成</span></div></div></div></div>
+          <div class="st"><div class="lab"><b>续聊分隔线</b></div><div class="stage"><div class="rule"><span class="mono">上次聊到这里 · 11-22 21:40</span></div><div class="coach" style="margin-top:12px"><span class="mk2"><i style="height:14px"></i><i style="height:9px"></i><i style="height:5px"></i></span><p style="font-size:14px;line-height:22px">我们接着说那位主管。你说像个执行机器，那时候你是怎么撑过来的？</p></div></div></div>
+        </div>
+        <div class="st-row c2">
+          <div class="st"><div class="lab"><b>快捷回复</b><span class="mono">只在选择题出现，最多 3 个</span></div><div class="stage"><div class="coach"><span class="mk2"><i style="height:14px"></i><i style="height:9px"></i><i style="height:5px"></i></span><p style="font-size:14px;line-height:22px">聊完这一轮，你最希望得到什么？</p></div><div class="qr" style="margin-top:12px"><span>职业方向的参考</span><span>更理解自己</span><span>其他，我来说</span></div></div><div class="cap">点击即作为你的消息发出，快捷回复随即消失</div></div>
+          <div class="st"><div class="lab"><b>安全提示</b><span class="mono">沿用 v0.2，第 6 批补完整流程</span></div><div class="stage"><div style="border-radius:12px;padding:16px;background:var(--page-raised);font-size:14px;line-height:22px;color:var(--page-ink-2);display:grid;grid-template-columns:16px 1fr;gap:12px"><i data-lucide="pause"></i><div><div style="font-weight:500;color:var(--page-ink)">今天的探索先停一停</div>这种状态持续一段时间的话，找专业的心理咨询师聊聊会有帮助</div></div></div></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= P1 首页 ================= -->
+  <section class="fx-page" data-page="p1">
+    <div class="fx-ab" data-name="P1 首页 · S1 新用户 · 桌面" data-desc="目标设定刚完成，还没有故事。主区不放空白的线索卡，改成三个可以直接开讲的故事开头，以及一张说明刻痕会怎么出现的卡片。" style="left:0;top:0">
+      <div class="fx-ab-label">P1 首页 · S1 新用户 · 桌面<span>1440 × 1000</span></div>
+      <div class="ab d">
+        <aside class="side">
+          <div class="brand"><span class="mk"><i style="height:16px"></i><i style="height:11px"></i><i style="height:6px"></i></span><b>照见</b></div>
+          <nav class="nav">
+            <a class="on"><i data-lucide="house"></i>首页</a>
+            <a><i data-lucide="message-circle"></i>对话</a>
+            <a><i data-lucide="list"></i>线索<span class="n mono">0</span></a>
+            <a><i data-lucide="user-round"></i>画像<span class="n mono">未生成</span></a>
+            <a><i data-lucide="calendar-check"></i>打卡<span class="n mono">0 天</span></a>
+          </nav>
+          <div class="slab">你讲过的故事</div>
+          <div class="story all"><span>还没有</span></div>
+          <div class="grow"></div>
+          <nav class="nav"><a><i data-lucide="settings"></i>设置</a></nav>
+          <div class="me"><span class="av">W</span><span style="font-size:13px">Wortley</span></div>
+        </aside>
+        <div class="main">
+          <div class="hdr"><h2>首页</h2><span class="mono">第 1 天 · 2026-11-19</span></div>
+          <div class="wrap">
+            <div class="hero">
+              <div>
+                <div class="meta"><span class="tag">目标：职业方向的参考</span></div>
+                <h1>从一件让你觉得「这才是我」的事开始</h1>
+                <p>不用想得很完整，先说个大概，我会一点点问细节。每个故事 10–15 分钟，讲完你会看到第一条线索。</p>
+                <div class="comp"><div class="ph">比如：大学时组织过一个活动……</div><div class="tools"><span class="tb"><i data-lucide="mic"></i></span><span class="ibtn off"><i data-lucide="arrow-up"></i></span></div></div>
+              </div>
+              <div class="card">
+                <div class="top"><span class="mono">想不起来的话，可以从这些开始</span></div>
+                <ul class="starters" style="margin-top:12px">
+                  <li><div><b>一次熬夜也不觉得累的经历</b><span class="d2">投入到忘了时间的事，往往藏着优势</span></div><span class="btn btn-s btn-sm">用这个开头</span></li>
+                  <li><div><b>别人特意来找你帮忙的一件事</b><span class="d2">别人想到你，说明你做这件事让人放心</span></div><span class="btn btn-s btn-sm">用这个开头</span></li>
+                  <li><div><b>做完之后很想再来一次的事</b><span class="d2">做完还想做，比做得好更说明问题</span></div><span class="btn btn-s btn-sm">用这个开头</span></li>
+                </ul>
+                <div class="how">
+                  <span class="tally lg"><i class="slot"></i><i class="slot"></i><i class="slot"></i></span>
+                  <p>每条证据会在这里画一笔。同一个特点出现在不同的故事和来源里，笔画多起来，它才会写进你的画像</p>
+                </div>
+              </div>
+            </div>
+            <div class="row">
+              <div>
+                <div class="blk-h"><h3>全部线索</h3><span class="mono">0 条</span></div>
+                <div class="empty"><span class="tally"><i class="slot"></i></span>讲完第一个故事，线索会出现在这里</div>
+              </div>
+              <div>
+                <div class="blk-h"><h3>探索进度</h3><span class="mono">1 / 5</span></div>
+                <ul class="steps">
+                  <li><span class="dot done"></span>目标设定<span class="st mono">11-19</span></li>
+                  <li class="cur"><span class="dot cur"></span>经历挖掘<span class="st mono">0 个故事</span></li>
+                  <li class="lock"><span class="dot"></span>价值观澄清<span class="st mono">讲 3 个故事后</span></li>
+                  <li><span class="dot"></span>测评解读<span class="st mono">随时上传</span></li>
+                  <li class="lock"><span class="dot"></span>生成画像<span class="st mono">还差 3 条「高」</span></li>
+                </ul>
+                <div style="margin-top:32px">
+                  <div class="blk-h"><h3>今天的能量</h3><span class="mono">0 / 14 天</span></div>
+                  <div class="seg"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="fx-ab" data-name="P1 首页 · S1 新用户 · 移动" data-desc="同一状态。三个故事开头改成可点击的行，点了直接进入对话。" style="left:1540px;top:0">
+      <div class="fx-ab-label">P1 首页 · S1 新用户 · 移动<span>390 × 844</span></div>
+      <div class="ab m">
+        <div class="m-sb"><span>21:10</span><span class="ic"><i data-lucide="signal"></i><i data-lucide="wifi"></i><i data-lucide="battery-full"></i></span></div>
+        <div class="m-home-hd"><h2>首页</h2><span class="av">W</span></div>
+        <div class="m-bd">
+          <h1>从一件让你觉得「这才是我」的事开始</h1>
+          <p>先说个大概，我会一点点问细节。</p>
+          <div class="blk-h"><h3>可以从这些开始</h3></div>
+          <ul class="starters">
+            <li><div><b>一次熬夜也不觉得累的经历</b></div><i data-lucide="chevron-right"></i></li>
+            <li><div><b>别人特意来找你帮忙的一件事</b></div><i data-lucide="chevron-right"></i></li>
+            <li><div><b>做完之后很想再来一次的事</b></div><i data-lucide="chevron-right"></i></li>
+          </ul>
+          <div class="how"><span class="tally lg"><i class="slot"></i><i class="slot"></i><i class="slot"></i></span><p>每条证据会在这里画一笔，笔画多起来才会写进画像</p></div>
+        </div>
+        <div class="m-comp"><span>比如：大学时组织过一个活动……</span><span class="ibtn off"><i data-lucide="arrow-up"></i></span></div>
+        <nav class="m-tab"><a class="on"><i data-lucide="house"></i>首页</a><a><i data-lucide="list"></i>线索</a><a><i data-lucide="calendar-check"></i>打卡</a><a><i data-lucide="user-round"></i>画像</a></nav>
+      </div>
+    </div>
+
+    <div class="fx-ab" data-name="P1 首页 · S2 探索中 · 桌面" data-desc="v0.2 首页按框架更新：侧栏故事列表加「全部故事」入口（Q1）。移动端沿用 v0.2 的「首页 · 移动 390」。" style="left:0;top:1100px">
+      <div class="fx-ab-label">P1 首页 · S2 探索中 · 桌面<span>1440 × 1000</span></div>
+      <div class="ab d">
+        <aside class="side">
+          <div class="brand"><span class="mk"><i style="height:16px"></i><i style="height:11px"></i><i style="height:6px"></i></span><b>照见</b></div>
+          <nav class="nav">
+            <a class="on"><i data-lucide="house"></i>首页</a>
+            <a><i data-lucide="message-circle"></i>对话</a>
+            <a><i data-lucide="list"></i>线索<span class="n mono">5</span></a>
+            <a><i data-lucide="user-round"></i>画像<span class="n mono">未生成</span></a>
+            <a><i data-lucide="calendar-check"></i>打卡<span class="n mono">6 天</span></a>
+          </nav>
+          <div class="slab">你讲过的故事</div>
+          <div class="story"><span>第一份工作的主管</span><span class="mono">11-22</span></div>
+          <div class="story"><span>临时救场的发布会</span><span class="mono">11-21</span></div>
+          <div class="story"><span>接手无文档的项目</span><span class="mono">11-20</span></div>
+          <div class="story all"><span>全部故事</span><span class="mono">4</span></div>
+          <div class="grow"></div>
+          <nav class="nav"><a><i data-lucide="settings"></i>设置</a></nav>
+          <div class="me"><span class="av">W</span><span style="font-size:13px">Wortley</span></div>
+        </aside>
+        <div class="main">
+          <div class="hdr"><h2>首页</h2><span class="mono">第 6 天 · 2026-11-24</span></div>
+          <div class="wrap">
+            <div class="hero">
+              <div>
+                <div class="meta"><span class="tag">优势候选</span><span class="mono">离写进画像最近的一条</span></div>
+                <h1>「梳理结构」这条线索，只差一条别处来的证据</h1>
+                <p>目前 2 条证据都来自你讲的故事，画像要求至少两种来源。上传一份测评，或做一次价值观澄清，它就能写进核心优势。</p>
+                <div class="comp"><div class="ph">或者说说今天想聊的</div><div class="tools"><span class="tb"><i data-lucide="paperclip"></i></span><span class="tb"><i data-lucide="mic"></i></span><span class="ibtn"><i data-lucide="arrow-up"></i></span></div></div>
+                <div class="resume"><i data-lucide="corner-down-right"></i>上次聊到<b>第一份工作的主管</b><span class="mono">11-22 · 低谷</span></div>
+              </div>
+              <div class="card">
+                <div class="top"><span class="tag">能力</span><span class="mono">中 → 高</span></div>
+                <h3>在混乱的局面里，擅长先梳理结构再推进</h3>
+                <div style="display:flex;align-items:flex-end;gap:16px;padding-bottom:20px;border-bottom:1px solid var(--page-line)"><span class="tally lg"><i class="s"></i><i class="m"></i><i class="slot"></i></span><span style="font-size:13px;color:var(--page-ink-2)">2 条证据，都来自经历</span></div>
+                <div style="padding:8px 0;border-bottom:1px solid var(--page-line)">
+                  <div class="ev"><span class="src">经历</span><span>其实是前期把一团乱麻理清楚的那段，熬夜都不觉得累</span><span class="mono">强</span></div>
+                  <div class="ev"><span class="src">经历</span><span>画那张系统关系图的时候，整个项目一下子通了</span><span class="mono">中</span></div>
+                </div>
+                <div style="padding-top:16px">
+                  <div class="gate"><span class="lab">证据数</span><span class="bar"><b style="width:66.6%"></b></span><span class="v">2 / 3</span></div>
+                  <div class="gate"><span class="lab">来源种类</span><span class="bar"><b style="width:50%"></b></span><span class="v">1 / 2</span></div>
+                  <div class="gate"><span class="lab">加权分</span><span class="bar"><b style="width:83.3%"></b></span><span class="v">2.5 / 3.0</span></div>
+                </div>
+                <div class="need"><p>还差 1 条来自测评、价值观澄清或他人反馈的证据</p><div style="display:flex;gap:8px"><span class="btn btn-p">上传测评报告</span><span class="btn btn-s">价值观澄清</span></div></div>
+              </div>
+            </div>
+            <div class="row">
+              <div>
+                <div class="blk-h"><h3>全部线索</h3><span class="mono">5 条 · 0 条到「高」</span></div>
+                <table class="cl">
+                  <tr><th>线索</th><th>类型</th><th>证据</th><th class="r">等级</th></tr>
+                  <tr class="sel"><td>在混乱的局面里，擅长先梳理结构再推进</td><td class="c2">优势候选</td><td><span class="tally"><i class="s"></i><i class="m"></i><i class="slot"></i></span></td><td class="r">中</td></tr>
+                  <tr><td>习惯用画图、画表的方式理清思路</td><td class="c2">行为模式</td><td><span class="tally"><i class="m"></i><i class="m"></i><i class="slot"></i></span></td><td class="r">中</td></tr>
+                  <tr><td>自主权对我很重要</td><td class="c2">价值观</td><td><span class="tally"><i class="s"></i><i class="slot"></i><i class="slot"></i></span></td><td class="r">中</td></tr>
+                  <tr><td>被管得过细会明显消耗我</td><td class="c2">能量消耗</td><td><span class="tally"><i class="s"></i><i class="slot"></i><i class="slot"></i></span></td><td class="r">中</td></tr>
+                  <tr><td>有耐心 <span class="tag dash" style="margin-left:8px">待补例子</span></td><td class="c2">优势候选</td><td><span class="tally"><i class="self"></i><i class="slot"></i><i class="slot"></i></span></td><td class="r c3">线索</td></tr>
+                </table>
+              </div>
+              <div>
+                <div class="blk-h"><h3>探索进度</h3><span class="mono">2 / 5</span></div>
+                <ul class="steps">
+                  <li><span class="dot done"></span>目标设定<span class="st mono">11-19</span></li>
+                  <li class="cur"><span class="dot cur"></span>经历挖掘<span class="st mono">高光 3 · 低谷 1</span></li>
+                  <li><span class="dot"></span>价值观澄清<span class="st mono">可以开始</span></li>
+                  <li><span class="dot"></span>测评解读<span class="st mono">随时上传</span></li>
+                  <li class="lock"><span class="dot"></span>生成画像<span class="st mono">还差 3 条「高」</span></li>
+                </ul>
+                <div style="margin-top:32px">
+                  <div class="blk-h"><h3>今天的能量</h3><span class="mono">已记录 6 / 14 天</span></div>
+                  <div class="seg"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ================= 检查清单 ================= -->
+  <section class="fx-page" data-page="chk">
+    <div class="fx-ab" data-name="第 1 批检查清单" data-desc="对照《页面结构与交互框架》第 8 节状态矩阵，第 1 批覆盖了哪些、哪些留到后面的批次。" style="left:0;top:0">
+      <div class="fx-ab-label">第 1 批检查清单<span>1200 × 1000</span></div>
+      <div class="ab spec" style="width:1200px;height:1000px">
+        <div class="sh"><h2>第 1 批画了 7 个设计画板，覆盖主循环 F2 和回访 F10</h2><span class="mono">对照框架文档第 8 节</span></div>
+        <table class="chk">
+          <tr><th style="width:26%">页面 / 组件</th><th>本批画了</th><th style="width:16%">状态</th></tr>
+          <tr><td>P2 对话 · 通用框架</td><td>标题栏（模式切换、结束本次）、对话流、输入区、本次发现面板、移动端全屏与返回</td><td class="ok">✓ 完成</td></tr>
+          <tr><td>P2.2 经历挖掘</td><td>高光 · 进行中（桌面）、本次结束（桌面）、低谷 · 进行中（移动，含常驻跳过）</td><td class="ok">✓ 完成</td></tr>
+          <tr><td>线索提炼卡</td><td>待回应 · 已认同 · 改写中 · 已改写 · 已否认</td><td class="ok">✓ 5 / 5</td></tr>
+          <tr><td>合并提示</td><td>自动合并 · 询问合并</td><td class="ok">✓ 2 / 2</td></tr>
+          <tr><td>等级变化</td><td>升级 · 降级 / 归档</td><td class="ok">✓ 2 / 2</td></tr>
+          <tr><td>本次小结</td><td>桌面版（嵌在本次结束画板中）</td><td class="ok">✓</td></tr>
+          <tr><td>上传卡片</td><td>上传中 · 解析中 · 成功 · 失败 · 不计入</td><td class="ok">✓ 5 / 5</td></tr>
+          <tr><td>通用状态</td><td>正在想 · 没发出去 · 生成失败 · 续聊分隔线 · 快捷回复</td><td class="ok">✓ 5 / 5</td></tr>
+          <tr><td>P1 首页 S1 新用户</td><td>桌面 + 移动</td><td class="ok">✓ 完成</td></tr>
+          <tr><td>P1 首页 S2 探索中</td><td>桌面（更新侧栏）；移动沿用 v0.2</td><td class="ok">✓ 完成</td></tr>
+          <tr><td>P2.2 日常模式</td><td>和高光共用结构，只换开场问题</td><td class="later">○ 共用</td></tr>
+          <tr><td>回答敷衍、换问法</td><td>纯文案，不需要新组件</td><td class="later">○ 共用</td></tr>
+          <tr><td>安全提示完整流程</td><td>本批只放了组件</td><td class="later">→ 第 6 批</td></tr>
+          <tr><td>中屏断点（768–1279）</td><td>侧栏收起、本次发现改为抽屉</td><td class="later">→ 第 6 批</td></tr>
+          <tr><td>本次发现 · 移动端</td><td>抽屉形式</td><td class="later">→ 第 6 批</td></tr>
+        </table>
+        <p class="mono" style="margin-top:24px">下一批：第 2 批 档案 · P4.1 线索库 · P4.2 线索详情 · P3.1 故事列表 · P3.2 故事详情（含删除影响预览）</p>
+      </div>
+    </div>
+  </section>
+
+  </div><div class="fx-hint">拖动平移 · 滚轮平移 · Ctrl / ⌘ + 滚轮缩放 · 点击画板看说明</div></main>
+
+  <aside class="fx-side r">
+    <div class="fx-sec"><h4>画板</h4><div class="fx-kv"><span>名称</span><b id="iName">—</b><span>尺寸</span><b id="iSize">—</b></div></div>
+    <div class="fx-sec"><h4>说明</h4><div class="fx-note" id="iDesc">点击画布上的画板查看。</div></div>
+    <div class="fx-sec"><h4>规范来源</h4><div class="fx-note">设计稿 v0.2「研究笔记」<br>页面结构与交互框架 v0.2</div></div>
+  </aside>
+</div>
+
+<script>
+(function(){
+  if (window.lucide) lucide.createIcons();
+  const canvas=document.getElementById('canvas'), world=document.getElementById('world');
+  const zLab=document.getElementById('zLab'), layers=document.getElementById('layers');
+  let s=1,x=0,y=0,page='p2';
+  const apply=()=>{world.style.transform=`translate(${x}px,${y}px) scale(${s})`;zLab.textContent=Math.round(s*100)+'%';};
+  const abs=()=>[...document.querySelectorAll(`.fx-page[data-page="${page}"] .fx-ab`)];
+  const box=el=>{const a=el.querySelector('.ab');return {l:parseFloat(el.style.left)||0,t:parseFloat(el.style.top)||0,w:a.offsetWidth,h:a.offsetHeight};};
+  function fitTo(list){let L=1e9,T=1e9,R=-1e9,B=-1e9;list.forEach(e=>{const b=box(e);L=Math.min(L,b.l);T=Math.min(T,b.t-24);R=Math.max(R,b.l+b.w);B=Math.max(B,b.t+b.h);});
+    const W=canvas.clientWidth,H=canvas.clientHeight,p=48;s=Math.max(Math.min((W-p*2)/(R-L),(H-p*2)/(B-T),2),.04);x=(W-(R-L)*s)/2-L*s;y=(H-(B-T)*s)/2-T*s;apply();}
+  function select(el){document.querySelectorAll('.fx-ab.sel').forEach(e=>e.classList.remove('sel'));document.querySelectorAll('#layers .fx-item').forEach(e=>e.classList.toggle('on',e._ab===el));
+    if(!el){iName.textContent='—';iSize.textContent='—';iDesc.textContent='点击画布上的画板查看。';return;}
+    el.classList.add('sel');const b=box(el);iName.textContent=el.dataset.name;iSize.textContent=b.w+' × '+b.h;iDesc.textContent=el.dataset.desc||'';}
+  function show(p){page=p;document.querySelectorAll('.fx-page').forEach(e=>e.classList.toggle('on',e.dataset.page===p));document.querySelectorAll('.fx-item[data-page]').forEach(e=>e.classList.toggle('on',e.dataset.page===p));
+    layers.innerHTML='';abs().forEach(el=>{const b=document.createElement('button');b.className='fx-item';b.innerHTML='<i data-lucide="frame"></i>'+el.dataset.name;b._ab=el;b.onclick=()=>{fitTo([el]);select(el);};layers.appendChild(b);});
+    if(window.lucide) lucide.createIcons();select(null);requestAnimationFrame(()=>fitTo(abs()));}
+  document.querySelectorAll('.fx-item[data-page]').forEach(b=>b.onclick=()=>show(b.dataset.page));
+  function zoomAt(f,cx,cy){const ns=Math.min(Math.max(s*f,.04),4);x=cx-(cx-x)*(ns/s);y=cy-(cy-y)*(ns/s);s=ns;apply();}
+  canvas.addEventListener('wheel',e=>{e.preventDefault();const r=canvas.getBoundingClientRect();if(e.ctrlKey||e.metaKey){zoomAt(Math.exp(-e.deltaY*.01),e.clientX-r.left,e.clientY-r.top);}else{x-=e.deltaX;y-=e.deltaY;apply();}},{passive:false});
+  let d=null;
+  canvas.addEventListener('pointerdown',e=>{d={sx:e.clientX,sy:e.clientY,x,y,m:false};canvas.setPointerCapture(e.pointerId);});
+  canvas.addEventListener('pointermove',e=>{if(!d)return;const dx=e.clientX-d.sx,dy=e.clientY-d.sy;if(Math.abs(dx)+Math.abs(dy)>3){d.m=true;canvas.classList.add('drag');}x=d.x+dx;y=d.y+dy;apply();});
+  canvas.addEventListener('pointerup',e=>{if(d&&!d.m){const ab=document.elementFromPoint(e.clientX,e.clientY)?.closest('.fx-ab');select(ab||null);}d=null;canvas.classList.remove('drag');});
+  const c=()=>({cx:canvas.clientWidth/2,cy:canvas.clientHeight/2});
+  zIn.onclick=()=>{const{cx,cy}=c();zoomAt(1.25,cx,cy);};zOut.onclick=()=>{const{cx,cy}=c();zoomAt(.8,cx,cy);};
+  zFit.onclick=()=>fitTo(abs());z100.onclick=()=>{const{cx,cy}=c();zoomAt(1/s,cx,cy);};
+  window.addEventListener('keydown',e=>{if(e.shiftKey&&e.code==='Digit1')fitTo(abs());if(e.shiftKey&&e.code==='Digit0'){const{cx,cy}=c();zoomAt(1/s,cx,cy);}});
+  window.addEventListener('resize',()=>fitTo(abs()));
+  show('p2');
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>fitTo(abs()));
+})();
+</script>
+</body>
+</html>

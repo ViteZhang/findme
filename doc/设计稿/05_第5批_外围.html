@@ -1,0 +1,505 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>照见 · 设计稿 第 5 批：外围</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+<style>
+/* 设计令牌：沿用 v0.2「研究笔记」，不做任何改动 */
+:root{
+  --page-bg:#FAFAFA;--page-surface:#FFFFFF;--page-raised:#F4F4F5;
+  --page-line:rgba(23,23,23,.08);--page-line-2:rgba(23,23,23,.14);
+  --page-ink:#171717;--page-ink-2:#525252;--page-ink-3:#737373;
+  --page-accent:#23406E;--page-accent-700:#1A3154;--page-accent-50:#EDF1F7;
+  --page-neg:#B4332B;--page-neg-50:#FBEFEE;
+  --page-sans:'Noto Sans SC','PingFang SC','Microsoft YaHei',system-ui,sans-serif;
+  --page-mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  --page-ease:cubic-bezier(.22,1,.36,1);
+}
+/* ===== 画布外壳 ===== */
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:#E5E5E5;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;color:#1e1e1e}
+.fx-app{display:grid;grid-template-rows:44px 1fr;grid-template-columns:240px 1fr 260px;height:100vh}
+.fx-top{grid-column:1/-1;display:flex;align-items:center;gap:12px;padding:0 12px;background:#2C2C2C;color:#fff;font-size:12px}
+.fx-top b{font-weight:600}.fx-top .s{color:#B3B3B3}.fx-top .sp{flex:1}
+.fx-btn{background:transparent;border:0;color:#fff;height:28px;min-width:28px;padding:0 8px;border-radius:5px;font:inherit;cursor:pointer}
+.fx-btn:hover{background:#444}.fx-zoom{min-width:48px;text-align:center}
+.fx-side{background:#fff;border-right:1px solid #E5E5E5;overflow:auto;font-size:12px}
+.fx-side.r{border-right:0;border-left:1px solid #E5E5E5}
+.fx-sec{padding:12px 0;border-bottom:1px solid #EEE}
+.fx-sec h4{margin:0 0 6px;padding:0 16px;font-size:11px;font-weight:600}
+.fx-item{display:flex;align-items:center;gap:8px;padding:6px 16px;cursor:pointer;color:#333;border:0;background:none;width:100%;text-align:left;font:inherit}
+.fx-item:hover{background:#F5F5F5}.fx-item.on{background:#E5F4FF;color:#0B6BB3;font-weight:600}
+.fx-item svg{width:14px;height:14px;stroke-width:1.6;flex:none}
+.fx-kv{display:grid;grid-template-columns:48px 1fr;gap:6px 8px;padding:0 16px;color:#555}.fx-kv b{color:#1e1e1e;font-weight:500}
+.fx-note{padding:0 16px;color:#555;line-height:1.6}
+.fx-canvas{position:relative;overflow:hidden;cursor:grab;background-color:#E5E5E5;background-image:radial-gradient(#CFCFCF 1px,transparent 1px);background-size:20px 20px}
+.fx-canvas.drag{cursor:grabbing}
+.fx-world{position:absolute;left:0;top:0;transform-origin:0 0}
+.fx-ab{position:absolute}
+.fx-ab-label{position:absolute;left:0;top:-22px;font-size:12px;color:#7A7A7A;white-space:nowrap}
+.fx-ab-label span{color:#AAA;margin-left:8px}
+.fx-ab.sel .fx-ab-label{color:#0D99FF}.fx-ab.sel>.ab{outline:2px solid #0D99FF}
+.fx-page{display:none}.fx-page.on{display:block}
+.fx-hint{position:absolute;left:12px;bottom:12px;font-size:11px;color:#666;background:rgba(255,255,255,.9);padding:6px 10px;border-radius:6px}
+
+/* ===== 产品基础 ===== */
+.ab{position:relative;background:var(--page-bg);font-family:var(--page-sans);color:var(--page-ink);overflow:hidden;font-size:14px;line-height:22px;font-variant-numeric:tabular-nums}
+.ab *{box-sizing:border-box}
+.ab svg.lucide{width:16px;height:16px;stroke-width:1.5;color:var(--page-ink-3);flex:none}
+.mono{font-family:var(--page-mono);font-size:12px;line-height:16px;color:var(--page-ink-3)}
+.c2{color:var(--page-ink-2)}.c3{color:var(--page-ink-3)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 16px;border-radius:8px;border:1px solid transparent;font:500 14px/1 var(--page-sans);white-space:nowrap}
+.btn-p{background:var(--page-accent);color:#fff}
+.btn-s{background:var(--page-raised);color:var(--page-ink);border-color:var(--page-line)}
+.btn-t{background:none;color:var(--page-ink-2);padding:0 4px;height:32px}
+.btn-sm{height:32px;padding:0 12px;font-size:13px}
+.btn-lg{height:44px;padding:0 20px}
+.ibtn{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;background:var(--page-ink)}
+.ibtn svg.lucide{color:#fff}
+.ibtn.off{background:var(--page-raised)}.ibtn.off svg.lucide{color:#A3A3A3}
+.tag{display:inline-flex;align-items:center;height:20px;padding:0 6px;border-radius:4px;font-size:12px;line-height:16px;color:var(--page-ink-2);background:var(--page-raised);white-space:nowrap}
+.tag.dash{background:none;border:1px dashed var(--page-line-2)}
+.tag.ok{background:var(--page-accent-50);color:var(--page-accent)}
+.tally{display:inline-flex;align-items:flex-end;gap:4px;height:20px;vertical-align:middle}
+.tally i{display:block;width:2px;border-radius:1px;background:var(--page-accent)}
+.tally i.s{height:20px}.tally i.m{height:14px}.tally i.w{height:8px}
+.tally i.self{height:14px;background:repeating-linear-gradient(to top,var(--page-ink-3) 0 2px,transparent 2px 4px)}
+.tally i.slot{height:20px;background:rgba(23,23,23,.12)}
+.tally i.new{box-shadow:0 0 0 3px var(--page-accent-50)}
+.tally.lg{height:40px;gap:8px}.tally.lg i{width:3px;border-radius:2px}
+.tally.lg i.s{height:40px}.tally.lg i.m{height:28px}.tally.lg i.slot{height:40px}
+
+/* 侧栏 */
+.side{background:var(--page-bg);border-right:1px solid var(--page-line);display:flex;flex-direction:column;padding:0 12px 16px}
+.brand{height:56px;display:flex;align-items:center;gap:10px;padding:0 8px}
+.brand .mk{display:inline-flex;align-items:flex-end;gap:3px;height:16px}
+.brand .mk i{display:block;width:3px;border-radius:1px;background:var(--page-accent)}
+.brand b{font-size:16px;font-weight:500;line-height:1}
+.nav{display:flex;flex-direction:column;gap:2px;margin-top:8px}
+.nav a{height:36px;display:flex;align-items:center;gap:10px;padding:0 8px;border-radius:8px;color:var(--page-ink-2);font-size:14px}
+.nav a.on{background:var(--page-raised);color:var(--page-ink);box-shadow:inset 0 0 0 1px var(--page-line)}
+.nav a.on svg.lucide{color:var(--page-ink)}
+.nav a .n{margin-left:auto}
+.slab{font-size:12px;color:var(--page-ink-3);padding:0 8px;margin:24px 0 8px}
+.story{height:36px;display:flex;align-items:center;gap:10px;padding:0 8px;border-radius:8px;font-size:13px;color:var(--page-ink-2)}
+.story span:first-child{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.story.on{background:var(--page-raised);color:var(--page-ink)}
+.story.all{color:var(--page-ink-3)}
+.side .grow{flex:1}
+.me{height:44px;display:flex;align-items:center;gap:10px;padding:8px 8px 0;border-top:1px solid var(--page-line);margin-top:8px}
+.av{width:24px;height:24px;border-radius:6px;background:var(--page-raised);display:grid;place-items:center;font-size:12px;color:var(--page-ink-2);box-shadow:inset 0 0 0 1px var(--page-line)}
+.hdr{height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 32px;border-bottom:1px solid var(--page-line);flex:none}
+.hdr h2{margin:0;font-size:15px;font-weight:500}
+.hdr .l{display:flex;align-items:center;gap:16px}
+
+/* ===== 对话页 ===== */
+.cv{width:1440px;height:1000px;display:grid;grid-template-columns:248px 1fr}
+.cv-main{display:flex;flex-direction:column;min-width:0}
+.cv-body{flex:1;display:grid;grid-template-columns:minmax(0,1fr) 320px;min-height:0}
+.cv-col{display:flex;flex-direction:column;min-height:0;border-right:1px solid var(--page-line)}
+.stream{flex:1;overflow:hidden;padding:32px 64px 24px;display:flex;flex-direction:column;gap:24px}
+.stream>*{max-width:680px}
+.seg3{display:inline-flex;background:var(--page-raised);border-radius:8px;padding:2px;gap:2px}
+.seg3 span{height:28px;padding:0 10px;display:inline-flex;align-items:center;border-radius:6px;font-size:13px;color:var(--page-ink-2)}
+.seg3 span.on{background:var(--page-surface);color:var(--page-ink);box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.coach{display:grid;grid-template-columns:24px 1fr;gap:12px}
+.mk2{height:26px;display:flex;align-items:flex-end;gap:2px;padding:0 0 6px 6px}
+.mk2 i{width:2px;border-radius:1px;background:var(--page-accent);display:block}
+.coach p{margin:0;font-size:15px;line-height:26px}
+.mine{align-self:flex-end;max-width:440px;background:var(--page-raised);border-radius:12px;padding:10px 14px;font-size:15px;line-height:26px}
+.rule{display:flex;align-items:center;gap:12px;max-width:680px}
+.rule:before,.rule:after{content:"";height:1px;background:var(--page-line);flex:1}
+.rule:before{flex:0 0 0}
+.fold{font-size:13px;color:var(--page-ink-3);padding-left:36px}
+/* 内联组件 */
+.inl{margin-left:36px;max-width:560px}
+.xcard{border:1px solid var(--page-line-2);border-radius:12px;padding:16px;background:var(--page-surface)}
+.xcard .k{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--page-ink-3)}
+.xcard .s{font-size:16px;line-height:24px;font-weight:500;margin:8px 0 4px}
+.xcard .w{font-size:13px;line-height:20px;color:var(--page-ink-2)}
+.xcard .a{display:flex;gap:8px;margin-top:12px}
+.xcard.done{padding:12px 16px;background:var(--page-bg);border-color:var(--page-line)}
+.xcard.done .s{font-size:14px;line-height:22px;margin:4px 0 0}
+.xcard.no .s{color:var(--page-ink-3)}
+.ta{border:1px solid var(--page-accent);border-radius:8px;padding:8px 12px;font-size:15px;line-height:24px;margin:8px 0 4px;background:var(--page-surface);box-shadow:0 0 0 3px var(--page-accent-50)}
+.merge{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:12px;background:var(--page-surface);border:1px solid var(--page-line)}
+.merge .t{flex:1;font-size:13px;line-height:20px;color:var(--page-ink-2)}
+.merge .t b{font-weight:500;color:var(--page-ink)}
+.lvl{display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center;padding:16px;border-radius:12px;border:1px solid var(--page-accent);background:var(--page-accent-50)}
+.lvl .t b{display:block;font-weight:500;font-size:15px;line-height:24px}
+.lvl .t span{font-size:13px;color:var(--page-ink-2)}
+.lvl.down{border-color:var(--page-line);background:var(--page-surface)}
+.sum{border:1px solid var(--page-line-2);border-radius:16px;background:var(--page-surface);padding:20px 24px;box-shadow:0 8px 24px rgba(0,0,0,.06)}
+.sum h4{margin:0;font-size:15px;font-weight:500}
+.sum .nums{display:grid;grid-template-columns:repeat(3,1fr);margin:16px 0;border-top:1px solid var(--page-line);border-bottom:1px solid var(--page-line)}
+.sum .nums div{padding:12px 0}
+.sum .nums b{display:block;font-family:var(--page-mono);font-size:22px;line-height:28px;font-weight:500}
+.sum .li{display:flex;align-items:center;gap:12px;padding:8px 0;font-size:14px}
+.sum .li span:nth-child(2){flex:1}
+.sum .next{margin-top:12px;padding-top:16px;border-top:1px solid var(--page-line);display:flex;align-items:center;justify-content:space-between;gap:16px}
+.sum .next p{margin:0;font-size:13px;line-height:20px;color:var(--page-ink-2)}
+.sum .next p b{display:block;color:var(--page-ink);font-weight:500;font-size:14px}
+.qr{display:flex;gap:8px;margin-left:36px}
+.qr span{height:32px;padding:0 12px;display:inline-flex;align-items:center;border:1px solid var(--page-line-2);border-radius:8px;font-size:13px;background:var(--page-surface)}
+/* 输入区 */
+.dock{padding:12px 64px 24px;flex:none}
+.dock .in{max-width:680px}
+.comp{background:var(--page-surface);border:1px solid var(--page-line-2);border-radius:12px;padding:12px 12px 12px 16px;display:flex;align-items:flex-end;gap:12px}
+.comp .ph{flex:1;color:var(--page-ink-3);font-size:15px;line-height:24px;padding:4px 0;min-height:32px}
+.comp .ph.has{color:var(--page-ink)}
+.comp .tools{display:flex;gap:4px;align-items:center}
+.tb{width:32px;height:32px;display:grid;place-items:center;border-radius:8px}
+.skip{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.dock .foot{margin-top:8px;display:flex;justify-content:space-between}
+/* 本次发现面板 */
+.disc{padding:24px;display:flex;flex-direction:column;gap:24px;background:var(--page-bg)}
+.disc h3{margin:0;font-size:15px;line-height:24px;font-weight:500}
+.disc h5{margin:0 0 8px;font-size:12px;font-weight:400;color:var(--page-ink-3)}
+.star{list-style:none;margin:0;padding:0}
+.star li{height:32px;display:flex;align-items:center;gap:10px;font-size:13px;border-bottom:1px solid var(--page-line)}
+.star li .v{margin-left:auto}
+.ck{width:14px;height:14px;border-radius:4px;border:1.5px solid var(--page-line-2);display:grid;place-items:center;flex:none}
+.ck.on{background:var(--page-accent);border-color:var(--page-accent)}
+.ck.on svg.lucide{width:10px;height:10px;color:#fff;stroke-width:3}
+.ck.cur{border-color:var(--page-accent)}
+.chg{padding:10px 0;border-bottom:1px solid var(--page-line)}
+.chg .s{font-size:13px;line-height:20px}
+.chg .m{display:flex;align-items:center;gap:10px;margin-top:6px}
+
+/* ===== 首页 ===== */
+.d{width:1440px;height:1000px;display:grid;grid-template-columns:248px 1fr}
+.main{display:flex;flex-direction:column;min-width:0}
+.wrap{padding:48px 32px 32px;display:flex;flex-direction:column;gap:56px}
+.hero{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:48px;align-items:center}
+.hero .meta{display:flex;gap:12px;align-items:center}
+.hero h1{margin:16px 0 16px;font-size:36px;line-height:44px;font-weight:500;letter-spacing:-.01em}
+.hero p{margin:0;font-size:16px;line-height:26px;color:var(--page-ink-2);max-width:36em}
+.hero .comp{margin-top:32px}
+.hero .comp .ph{min-height:56px}
+.resume{display:flex;align-items:center;gap:8px;margin-top:16px;font-size:13px;color:var(--page-ink-2)}
+.resume b{font-weight:500;color:var(--page-ink)}
+.card{background:var(--page-surface);border:1px solid var(--page-line);border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,.06);padding:24px 28px}
+.card .top{display:flex;align-items:center;justify-content:space-between}
+.card h3{margin:12px 0 20px;font-size:22px;line-height:30px;font-weight:500}
+.starters{list-style:none;margin:0;padding:0;border-top:1px solid var(--page-line)}
+.starters li{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid var(--page-line)}
+.starters li b{display:block;font-weight:500;font-size:15px;line-height:24px}
+.starters li span.d2{font-size:13px;color:var(--page-ink-2)}
+.how{display:flex;align-items:flex-end;gap:16px;padding:20px 0 0}
+.how p{margin:0;font-size:13px;line-height:20px;color:var(--page-ink-2)}
+.ev{display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:baseline;padding:10px 0}
+.ev .src{font-size:12px;color:var(--page-ink-3)}
+.ev.dim .q{color:var(--page-ink-3)}
+.gate{display:grid;grid-template-columns:72px 1fr 56px;align-items:center;gap:12px;height:28px}
+.gate .lab{font-size:13px;color:var(--page-ink-2)}
+.gate .bar{height:4px;border-radius:2px;background:var(--page-raised);position:relative;overflow:hidden}
+.gate .bar b{position:absolute;left:0;top:0;bottom:0;background:var(--page-accent);border-radius:2px}
+.gate .v{font-family:var(--page-mono);font-size:12px;color:var(--page-ink);text-align:right}
+.need{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-top:20px;margin-top:12px;border-top:1px solid var(--page-line)}
+.need p{margin:0;font-size:13px;line-height:20px;color:var(--page-ink-2);max-width:22em}
+.row{display:grid;grid-template-columns:minmax(0,8fr) minmax(0,4fr);gap:48px}
+.blk-h{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px}
+.blk-h h3{margin:0;font-size:15px;line-height:24px;font-weight:500}
+table.cl{width:100%;border-collapse:collapse}
+table.cl th{height:36px;font-size:12px;font-weight:400;color:var(--page-ink-3);text-align:left;border-bottom:1px solid var(--page-line-2);padding:0 12px}
+table.cl td{height:48px;padding:0 12px;border-bottom:1px solid var(--page-line);font-size:14px}
+table.cl th:first-child,table.cl td:first-child{padding-left:0}
+table.cl td.r,table.cl th.r{text-align:right;padding-right:0}
+table.cl tr.sel td{background:var(--page-accent-50)}
+table.cl tr.sel td:first-child{box-shadow:inset 2px 0 0 var(--page-accent);padding-left:12px}
+.empty{padding:28px 0;border-bottom:1px solid var(--page-line);display:flex;align-items:center;gap:16px;color:var(--page-ink-2);font-size:14px}
+.steps{list-style:none;margin:0;padding:0}
+.steps li{height:44px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--page-line);font-size:14px}
+.steps li .st{margin-left:auto}
+.steps li.cur{font-weight:500}.steps li.lock{color:var(--page-ink-3)}
+.dot{width:8px;height:8px;border-radius:50%;border:1.5px solid var(--page-line-2);flex:none}
+.dot.done{background:var(--page-ink-3);border-color:var(--page-ink-3)}
+.dot.cur{background:var(--page-accent);border-color:var(--page-accent)}
+.seg{display:grid;grid-template-columns:repeat(10,1fr);border:1px solid var(--page-line-2);border-radius:8px;overflow:hidden;margin-top:8px}
+.seg span{height:36px;display:grid;place-items:center;font-family:var(--page-mono);font-size:13px;color:var(--page-ink-2);background:var(--page-surface);border-left:1px solid var(--page-line)}
+.seg span:first-child{border-left:0}
+
+/* ===== 移动 ===== */
+.m{width:390px;height:844px;display:flex;flex-direction:column}
+.m-sb{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:14px;font-weight:500;flex:none}
+.m-sb .ic{display:flex;gap:6px}.m-sb .ic svg.lucide{color:var(--page-ink)}
+.m-hd{height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 12px 0 8px;border-bottom:1px solid var(--page-line);flex:none}
+.m-hd .l{display:flex;align-items:center;gap:4px}
+.m-hd h2{margin:0;font-size:15px;font-weight:500}
+.m-hd .back{width:36px;height:36px;display:grid;place-items:center}
+.m-hd .back svg.lucide{width:20px;height:20px;color:var(--page-ink)}
+.m-stream{flex:1;overflow:hidden;padding:20px 20px 12px;display:flex;flex-direction:column;gap:18px}
+.m-stream .coach p{font-size:15px;line-height:25px}
+.m-stream .mine{max-width:300px}
+.m-stream .inl{margin-left:36px}
+.m-dock{padding:8px 12px 12px;border-top:1px solid var(--page-line);background:var(--page-bg);flex:none}
+.m-dock .comp{padding:8px 8px 8px 14px;align-items:center}
+.m-dock .comp .ph{min-height:0;font-size:14px}
+.m-home-hd{height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;flex:none}
+.m-home-hd h2{margin:0;font-size:15px;font-weight:500}
+.m-bd{flex:1;padding:8px 20px 0;overflow:hidden}
+.m-bd h1{margin:0 0 8px;font-size:24px;line-height:32px;font-weight:500}
+.m-bd>p{margin:0 0 20px;font-size:14px;line-height:22px;color:var(--page-ink-2)}
+.m-comp{margin:0 12px 8px;background:var(--page-surface);border:1px solid var(--page-line-2);border-radius:12px;height:48px;display:flex;align-items:center;gap:8px;padding:0 8px 0 16px;color:var(--page-ink-3);font-size:14px;flex:none}
+.m-comp span{flex:1}
+.m-tab{height:83px;border-top:1px solid var(--page-line);background:var(--page-surface);display:grid;grid-template-columns:repeat(4,1fr);padding-top:8px;flex:none}
+.m-tab a{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;line-height:14px;color:var(--page-ink-3)}
+.m-tab a svg.lucide{width:22px;height:22px}
+.m-tab a.on,.m-tab a.on svg.lucide{color:var(--page-ink)}
+
+/* ===== 组件状态板 / 清单 ===== */
+.spec{padding:48px 56px;background:var(--page-surface)}
+.sh{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:16px;border-bottom:1px solid var(--page-ink);margin-bottom:32px}
+.sh h2{margin:0;font-size:28px;line-height:36px;font-weight:500}
+.spec h4{margin:0 0 12px;font-size:13px;line-height:20px;font-weight:500;color:var(--page-ink-2)}
+.st-row{display:grid;gap:24px;margin-bottom:40px}
+.st-row.c5{grid-template-columns:repeat(5,minmax(0,1fr))}
+.st-row.c4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.st-row.c3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.st-row.c2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.st{min-width:0}
+.st .lab{display:flex;justify-content:space-between;margin-bottom:8px}
+.st .lab b{font-size:13px;font-weight:500}
+.st .cap{margin-top:8px;font-size:12px;line-height:18px;color:var(--page-ink-3)}
+.stage{background:var(--page-bg);border-radius:12px;padding:16px}
+.up{display:grid;grid-template-columns:32px 1fr auto;gap:12px;align-items:center;padding:12px 14px;border:1px solid var(--page-line-2);border-radius:12px;background:var(--page-surface)}
+.up .f{width:32px;height:32px;border-radius:8px;background:var(--page-raised);display:grid;place-items:center}
+.up .n{font-size:14px;line-height:20px}
+.up .p{height:3px;border-radius:2px;background:var(--page-raised);margin-top:6px;position:relative;overflow:hidden}
+.up .p b{position:absolute;left:0;top:0;bottom:0;background:var(--page-accent)}
+.up.err{border-color:var(--page-ink-2)}
+.fail{display:flex;align-items:center;gap:8px;justify-content:flex-end;margin-top:6px;font-size:12px;color:var(--page-ink-2)}
+.fail u{text-decoration:none;color:var(--page-accent);font-weight:500}
+.thinking .mk2 i{opacity:.35}
+.thinking .mk2 i:nth-child(1){opacity:1}
+table.chk{width:100%;border-collapse:collapse}
+table.chk th{font-size:12px;font-weight:400;color:var(--page-ink-3);text-align:left;padding:0 12px 8px 0;border-bottom:1px solid var(--page-line-2)}
+table.chk td{font-size:13px;line-height:20px;padding:10px 12px 10px 0;border-bottom:1px solid var(--page-line);vertical-align:top}
+table.chk td.ok{color:var(--page-accent);font-family:var(--page-mono);white-space:nowrap}
+table.chk td.later{color:var(--page-ink-3);font-family:var(--page-mono);white-space:nowrap}
+
+/* ===== 第 2 批新增样式 ===== */
+.gate .bar.done b{background:var(--page-ink-3)}
+.bc{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--page-ink-3)}
+.bc b{color:var(--page-ink);font-weight:500}
+.bc svg.lucide{width:14px;height:14px}
+.banner{display:flex;align-items:center;gap:12px;padding:10px 12px 10px 16px;border-radius:12px;background:var(--page-accent-50);font-size:13px;line-height:20px;color:var(--page-ink)}
+.banner .sp{flex:1}
+.banner svg.lucide{color:var(--page-accent)}
+.filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.chipf{height:32px;padding:0 12px;display:inline-flex;align-items:center;gap:6px;border-radius:8px;border:1px solid var(--page-line-2);background:var(--page-surface);font-size:13px;color:var(--page-ink-2);white-space:nowrap}
+.chipf.on{border-color:var(--page-ink);color:var(--page-ink);box-shadow:inset 0 0 0 1px var(--page-ink)}
+.chipf .mono{font-size:11px}
+.fsep{width:1px;height:20px;background:var(--page-line-2);margin:0 4px}
+.tgl{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--page-ink-2);margin-left:auto}
+.tgl i{width:28px;height:16px;border-radius:8px;background:var(--page-line-2);position:relative;display:block}
+.tgl i:after{content:"";position:absolute;left:2px;top:2px;width:12px;height:12px;border-radius:50%;background:#fff}
+.tgl.on i{background:var(--page-accent)}.tgl.on i:after{left:14px}
+.lib{padding:32px;display:flex;flex-direction:column;gap:20px}
+.lib-h{display:flex;justify-content:space-between;align-items:flex-end;gap:24px}
+.lib-h h1{margin:0;font-size:28px;line-height:36px;font-weight:500}
+.lib-h p{margin:6px 0 0;font-size:14px;line-height:22px;color:var(--page-ink-2)}
+.lib-h .a{display:flex;gap:8px}
+table.cl td .sub{display:block;font-size:12px;line-height:16px;color:var(--page-ink-3);margin-top:2px}
+table.cl.tall td{height:60px}
+table.cl th .srt{color:var(--page-ink)}
+table.cl tr.arc td{color:var(--page-ink-3)}
+.archived{display:flex;align-items:center;gap:8px;height:44px;font-size:13px;color:var(--page-ink-3);border-bottom:1px solid var(--page-line)}
+.det{flex:1;display:grid;grid-template-columns:minmax(0,1fr) 320px;min-height:0}
+.det-main{padding:32px 56px 40px 32px;display:flex;flex-direction:column;gap:28px;border-right:1px solid var(--page-line);min-width:0}
+.det-side{padding:32px 24px;display:flex;flex-direction:column;gap:28px}
+.det-side h4,.det-main h4{margin:0 0 10px;font-size:12px;font-weight:400;color:var(--page-ink-3)}
+.stmt{display:flex;align-items:flex-start;gap:12px}
+.stmt h1{margin:0;font-size:28px;line-height:38px;font-weight:500;flex:1}
+.edit{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;border:1px solid var(--page-line);flex:none;margin-top:3px}
+.tags{display:flex;gap:8px;align-items:center;margin-top:12px}
+.score{display:grid;grid-template-columns:auto minmax(0,1fr);gap:40px;align-items:center;padding:24px 0;border-top:1px solid var(--page-line);border-bottom:1px solid var(--page-line)}
+.score .lv{display:flex;align-items:flex-end;gap:16px}
+.score .lv b{display:block;font-size:22px;line-height:28px;font-weight:500}
+.score .lv .mono{display:block;margin-top:4px}
+.pv{padding:16px 20px;border-radius:12px;background:var(--page-raised);font-size:14px;line-height:22px}
+.pv .mono{display:block;margin-bottom:6px}
+.pv b{font-weight:500}
+.evg-h{display:flex;align-items:baseline;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid var(--page-line-2)}
+.evg-h h3{margin:0;font-size:15px;font-weight:500}
+.evrow{display:grid;grid-template-columns:8px 56px minmax(0,1fr) 176px 64px;gap:16px;align-items:baseline;padding:14px 0;border-bottom:1px solid var(--page-line)}
+.evrow .b{width:2px;height:16px;background:var(--page-accent);align-self:center;border-radius:1px}
+.evrow .b.self{background:repeating-linear-gradient(to top,var(--page-ink-3) 0 2px,transparent 2px 4px)}
+.evrow .b.neg{background:none;border-left:2px solid var(--page-ink-2);height:16px}
+.evrow .src{font-size:12px;color:var(--page-ink-3)}
+.evrow .q{font-size:15px;line-height:24px}
+.evrow .q .sub{display:block;font-size:12px;line-height:18px;color:var(--page-ink-3);margin-top:4px}
+.evrow .from{font-size:13px;line-height:20px;color:var(--page-ink-2)}
+.evrow .from .mono{display:block}
+.evrow .st{text-align:right}
+.evrow.dim .q{color:var(--page-ink-3)}
+.none{padding:14px 0;font-size:13px;color:var(--page-ink-3);border-bottom:1px solid var(--page-line)}
+.kv{display:grid;grid-template-columns:80px 1fr;gap:10px 12px;font-size:13px;line-height:20px}
+.kv span:nth-child(odd){color:var(--page-ink-3)}
+.acts-v{display:flex;flex-direction:column;gap:8px}
+.acts-v .btn{justify-content:flex-start;width:100%}
+.rel{list-style:none;margin:0;padding:0}
+.rel li{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--page-line);font-size:13px;line-height:20px}
+.rel li span.t{flex:1;min-width:0}
+.log{list-style:none;margin:0;padding:0}
+.log li{display:grid;grid-template-columns:48px 1fr;gap:12px;padding:8px 0;border-bottom:1px solid var(--page-line);font-size:13px;line-height:20px;color:var(--page-ink-2)}
+.starx{display:grid;grid-template-columns:72px minmax(0,1fr);border-top:1px solid var(--page-line)}
+.starx>div{padding:16px 0;border-bottom:1px solid var(--page-line);font-size:15px;line-height:26px}
+.starx>div:nth-child(odd){font-size:13px;color:var(--page-ink-3);line-height:26px}
+.starx .miss{color:var(--page-ink-3);font-size:14px}
+mark.e{background:none;color:inherit;box-shadow:inset 0 -2px 0 rgba(35,64,110,.5);padding:0 1px}
+sup.n{font-family:var(--page-mono);font-size:10px;color:var(--page-accent);margin-left:2px}
+.quote{padding:16px 20px;border-left:2px solid var(--page-accent);background:var(--page-surface);font-size:17px;line-height:28px;border-radius:0 12px 12px 0}
+.quote .mono{display:block;margin-bottom:6px}
+.prod{list-style:none;margin:0;padding:0}
+.prod li{padding:12px 0;border-bottom:1px solid var(--page-line)}
+.prod li .t{font-size:14px;line-height:22px}
+.prod li .m{display:flex;align-items:center;gap:10px;margin-top:6px}
+.starq{display:inline-flex;gap:3px;vertical-align:middle}
+.starq i{width:10px;height:10px;border-radius:2px;background:var(--page-ink-3);display:block}
+.starq i.no{background:none;box-shadow:inset 0 0 0 1px var(--page-line-2)}
+.overlay{position:absolute;inset:0;background:rgba(23,23,23,.36)}
+.dlg{width:560px;background:var(--page-surface);border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,.12);padding:28px}
+.overlay .dlg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
+.dlg h3{margin:0;font-size:18px;line-height:26px;font-weight:500}
+.dlg>p{margin:8px 0 0;font-size:14px;line-height:22px;color:var(--page-ink-2)}
+.dlg table{width:100%;border-collapse:collapse;margin-top:20px}
+.dlg th{font-size:12px;font-weight:400;color:var(--page-ink-3);text-align:left;padding:0 0 8px;border-bottom:1px solid var(--page-line-2)}
+.dlg td{font-size:13px;line-height:20px;padding:10px 0;border-bottom:1px solid var(--page-line);vertical-align:top}
+.dlg td.c{font-family:var(--page-mono);font-size:12px;white-space:nowrap;padding-left:16px}
+.dlg .note{margin-top:16px;font-size:13px;line-height:20px;color:var(--page-ink-2)}
+.dlg .ft{display:flex;justify-content:flex-end;gap:8px;margin-top:24px}
+.dlg.sm{width:auto;padding:20px}
+.btn-k{background:var(--page-ink);color:#fff}
+.toast{display:inline-flex;align-items:center;gap:12px;height:44px;padding:0 6px 0 16px;border-radius:10px;background:var(--page-ink);color:#fff;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.12)}
+.toast u{text-decoration:none;color:#fff;font-weight:500;height:32px;padding:0 10px;display:inline-flex;align-items:center;border-radius:6px;background:rgba(255,255,255,.12)}
+.toast.n{padding-right:16px}
+.m-scroll{flex:1;overflow:hidden;padding:12px 20px 0}
+.m-scroll h1{margin:0;font-size:22px;line-height:30px;font-weight:500}
+.m-chips{display:flex;gap:8px;margin:12px -20px;padding:0 20px;overflow:hidden}
+.m-r{padding:12px 0;border-bottom:1px solid var(--page-line)}
+.m-r .t{font-size:15px;line-height:22px}
+.m-r .k{display:flex;align-items:center;gap:10px;margin-top:6px}
+.m-r .k .sp{flex:1}
+.m-sec{margin-top:20px}
+.m-sec h4{margin:0 0 4px;font-size:12px;font-weight:400;color:var(--page-ink-3)}
+.m-ev{padding:10px 0;border-bottom:1px solid var(--page-line);font-size:14px;line-height:22px}
+.m-ev .mono{display:block;margin-top:2px}
+.m-act{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:8px 12px 28px;border-top:1px solid var(--page-line);background:var(--page-surface);flex:none}
+.m-act .btn{padding:0 8px}
+
+/* ===== 第 5 批新增样式 ===== */
+.solo{width:1440px;height:1000px;display:flex;flex-direction:column;background:var(--page-bg)}
+.solo-top{height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 32px;border-bottom:1px solid var(--page-line)}
+.solo-body{flex:1;display:grid;grid-template-columns:minmax(0,6fr) minmax(0,5fr);gap:80px;padding:96px 120px 64px}
+.solo-body h1{margin:0;font-size:40px;line-height:50px;font-weight:500;letter-spacing:-.01em}
+.solo-body .lead{margin:20px 0 0;font-size:17px;line-height:28px;color:var(--page-ink-2);max-width:30em}
+.how2{list-style:none;margin:40px 0 0;padding:0;border-top:1px solid var(--page-line)}
+.how2 li{display:grid;grid-template-columns:120px 1fr;gap:16px;padding:14px 0;border-bottom:1px solid var(--page-line);font-size:14px;line-height:22px}
+.how2 li span:first-child{color:var(--page-ink-3);font-size:13px}
+.priv{background:var(--page-surface);border:1px solid var(--page-line);border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,.06);padding:28px;align-self:start}
+.priv h3{margin:0 0 4px;font-size:18px;line-height:26px;font-weight:500}
+.priv li{list-style:none;display:grid;grid-template-columns:20px 1fr;gap:12px;padding:14px 0;border-bottom:1px solid var(--page-line);font-size:14px;line-height:22px}
+.priv ul{margin:12px 0 0;padding:0}
+.priv li b{display:block;font-weight:500}
+.priv li span.d{color:var(--page-ink-2);font-size:13px;line-height:20px}
+.priv .ft{margin-top:20px;display:flex;flex-direction:column;gap:12px}
+.cbox{display:flex;align-items:flex-start;gap:10px;font-size:13px;line-height:20px;color:var(--page-ink-2)}
+.cbox i{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--page-line-2);flex:none;margin-top:2px;display:grid;place-items:center}
+.cbox i.on{background:var(--page-accent);border-color:var(--page-accent)}
+.cbox i.on svg.lucide{width:11px;height:11px;color:#fff;stroke-width:3}
+.goal4{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.goal4 .opt{min-height:0;padding:12px 14px}
+.goal4 .opt .t{font-size:14px;line-height:22px}
+.gsum{border:1px solid var(--page-line-2);border-radius:12px;background:var(--page-surface);padding:16px 18px}
+.gsum dl{display:grid;grid-template-columns:72px 1fr 24px;gap:10px 12px;margin:0;align-items:baseline}
+.gsum dt{font-size:12px;color:var(--page-ink-3)}
+.gsum dd{margin:0;font-size:14px;line-height:22px}
+.gsum .ed svg.lucide{width:14px;height:14px}
+.ck-step{display:flex;gap:6px;align-items:center}
+.ck-step i{width:20px;height:4px;border-radius:2px;background:var(--page-line-2);display:block}
+.ck-step i.on{background:var(--page-accent)}
+.cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.cal .wd{font-size:12px;color:var(--page-ink-3);text-align:center;height:20px}
+.cal .d{height:56px;border-radius:8px;border:1px solid var(--page-line);background:var(--page-surface);padding:6px 8px;display:flex;flex-direction:column;justify-content:space-between}
+.cal .d .n{font-family:var(--page-mono);font-size:11px;color:var(--page-ink-3)}
+.cal .d .v{font-family:var(--page-mono);font-size:15px;font-weight:500;align-self:flex-end}
+.cal .d.e{background:none;border-style:dashed}
+.cal .d.f{background:none;border:0}
+.cal .d.t{box-shadow:inset 0 0 0 1px var(--page-ink)}
+.cal .d.h1{background:#F7F9FC}.cal .d.h2{background:#E8EEF6}.cal .d.h3{background:#CFDBEA}.cal .d.h4{background:#A9BDD7}
+.lg5{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--page-ink-3)}
+.lg5 i{width:16px;height:12px;border-radius:3px;display:block;border:1px solid var(--page-line)}
+.copy{border:1px solid var(--page-line-2);border-radius:12px;background:var(--page-surface);padding:16px 18px;position:relative}
+.copy ol{margin:8px 0 0;padding-left:20px;font-size:14px;line-height:24px}
+.copy .cp{position:absolute;right:12px;top:12px}
+.copy p{margin:8px 0 0;font-size:14px;line-height:24px}
+.seg2{display:inline-flex;background:var(--page-raised);border-radius:8px;padding:2px}
+.seg2 span{height:28px;padding:0 12px;display:inline-flex;align-items:center;border-radius:6px;font-size:13px;color:var(--page-ink-2)}
+.seg2 span.on{background:var(--page-surface);color:var(--page-ink);box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.rel3{display:flex;gap:8px;flex-wrap:wrap}
+.set{flex:1;display:grid;grid-template-columns:220px minmax(0,1fr);min-height:0}
+.set-nav{padding:24px 12px;border-right:1px solid var(--page-line)}
+.set-nav a{height:36px;display:flex;align-items:center;gap:10px;padding:0 10px;border-radius:8px;font-size:14px;color:var(--page-ink-2)}
+.set-nav a.on{background:var(--page-raised);color:var(--page-ink);box-shadow:inset 0 0 0 1px var(--page-line)}
+.set-body{padding:32px 48px;max-width:860px;display:flex;flex-direction:column;gap:32px}
+.set-body h1{margin:0;font-size:24px;line-height:32px;font-weight:500}
+.fld{display:grid;grid-template-columns:200px minmax(0,1fr);gap:24px;padding:20px 0;border-top:1px solid var(--page-line)}
+.fld .l b{display:block;font-size:14px;font-weight:500}
+.fld .l span{font-size:13px;line-height:20px;color:var(--page-ink-2)}
+.fld .c{display:flex;flex-direction:column;gap:10px;align-items:flex-start}
+.inp{width:100%;max-width:440px;height:40px;border:1px solid var(--page-line-2);border-radius:8px;padding:0 12px;display:flex;align-items:center;background:var(--page-surface);font-size:14px}
+.inp.lockd{background:var(--page-raised);color:var(--page-ink-2)}
+.danger{border:1px solid var(--page-line-2);border-radius:12px;padding:20px;display:flex;justify-content:space-between;align-items:center;gap:24px}
+.danger b{display:block;font-weight:500;font-size:14px}
+.danger span{font-size:13px;line-height:20px;color:var(--page-ink-2)}
+.hot{border-top:1px solid var(--page-line)}
+.hot .r{display:grid;grid-template-columns:minmax(0,1fr) 200px 120px;gap:16px;align-items:center;padding:16px 0;border-bottom:1px solid var(--page-line);font-size:14px}
+.hot .r b{font-weight:500;display:block}
+.hot .r .mono{display:block}
+.hot .num{font-family:var(--page-mono);font-size:15px}
+.notif{width:360px;border-radius:16px;background:rgba(245,245,245,.96);box-shadow:0 8px 24px rgba(0,0,0,.12);padding:12px 14px;display:grid;grid-template-columns:28px 1fr;gap:10px}
+.notif .ic2{width:28px;height:28px;border-radius:7px;background:var(--page-surface);display:flex;align-items:flex-end;justify-content:center;gap:2px;padding-bottom:7px;box-shadow:inset 0 0 0 1px var(--page-line)}
+.notif .ic2 i{width:2px;border-radius:1px;background:var(--page-accent);display:block}
+.notif b{font-size:13px;font-weight:500}
+.notif p{margin:2px 0 0;font-size:13px;line-height:18px;color:var(--page-ink-2)}
+</style></head><body><div class="fx-app"><div class="fx-top"><b>照见（暂定名）</b><span class="s">/ 设计稿 第 5 批：外围 · 基于 v0.2 规范</span><span class="sp"></span><button class="fx-btn" id="zOut">−</button><span class="fx-zoom" id="zLab">100%</span><button class="fx-btn" id="zIn">+</button><button class="fx-btn" id="zFit">适应画布</button><button class="fx-btn" id="z100">100%</button></div><aside class="fx-side"><div class="fx-sec"><h4>页面</h4><button class="fx-item" data-page="p0"><i data-lucide="file"></i>P0 欢迎 · P2.1 目标设定</button><button class="fx-item" data-page="p25"><i data-lucide="file"></i>P2.5 打卡 · P6 打卡记录</button><button class="fx-item" data-page="p7"><i data-lucide="file"></i>P7 他人反馈</button><button class="fx-item" data-page="p8"><i data-lucide="file"></i>P8 设置</button><button class="fx-item" data-page="st"><i data-lucide="file"></i>状态</button><button class="fx-item" data-page="chk"><i data-lucide="file"></i>第 5 批检查清单</button></div><div class="fx-sec"><h4>画板</h4><div id="layers"></div></div></aside><main class="fx-canvas" id="canvas"><div class="fx-world" id="world"><section class="fx-page" data-page="p0"><div class="fx-ab" data-name="P0.1 欢迎与隐私说明 · 桌面" data-desc="流程 F1。没有侧栏；左边说清楚会怎么进行，右边说清楚数据怎么处理。勾选确认后才能开始。" style="left:0px;top:0px"><div class="fx-ab-label">P0.1 欢迎与隐私说明 · 桌面<span>1440 × 1000</span></div><div class="ab " style="width:1440px;height:1000px"><div class="solo"><div class="solo-top"><div class="brand" style="padding:0"><span class="mk"><i style="height:16px"></i><i style="height:11px"></i><i style="height:6px"></i></span><b>照见</b></div><span class="mono">第一次使用</span></div><div class="solo-body"><div><h1>通过你讲的真实经历，一点点整理出你的优势和短板</h1><p class="lead">我会像教练一样提问、追问，把你说过的话记成证据。一条结论要在不同的故事和来源里反复出现，才会写进你的画像</p><ul class="how2"><li><span>多久</span><span>大约 2–4 周，每次 10–15 分钟，随时可以停</span></li><li><span>做什么</span><span>讲几个高光和低谷的故事，做一次价值观取舍，可以上传测评</span></li><li><span>得到什么</span><span>一份每条结论都能查到依据的个人画像，你可以修改或推翻其中任何一条</span></li><li><span>不是什么</span><span>不是心理咨询，也不做诊断。遇到很难受的时候，我会建议你找专业的人</span></li></ul></div><div class="priv"><h3>开始前，先说清楚你的数据</h3><span class="mono">隐私</span><ul><li><i data-lucide="lock"></i><div><b>只用于帮你分析</b><span class="d">只有你能看到你讲的故事和画像</span></div></li><li><i data-lucide="ban"></i><div><b>不会拿去训练模型</b><span class="d">这一项默认关闭，且不能被打开</span></div></li><li><i data-lucide="trash-2"></i><div><b>随时可以删除</b><span class="d">可以删掉任何一个故事，也可以一次删除全部数据</span></div></li></ul><div class="ft"><span class="cbox"><i class="on"><i data-lucide="check"></i></i>我知道这不是心理咨询，情绪很难受时会寻求专业帮助</span><span class="btn btn-p btn-lg" style="width:100%">同意并开始</span><span class="btn btn-t" style="align-self:center">阅读完整隐私说明</span></div></div></div></div></div></div><div class="fx-ab" data-name="P0.1 欢迎 · 移动" data-desc="同一内容纵向排列，隐私三条放在按钮正上方。" style="left:1540px;top:0px"><div class="fx-ab-label">P0.1 欢迎 · 移动<span>390 × 844</span></div><div class="ab m" style="width:390px;height:844px"><div class="m-sb"><span>21:50</span><span class="ic"><i data-lucide="signal"></i><i data-lucide="wifi"></i><i data-lucide="battery-full"></i></span></div><div class="m-scroll" style="padding-top:24px"><div class="brand" style="padding:0;height:32px"><span class="mk"><i style="height:16px"></i><i style="height:11px"></i><i style="height:6px"></i></span><b>照见</b></div><h1 style="font-size:26px;line-height:36px;margin-top:20px">通过你讲的真实经历，一点点整理出你的优势和短板</h1><p style="font-size:14px;line-height:22px;color:var(--page-ink-2);margin:12px 0 0">大约 2–4 周，每次 10–15 分钟。不是心理咨询，也不做诊断</p><div class="priv" style="padding:16px 18px;margin-top:20px;box-shadow:none"><ul style="margin:0"><li style="padding:10px 0"><i data-lucide="lock"></i><div><b>只用于帮你分析</b></div></li><li style="padding:10px 0"><i data-lucide="ban"></i><div><b>不会拿去训练模型</b></div></li><li style="padding:10px 0;border:0"><i data-lucide="trash-2"></i><div><b>随时可以删除</b></div></li></ul></div></div><div style="padding:12px 20px 28px;display:flex;flex-direction:column;gap:10px;border-top:1px solid var(--page-line);background:var(--page-surface)"><span class="cbox"><i class="on"><i data-lucide="check"></i></i>我知道这不是心理咨询</span><span class="btn btn-p btn-lg">同意并开始</span></div></div></div><div class="fx-ab" data-name="P2.1 目标设定 · 进行中 · 桌面" data-desc="流程 F1 第二步。「期待的结果」用 4 个选项卡（规则：选择题才出现快捷选项）。说明不替用户做决定。" style="left:0px;top:1100px"><div class="fx-ab-label">P2.1 目标设定 · 进行中 · 桌面<span>1440 × 1000</span></div><div class="ab cv" style="width:1440px;height:1000px"><aside class="side"><div class="brand"><span class="mk"><i style="height:16px"></i><i style="height:11px"></i><i style="height:6px"></i></span><b>照见</b></div><nav class="nav"><a class=""><i data-lucide="house"></i>首页</a><a class="on"><i data-lucide="message-circle"></i>对话<span class="n mono">进行中</span></a><a class=""><i data-lucide="list"></i>线索<span class="n mono">0</span></a><a class=""><i data-lucide="user-round"></i>画像<span class="n mono">未生成</span></a><a class=""><i data-lucide="calendar-check"></i>打卡<span class="n mono">0 天</span></a></nav><div class="slab">你讲过的故事</div><div class="story all"><span>还没有</span></div><div class="grow"></div><nav class="nav"><a class=""><i data-lucide="settings"></i>设置</a></nav><div class="me"><span class="av">W</span><span style="font-size:13px">Wortley</span></div></aside><div class="cv-main"><div class="hdr"><div class="l"><h2>目标设定</h2><span class="mono">第一次对话</span></div><div class="l"><span class="mono">约 5–10 分钟</span></div></div><div class="cv-body"><div class="cv-col"><div class="stream"><div class="coach"><span class="mk2"><i style="height:14px"></i><i style="height:9px"></i><i style="height:5px"></i></span><div><p>先认识一下。是什么让你想更了解自己？</p></div></div><div class="mine">工作三年了，有点迷茫，不知道自己到底擅长什么，也不确定要不要换方向。</div><div class="coach"><span class="mk2"><i style="height:14px"></i><i style="height:9px"></i><i style="height:5px"></i></span><div><p>工作三年后停下来想这个问题，挺正常的。最近有没有一个正在纠结的具体选择？</p></div></div><div class="mine">有个朋友邀请我去他的创业公司，我还没想好。</div><div class="coach"><span class="mk2"><i style="height:14px"></i><i style="height:9px"></i><i style="height:5px"></i></span><div><p>明白。我不会替你决定去不去，但把自己了解清楚之后，这个选择会好做很多。聊完这一轮，你最希望得到什么？</p></div></div><div class="inl"><div class="goal4"><div class="opt on"><span class="t">职业方向的参考</span></div><div class="opt"><span class="t">更理解自己的情绪和行为</span></div><div class="opt"><span class="t">改善人际关系</span></div><div class="opt"><span class="t">单纯好奇</span></div></div><div class="mono" style="margin-top:8px">可以多选 · 也可以直接说</div></div></div><div class="dock"><div class="in"><div class="comp"><div class="ph">或者直接说</div><div class="tools"><span class="tb"><i data-lucide="paperclip"></i></span><span class="tb"><i data-lucide="mic"></i></span><span class="ibtn off"><i data-lucide="arrow-up"></i></span></div></div><div class="foot"><span class="mono">Enter 发送 · Shift + Enter 换行</span><span class="mono">自动保存</span></div></div></div></div><aside class="disc"><h3>本次发现</h3><div><h5>目标设定</h5><ul class="star"><li><span class="ck on"><i data-lucide="check"></i></span>来意</li><li><span class="ck on"><i data-lucide="check"></i></span>现在的处境</li><li><span class="ck cur"></span>期待的结果</li><li><span class="ck"></span>沟通偏好</li><li><span class="ck"></span>确认总结</li></ul></div><p class="mono" style="margin:0">这一步只听和记录，不分析</p></aside></div></div></div></div><div class="fx-ab" data-name="P2.1 目标设定 · 确认总结 · 桌面" data-desc="最后一步。总结卡每一行都能直接改；确认后进入首页 S1（新用户）。" style="left:1540px;top:1100px"><div class="fx-ab-label">P2.1 目标设定 · 确认总结 · 桌面<span>1440 × 1000</span></div><div class="ab cv" style="width:1440px;height:1000px"><aside class="side"><div class="brand"><span class="mk"><i style="height:16px"></i><i style="height:11px"></i><i style="height:6px"></i></span><b>照见</b></div><nav class="nav"><a class=""><i data-lucide="house"></i>首页</a><a class="on"><i data-lucide="message-circle"></i>对话<span class="n mono">进行中</span></a><a class=""><i data-lucide="list"></i>线索<span class="n mono">0</span></a><a class=""><i data-lucide="user-round"></i>画像<span class="n mono">未生成</span></a><a class=""><i data-lucide="calendar-check"></i>打卡<span class="n mono">0 天</span></a></nav><div class="slab">你讲过的故事</div><div class="story all"><span>还没有</span></div><div class="grow"></div><nav class="nav"><a class=""><i data-lucide="settings"></i>设置</a></nav><div class="me"><span class="av">W</span><span style="font-size:13px">Wortley</span></div></aside><div class="cv-main"><div class="hdr"><div class="l"><h2>目标设定</h2><span class="mono">第一次对话</span></div><div class="l"><span class="mono">最后一步</span></div></div><div class="cv-body"><div class="cv-col"><div class="stream"><div class="fold" style="padding-left:0">前面 8 条消息 · 展开</div><div class="coach"><span class="mk2"><i style="height:14px"></i><i style="height:9px"></i><i style="height:5px"></i></span><div><p>我总结一下，你看对不对。哪一条不对可以直接改</p></div></div><div class="inl gsum"><dl><dt>现在</dt><dd>工作三年，想弄清自己擅长什么</dd><span class="ed"><i data-lucide="pencil"></i></span><dt>眼前的选择</dt><dd>要不要去朋友的创业公司</dd><span class="ed"><i data-lucide="pencil"></i></span><dt>想得到</dt><dd>职业方向的参考</dd><span class="ed"><i data-lucide="pencil"></i></span><dt>沟通方式</dt><dd>直接一点，多举例子</dd><span class="ed"><i data-lucide="pencil"></i></span></dl><div class="a" style="display:flex;gap:8px;margin-top:14px"><span class="btn btn-p btn-sm">对，开始</span><span class="btn btn-s btn-sm">有一条要改</span></div></div></div><div class="dock"><div class="in"><div class="comp"><div class="ph">或者直接说哪里不对</div><div class="tools"><span class="tb"><i data-lucide="paperclip"></i></span><span class="tb"><i data-lucide="mic"></i></span><span class="ibtn off"><i data-lucide="arrow-up"></i></span></div></div><div class="foot"><span class="mono">Enter 发送 · Shift + Enter 换行</span><span class="mono">自动保存</span></div></div></div></div><aside class="disc"><h3>本次发现</h3><div><h5>目标设定</h5><ul class="star"><li><span class="ck on"><i data-lucide="check"></i></span>来意</li><li><span class="ck on"><i data-lucide="check"></i></span>现在的处境</li><li><span class="ck on"><i data-lucide="check"></i></span>期待的结果</li><li><span class="ck on"><i data-lucide="check"></i></span>沟通偏好</li><li><span class="ck cur"></span>确认总结</li></ul></div><p class="mono" style="margin:0">这一步只听和记录，不分析</p></aside></div></div></div></div></section><section class="fx-page" data-page="p25"><div class="fx-ab" data-name="P2.5 能量打卡 · 移动" data-desc="流程 F6。从晚上的提醒进入，三个固定问题，全程 1 分钟内。分数直接点，不用输入；后两问可以语音。" style="left:0px;top:2200px"><div class="fx-ab-label">P2.5 能量打卡 · 移动<span>390 × 844</span></div><div class="ab m" style="width:390px;height:844px"><div class="m-sb"><span>21:30</span><span class="ic"><i data-lucide="signal"></i><i data-lucide="wifi"></i><i data-lucide="battery-full"></i></span></div><div class="m-hd"><div class="l"><span class="back"><i data-lucide="chevron-left"></i></span><h2>今天的打卡</h2></div><span class="ck-step" style="padding-right:12px"><i class="on"></i><i class="on"></i><i></i></span></div><div class="m-stream"><div class="coach"><span class="mk2"><i style="height:14px"></i><i style="height:9px"></i><i style="height:5px"></i></span><div><p>今天整体能量打几分？</p></div></div><div class="seg" style="margin:0 0 0 36px"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span class="on" style="background:var(--page-accent);color:#fff">7</span><span>8</span><span>9</span><span>10</span></div><div class="coach"><span class="mk2"><i style="height:14px"></i><i style="height:9px"></i><i style="height:5px"></i></span><div><p>今天最让你充电的一件事？</p></div></div><div class="mine">下午一个人把下季度的计划框架搭出来了</div><div class="coach"><span class="mk2"><i style="height:14px"></i><i style="height:9px"></i><i style="height:5px"></i></span><div><p>最消耗你的一件事？</p></div></div></div><div class="m-dock"><div class="comp"><div class="ph">比如：上午连开了三个会</div><span class="tb"><i data-lucide="mic"></i></span><span class="ibtn off"><i data-lucide="arrow-up"></i></span></div></div></div></div><div class="fx-ab" data-name="P2.5 打卡完成 · 移动" data-desc="完成后只给一句确认和累计天数。V0.5 不显示任何「规律」结论（规则：满 14 天前只说初步观察，V1 才生成周报）。" style="left:490px;top:2200px"><div class="fx-ab-label">P2.5 打卡完成 · 移动<span>390 × 844</span></div><div class="ab m" style="width:390px;height:844px"><div class="m-sb"><span>21:31</span><span class="ic"><i data-lucide="signal"></i><i data-lucide="wifi"></i><i data-lucide="battery-full"></i></span></div><div class="m-hd"><div class="l"><span class="back"><i data-lucide="chevron-left"></i></span><h2>今天的打卡</h2></div></div><div class="m-stream"><div class="coach"><span class="mk2"><i style="height:14px"></i><i style="height:9px"></i><i style="height:5px"></i></span><div><p>记好了。明天见</p></div></div><div class="inl sum" style="margin-left:36px;padding:16px 18px;box-shadow:none"><h4>第 7 天</h4><div class="nums" style="grid-template-columns:1fr 1fr"><div><b>7</b><span class="mono">今天</span></div><div><b>7 / 14</b><span class="mono">已记录</span></div></div><p class="mono" style="margin:0">满 14 天后会生成第一份能量周报（V1）</p></div><span class="btn btn-s" style="margin-left:36px;align-self:flex-start">回首页</span></div></div></div><div class="fx-ab" data-name="系统通知文案" data-desc="通知只写一句，不写具体内容（锁屏可见）。不用感叹号，不催促。" style="left:980px;top:2200px"><div class="fx-ab-label">系统通知文案<span>420 × 300</span></div><div class="ab " style="width:420px;height:300px"><div style="padding:24px"><div class="notif"><span class="ic2"><i style="height:12px"></i><i style="height:8px"></i><i style="height:5px"></i></span><div><b>照见 · 21:30</b><p>今天过得怎么样？1 分钟打个卡</p></div></div><div class="notif" style="margin-top:12px"><span class="ic2"><i style="height:12px"></i><i style="height:8px"></i><i style="height:5px"></i></span><div><b>照见 · 画像</b><p>画像 v1 整理好了，有空的时候看看</p></div></div></div></div></div><div class="fx-ab" data-name="P6 打卡记录 · 桌面" data-desc="两周日历，格子深浅 = 分数（同一墨水色的 4 档浅色，不引入新颜色）；未打卡为虚线。没有任何「规律」结论。" style="left:0px;top:1000px"><div class="fx-ab-label">P6 打卡记录 · 桌面<span>1440 × 860</span></div><div class="ab d" style="width:1440px;height:860px"><aside class="side"><div class="brand"><span class="mk"><i style="height:16px"></i><i style="height:11px"></i><i style="height:6px"></i></span><b>照见</b></div><nav class="nav"><a class=""><i data-lucide="house"></i>首页</a><a class=""><i data-lucide="message-circle"></i>对话</a><a class=""><i data-lucide="list"></i>线索<span class="n mono">10</span></a><a class=""><i data-lucide="user-round"></i>画像<span class="n mono">可以生成</span></a><a class="on"><i data-lucide="calendar-check"></i>打卡<span class="n mono">10 天</span></a></nav><div class="slab">你讲过的故事</div><div class="story"><span>新领导要求每个决定都审批</span><span class="mono">11-30</span></div><div class="story"><span>上周的跨部门周会</span><span class="mono">11-27</span></div><div class="story"><span>第一份工作的主管</span><span class="mono">11-22</span></div><div class="story all"><span>全部故事</span><span class="mono">7</span></div><div class="grow"></div><nav class="nav"><a class=""><i data-lucide="settings"></i>设置</a></nav><div class="me"><span class="av">W</span><span style="font-size:13px">Wortley</span></div></aside><div class="main"><div class="hdr"><h2>打卡</h2><span class="mono">第 14 天 · 2026-12-02</span></div><div class="lib"><div class="lib-h"><div><h1>已经记录 10 天，再 4 天就能看到第一份能量周报</h1><p>周报在 V1 上线。现在只记录，不下结论</p></div><div class="a"><span class="btn btn-s">提醒时间 21:30</span></div></div><div style="display:grid;grid-template-columns:minmax(0,7fr) minmax(0,5fr);gap:48px"><div><div class="blk-h"><h3>两周</h3><span class="lg5">低<i style="background:#F7F9FC"></i><i style="background:#E8EEF6"></i><i style="background:#CFDBEA"></i><i style="background:#A9BDD7"></i>高 · 虚线为未打卡</span></div><div class="cal"><span class="wd">一</span><span class="wd">二</span><span class="wd">三</span><span class="wd">四</span><span class="wd">五</span><span class="wd">六</span><span class="wd">日</span><div class="d h3"><span class="n">11-23</span><span class="v">6</span></div><div class="d h3"><span class="n">11-24</span><span class="v">7</span></div><div class="d h2"><span class="n">11-25</span><span class="v">5</span></div><div class="d h4"><span class="n">11-26</span><span class="v">8</span></div><div class="d h2"><span class="n">11-27</span><span class="v">4</span></div><div class="d h3"><span class="n">11-28</span><span class="v">6</span></div><div class="d h3"><span class="n">11-29</span><span class="v">7</span></div><div class="d h1"><span class="n">11-30</span><span class="v">3</span></div><div class="d h3"><span class="n">12-01</span><span class="v">7</span></div><div class="d h3 t"><span class="n">12-02</span><span class="v">6</span></div><div class="d f"><span class="n">12-03</span></div><div class="d f"><span class="n">12-04</span></div><div class="d f"><span class="n">12-05</span></div><div class="d f"><span class="n">12-06</span></div></div></div><div><div class="blk-h"><h3>最近记录</h3></div><table class="cl"><tr><th>日期</th><th>分</th><th>充电</th><th>消耗</th></tr><tr><td class="mono">12-02</td><td class="mono" style="color:var(--page-ink)">6</td><td>把两个方案画成对比图</td><td class="c2">下午被临时拉去开会</td></tr><tr><td class="mono">12-01</td><td class="mono" style="color:var(--page-ink)">7</td><td>帮同事理清了需求</td><td class="c2">连续三个会</td></tr><tr><td class="mono">11-30</td><td class="mono" style="color:var(--page-ink)">3</td><td>—</td><td class="c2">新领导要求每个决定都审批</td></tr><tr><td class="mono">11-29</td><td class="mono" style="color:var(--page-ink)">7</td><td>周末一个人整理书架</td><td class="c2">—</td></tr></table></div></div></div></div></div></div></section><section class="fx-page" data-page="p7"><div class="fx-ab" data-name="P7.1 他人反馈 · 准备问卷 · 桌面" data-desc="从线索库进入（Q3）。V0.5 不自动发送，给出可复制的问卷和邀请话术，用户自己发。关系只选类别，不存名字。" style="left:1540px;top:3200px"><div class="fx-ab-label">P7.1 他人反馈 · 准备问卷 · 桌面<span>1440 × 1000</span></div><div class="ab d" style="width:1440px;height:1000px"><aside class="side"><div class="brand"><span class="mk"><i style="height:16px"></i><i style="height:11px"></i><i style="height:6px"></i></span><b>照见</b></div><nav class="nav"><a class=""><i data-lucide="house"></i>首页</a><a class=""><i data-lucide="message-circle"></i>对话</a><a class="on"><i data-lucide="list"></i>线索<span class="n mono">8</span></a><a class=""><i data-lucide="user-round"></i>画像<span class="n mono">未生成</span></a><a class=""><i data-lucide="calendar-check"></i>打卡<span class="n mono">8 天</span></a></nav><div class="slab">你讲过的故事</div><div class="story"><span>第一份工作的主管</span><span class="mono">11-22</span></div><div class="story"><span>临时救场的发布会</span><span class="mono">11-21</span></div><div class="story"><span>接手无文档的项目</span><span class="mono">11-20</span></div><div class="story all"><span>全部故事</span><span class="mono">5</span></div><div class="grow"></div><nav class="nav"><a class=""><i data-lucide="settings"></i>设置</a></nav><div class="me"><span class="av">W</span><span style="font-size:13px">Wortley</span></div></aside><div class="main"><div class="hdr"><div class="bc"><span>线索</span><i data-lucide="chevron-right"></i><b>收集他人反馈</b></div><span class="mono">V0.5 · 只收集</span></div><div class="flowb"><div class="col" style="width:760px"><h1>找 5–8 个人，问他们眼中的你</h1><p class="lead">别人能看到你自己看不到的部分。最好覆盖 3 种以上的关系。现在先收集，收到 3 份以上、V1 上线后再一起分析</p><div><h4 style="margin:8px 0 8px;font-size:12px;font-weight:400;color:var(--page-ink-3)">打算找谁 · 选关系就行，不用写名字</h4><div class="rel3"><span class="chipf on">家人 <span class="mono">1</span></span><span class="chipf on">朋友 <span class="mono">2</span></span><span class="chipf on">同事 <span class="mono">2</span></span><span class="chipf">上级</span><span class="chipf">下属</span><span class="mono" style="align-self:center;margin-left:8px">5 人 · 3 种关系</span></div></div><div class="copy"><span class="mono">问卷 · 5 题 · 大约 5 分钟</span><span class="cp btn btn-s btn-sm"><i data-lucide="copy"></i>复制</span><ol><li>你觉得 TA 最突出的 3 个优点是什么？能举个例子吗？</li><li>什么时候你觉得 TA 状态最好？</li><li>遇到什么事，你会第一个想到找 TA？</li><li>有什么事你希望 TA 做得不一样？</li><li>（可选）用 3 个词形容 TA</li></ol></div><div class="copy"><div style="display:flex;align-items:center;gap:12px"><span class="mono">邀请话术</span><span class="seg2"><span class="on">匿名</span><span>实名</span></span></div><span class="cp btn btn-s btn-sm"><i data-lucide="copy"></i>复制</span><p>最近在做一件挺有意思的事：想弄清楚自己真正擅长什么。想请你帮个忙，花 5 分钟回答几个关于我的问题。不用客气，说真话最有用。回复是匿名的，我只会看到你和我的关系，看不到是谁写的</p></div><div style="display:flex;gap:8px"><span class="btn btn-p">我发出去了</span><span class="btn btn-s">导入已收到的回复</span></div></div></div></div></div></div><div class="fx-ab" data-name="P7.2 他人反馈 · 导入回复 · 桌面" data-desc="标题说还差几份；粘贴 + 选关系即可保存。已收集列表只显示关系和摘要。" style="left:3080px;top:3200px"><div class="fx-ab-label">P7.2 他人反馈 · 导入回复 · 桌面<span>1440 × 1000</span></div><div class="ab d" style="width:1440px;height:1000px"><aside class="side"><div class="brand"><span class="mk"><i style="height:16px"></i><i style="height:11px"></i><i style="height:6px"></i></span><b>照见</b></div><nav class="nav"><a class=""><i data-lucide="house"></i>首页</a><a class=""><i data-lucide="message-circle"></i>对话</a><a class="on"><i data-lucide="list"></i>线索<span class="n mono">8</span></a><a class=""><i data-lucide="user-round"></i>画像<span class="n mono">未生成</span></a><a class=""><i data-lucide="calendar-check"></i>打卡<span class="n mono">8 天</span></a></nav><div class="slab">你讲过的故事</div><div class="story"><span>第一份工作的主管</span><span class="mono">11-22</span></div><div class="story"><span>临时救场的发布会</span><span class="mono">11-21</span></div><div class="story"><span>接手无文档的项目</span><span class="mono">11-20</span></div><div class="story all"><span>全部故事</span><span class="mono">5</span></div><div class="grow"></div><nav class="nav"><a class=""><i data-lucide="settings"></i>设置</a></nav><div class="me"><span class="av">W</span><span style="font-size:13px">Wortley</span></div></aside><div class="main"><div class="hdr"><div class="bc"><span>收集他人反馈</span><i data-lucide="chevron-right"></i><b>导入回复</b></div><span class="mono">已收到 2 份</span></div><div class="flowb"><div class="col"><h1>已经收到 2 份，再有 1 份就够开始分析了</h1><p class="lead">把对方的回复粘贴进来，选一下是什么关系。分析在 V1 上线，到时候会和你讲过的故事一起对照</p><div class="paste" style="height:140px;font-family:var(--page-sans);font-size:14px;line-height:22px;color:var(--page-ink)">1. 靠谱，答应的事一定做到；乱的时候找你准没错……</div><div style="display:flex;align-items:center;gap:8px"><span class="mono">关系</span><span class="chipf">家人</span><span class="chipf">朋友</span><span class="chipf on">同事</span><span class="chipf">上级</span><span class="chipf">下属</span><span class="btn btn-p btn-sm" style="margin-left:auto">保存这份回复</span></div><table class="cl"><tr><th>收到</th><th>关系</th><th>摘要</th><th class="r"></th></tr><tr><td class="mono">11-29</td><td class="c2">朋友</td><td>做计划很有条理；有时候急</td><td class="r"><span class="tb"><i data-lucide="ellipsis"></i></span></td></tr><tr><td class="mono">11-28</td><td class="c2">家人</td><td>说到做到，从小就是</td><td class="r"><span class="tb"><i data-lucide="ellipsis"></i></span></td></tr></table><p class="mono" style="margin:0">回复只给你看，匿名回复里能认出是谁的细节，V1 分析时会先模糊处理</p></div></div></div></div></div></section><section class="fx-page" data-page="p8"><div class="fx-ab" data-name="P8.1 设置 · 我的档案 · 桌面" data-desc="目标、困惑、沟通方式都可以改；改目标时提供「重新做一次目标设定」。" style="left:0px;top:4300px"><div class="fx-ab-label">P8.1 设置 · 我的档案 · 桌面<span>1440 × 800</span></div><div class="ab d" style="width:1440px;height:800px"><aside class="side"><div class="brand"><span class="mk"><i style="height:16px"></i><i style="height:11px"></i><i style="height:6px"></i></span><b>照见</b></div><nav class="nav"><a class=""><i data-lucide="house"></i>首页</a><a class=""><i data-lucide="message-circle"></i>对话</a><a class=""><i data-lucide="list"></i>线索<span class="n mono">10</span></a><a class=""><i data-lucide="user-round"></i>画像<span class="n mono">v1</span></a><a class=""><i data-lucide="calendar-check"></i>打卡<span class="n mono">14 天</span></a></nav><div class="slab">你讲过的故事</div><div class="story"><span>新领导要求每个决定都审批</span><span class="mono">11-30</span></div><div class="story"><span>上周的跨部门周会</span><span class="mono">11-27</span></div><div class="story"><span>第一份工作的主管</span><span class="mono">11-22</span></div><div class="story all"><span>全部故事</span><span class="mono">7</span></div><div class="grow"></div><nav class="nav"><a class="on"><i data-lucide="settings"></i>设置</a></nav><div class="me"><span class="av">W</span><span style="font-size:13px">Wortley</span></div></aside><div class="main"><div class="hdr"><h2>设置</h2><span class="mono"></span></div><div class="set"><nav class="set-nav"><a class="on"><i data-lucide="user-round"></i>我的档案</a><a class=""><i data-lucide="bell"></i>提醒</a><a class=""><i data-lucide="shield"></i>隐私与数据</a><a class=""><i data-lucide="life-buoy"></i>求助资源</a></nav><div class="set-body"><h1>我的档案</h1><div class="fld"><div class="l"><b>探索目标</b><span>改目标会影响教练的提问方向</span></div><div class="c"><div class="inp">职业方向的参考</div><span class="btn btn-t btn-sm" style="padding:0">重新做一次目标设定</span></div></div><div class="fld"><div class="l"><b>现在的困惑</b></div><div class="c"><div class="inp">要不要去朋友的创业公司</div></div></div><div class="fld"><div class="l"><b>沟通方式</b><span>教练说话的语气</span></div><div class="c"><span class="seg2"><span class="on">直接一点</span><span>温和一点</span></span><span class="seg2"><span class="on">多举例子</span><span>只说结论</span></span></div></div><div class="fld"><div class="l"><b>昵称</b></div><div class="c"><div class="inp">Wortley</div></div></div></div></div></div></div></div><div class="fx-ab" data-name="P8.3 设置 · 隐私与数据 · 桌面" data-desc="训练开关锁定为关；导出写明会导出多少内容；删除全部数据单独成块，用 btn-k（补充 1）。" style="left:1540px;top:4300px"><div class="fx-ab-label">P8.3 设置 · 隐私与数据 · 桌面<span>1440 × 800</span></div><div class="ab d" style="width:1440px;height:800px"><aside class="side"><div class="brand"><span class="mk"><i style="height:16px"></i><i style="height:11px"></i><i style="height:6px"></i></span><b>照见</b></div><nav class="nav"><a class=""><i data-lucide="house"></i>首页</a><a class=""><i data-lucide="message-circle"></i>对话</a><a class=""><i data-lucide="list"></i>线索<span class="n mono">10</span></a><a class=""><i data-lucide="user-round"></i>画像<span class="n mono">v1</span></a><a class=""><i data-lucide="calendar-check"></i>打卡<span class="n mono">14 天</span></a></nav><div class="slab">你讲过的故事</div><div class="story"><span>新领导要求每个决定都审批</span><span class="mono">11-30</span></div><div class="story"><span>上周的跨部门周会</span><span class="mono">11-27</span></div><div class="story"><span>第一份工作的主管</span><span class="mono">11-22</span></div><div class="story all"><span>全部故事</span><span class="mono">7</span></div><div class="grow"></div><nav class="nav"><a class="on"><i data-lucide="settings"></i>设置</a></nav><div class="me"><span class="av">W</span><span style="font-size:13px">Wortley</span></div></aside><div class="main"><div class="hdr"><h2>设置</h2><span class="mono"></span></div><div class="set"><nav class="set-nav"><a class=""><i data-lucide="user-round"></i>我的档案</a><a class=""><i data-lucide="bell"></i>提醒</a><a class="on"><i data-lucide="shield"></i>隐私与数据</a><a class=""><i data-lucide="life-buoy"></i>求助资源</a></nav><div class="set-body"><h1>隐私与数据</h1><div class="fld"><div class="l"><b>用于训练模型</b><span>默认关闭</span></div><div class="c"><span class="tgl" style="margin:0"><i></i>关闭，且不能打开</span><span class="mono">你的故事、线索和画像不会被用来训练任何模型</span></div></div><div class="fld"><div class="l"><b>导出全部数据</b><span>JSON 加一份可读的文档</span></div><div class="c"><span class="btn btn-s"><i data-lucide="download"></i>导出</span><span class="mono">7 个故事 · 10 条线索 · 22 条证据 · 1 份画像 · 14 天打卡</span></div></div><div class="fld"><div class="l"><b>测评原文件</b></div><div class="c"><span class="mono">大五人格结果.pdf · 11-26 已删除，只保留分数</span></div></div><div class="danger"><div><b>删除全部数据</b><span>所有故事、线索、画像和打卡都会永久删除，不能恢复。建议先导出</span></div><span class="btn btn-k">删除全部数据</span></div></div></div></div></div></div><div class="fx-ab" data-name="P8.3 删除全部数据 · 第二步 · 桌面" data-desc="两步确认：第一步点按钮，第二步输入「删除」才能执行。弹层里再给一次「先导出」。" style="left:3080px;top:4300px"><div class="fx-ab-label">P8.3 删除全部数据 · 第二步 · 桌面<span>1440 × 800</span></div><div class="ab d" style="width:1440px;height:800px"><aside class="side"><div class="brand"><span class="mk"><i style="height:16px"></i><i style="height:11px"></i><i style="height:6px"></i></span><b>照见</b></div><nav class="nav"><a class=""><i data-lucide="house"></i>首页</a><a class=""><i data-lucide="message-circle"></i>对话</a><a class=""><i data-lucide="list"></i>线索<span class="n mono">10</span></a><a class=""><i data-lucide="user-round"></i>画像<span class="n mono">v1</span></a><a class=""><i data-lucide="calendar-check"></i>打卡<span class="n mono">14 天</span></a></nav><div class="slab">你讲过的故事</div><div class="story"><span>新领导要求每个决定都审批</span><span class="mono">11-30</span></div><div class="story"><span>上周的跨部门周会</span><span class="mono">11-27</span></div><div class="story"><span>第一份工作的主管</span><span class="mono">11-22</span></div><div class="story all"><span>全部故事</span><span class="mono">7</span></div><div class="grow"></div><nav class="nav"><a class="on"><i data-lucide="settings"></i>设置</a></nav><div class="me"><span class="av">W</span><span style="font-size:13px">Wortley</span></div></aside><div class="main"><div class="hdr"><h2>设置</h2><span class="mono"></span></div><div class="set"><nav class="set-nav"><a class=""><i data-lucide="user-round"></i>我的档案</a><a class=""><i data-lucide="bell"></i>提醒</a><a class="on"><i data-lucide="shield"></i>隐私与数据</a><a class=""><i data-lucide="life-buoy"></i>求助资源</a></nav><div class="set-body"><h1>隐私与数据</h1><div class="fld"><div class="l"><b>用于训练模型</b><span>默认关闭</span></div><div class="c"><span class="tgl" style="margin:0"><i></i>关闭，且不能打开</span><span class="mono">你的故事、线索和画像不会被用来训练任何模型</span></div></div><div class="fld"><div class="l"><b>导出全部数据</b><span>JSON 加一份可读的文档</span></div><div class="c"><span class="btn btn-s"><i data-lucide="download"></i>导出</span><span class="mono">7 个故事 · 10 条线索 · 22 条证据 · 1 份画像 · 14 天打卡</span></div></div><div class="fld"><div class="l"><b>测评原文件</b></div><div class="c"><span class="mono">大五人格结果.pdf · 11-26 已删除，只保留分数</span></div></div><div class="danger"><div><b>删除全部数据</b><span>所有故事、线索、画像和打卡都会永久删除，不能恢复。建议先导出</span></div><span class="btn btn-k">删除全部数据</span></div></div></div></div><div class="overlay"><div class="dlg"><h3>删除全部数据？</h3><p>这会永久删除 7 个故事、10 条线索、22 条证据、画像 v1 和 14 天的打卡记录，不能恢复</p><div class="note">请输入「删除」确认</div><div class="inp" style="max-width:none;margin-top:8px;border-color:var(--page-ink)">删除</div><div class="ft"><span class="btn btn-s">先导出</span><span class="btn btn-s">取消</span><span class="btn btn-k">永久删除</span></div></div></div></div></div><div class="fx-ab" data-name="P8.2 设置 · 提醒 · 桌面" data-desc="包含系统通知未授权的状态。" style="left:0px;top:5200px"><div class="fx-ab-label">P8.2 设置 · 提醒 · 桌面<span>1440 × 700</span></div><div class="ab d" style="width:1440px;height:700px"><aside class="side"><div class="brand"><span class="mk"><i style="height:16px"></i><i style="height:11px"></i><i style="height:6px"></i></span><b>照见</b></div><nav class="nav"><a class=""><i data-lucide="house"></i>首页</a><a class=""><i data-lucide="message-circle"></i>对话</a><a class=""><i data-lucide="list"></i>线索<span class="n mono">10</span></a><a class=""><i data-lucide="user-round"></i>画像<span class="n mono">v1</span></a><a class=""><i data-lucide="calendar-check"></i>打卡<span class="n mono">14 天</span></a></nav><div class="slab">你讲过的故事</div><div class="story"><span>新领导要求每个决定都审批</span><span class="mono">11-30</span></div><div class="story"><span>上周的跨部门周会</span><span class="mono">11-27</span></div><div class="story"><span>第一份工作的主管</span><span class="mono">11-22</span></div><div class="story all"><span>全部故事</span><span class="mono">7</span></div><div class="grow"></div><nav class="nav"><a class="on"><i data-lucide="settings"></i>设置</a></nav><div class="me"><span class="av">W</span><span style="font-size:13px">Wortley</span></div></aside><div class="main"><div class="hdr"><h2>设置</h2><span class="mono"></span></div><div class="set"><nav class="set-nav"><a class=""><i data-lucide="user-round"></i>我的档案</a><a class="on"><i data-lucide="bell"></i>提醒</a><a class=""><i data-lucide="shield"></i>隐私与数据</a><a class=""><i data-lucide="life-buoy"></i>求助资源</a></nav><div class="set-body"><h1>提醒</h1><div class="fld"><div class="l"><b>每日打卡提醒</b><span>一天一次，只在你设的时间</span></div><div class="c"><span class="tgl on" style="margin:0"><i></i>开启</span><div class="inp" style="max-width:160px">21:30</div></div></div><div class="fld"><div class="l"><b>画像和线索变化</b><span>线索升到「高」、画像生成完</span></div><div class="c"><span class="tgl on" style="margin:0"><i></i>开启</span></div></div><div class="banner" style="background:var(--page-raised)"><i data-lucide="bell-off"></i><span>系统通知还没有授权，提醒暂时发不出去</span><span class="sp"></span><span class="btn btn-s btn-sm">去授权</span></div></div></div></div></div></div><div class="fx-ab" data-name="P8.4 设置 · 求助资源 · 桌面" data-desc="安全守护的落点之一，任何时候都能从设置进入。号码按地区配置，上线前补齐。" style="left:1540px;top:5200px"><div class="fx-ab-label">P8.4 设置 · 求助资源 · 桌面<span>1440 × 700</span></div><div class="ab d" style="width:1440px;height:700px"><aside class="side"><div class="brand"><span class="mk"><i style="height:16px"></i><i style="height:11px"></i><i style="height:6px"></i></span><b>照见</b></div><nav class="nav"><a class=""><i data-lucide="house"></i>首页</a><a class=""><i data-lucide="message-circle"></i>对话</a><a class=""><i data-lucide="list"></i>线索<span class="n mono">10</span></a><a class=""><i data-lucide="user-round"></i>画像<span class="n mono">v1</span></a><a class=""><i data-lucide="calendar-check"></i>打卡<span class="n mono">14 天</span></a></nav><div class="slab">你讲过的故事</div><div class="story"><span>新领导要求每个决定都审批</span><span class="mono">11-30</span></div><div class="story"><span>上周的跨部门周会</span><span class="mono">11-27</span></div><div class="story"><span>第一份工作的主管</span><span class="mono">11-22</span></div><div class="story all"><span>全部故事</span><span class="mono">7</span></div><div class="grow"></div><nav class="nav"><a class="on"><i data-lucide="settings"></i>设置</a></nav><div class="me"><span class="av">W</span><span style="font-size:13px">Wortley</span></div></aside><div class="main"><div class="hdr"><h2>设置</h2><span class="mono"></span></div><div class="set"><nav class="set-nav"><a class=""><i data-lucide="user-round"></i>我的档案</a><a class=""><i data-lucide="bell"></i>提醒</a><a class=""><i data-lucide="shield"></i>隐私与数据</a><a class="on"><i data-lucide="life-buoy"></i>求助资源</a></nav><div class="set-body"><h1>求助资源</h1><p style="margin:-16px 0 0;font-size:14px;line-height:22px;color:var(--page-ink-2)">如果你现在很难受，或者有伤害自己的想法，请马上联系下面的热线，或者告诉一个你信任的人</p><div class="hot"><div class="r"><div><b>当地心理危机干预热线</b><span class="mono">24 小时 · 按你所在地区显示</span></div><span class="num">按地区配置</span><span class="btn btn-k btn-sm">拨打</span></div><div class="r"><div><b>急救电话</b><span class="mono">有人身危险时</span></div><span class="num">按地区配置</span><span class="btn btn-s btn-sm">拨打</span></div><div class="r"><div><b>怎么找一位心理咨询师</b><span class="mono">一份简短的指南</span></div><span></span><span class="btn btn-s btn-sm">打开</span></div></div><p class="mono" style="margin:0">具体号码在上线前按地区配置（决策总览 · 留到以后的事项）</p></div></div></div></div></div></section><section class="fx-page" data-page="st"><div class="fx-ab" data-name="外围页面 · 状态" data-desc="" style="left:0px;top:0px"><div class="fx-ab-label">外围页面 · 状态<span>1600 × 760</span></div><div class="ab spec" style="width:1600px;height:760px"><div class="sh"><h2>外围页面用得少，所以每一页都要一眼看懂下一步</h2><span class="mono">P0 · P2.1 · P2.5 · P6 · P7 · P8 · 状态</span></div><div class="st-row c4"><div class="st"><div class="lab"><b>欢迎 · 未勾选</b><span class="mono">按钮不可用</span></div><div class="stage"><span class="cbox"><i></i>我知道这不是心理咨询</span><span class="btn btn-x" style="margin-top:12px">同意并开始</span><div class="mono" style="margin-top:6px">先勾选上面一项</div></div></div><div class="st"><div class="lab"><b>目标设定 · 用户问「要不要辞职」</b><span class="mono">不替他决定</span></div><div class="stage"><div class="coach"><span class="mk2"><i style="height:14px"></i><i style="height:9px"></i><i style="height:5px"></i></span><div><p style="font-size:14px;line-height:22px">这个决定只能你来做。我们先把你自己了解清楚，到时候这个问题会好答很多</p></div></div></div><div class="cap">同时把这个问题记进「现在的困惑」</div></div><div class="st"><div class="lab"><b>打卡 · 今天已打卡</b><span class="mono">首页打卡区</span></div><div class="stage"><div class="blk-h"><h3>今天的能量</h3><span class="mono">已记录</span></div><div class="seg"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span class="on" style="background:var(--page-accent);color:#fff">7</span><span>8</span><span>9</span><span>10</span></div><div class="mono" style="margin-top:8px">今天 7 分 · 可以改</div></div></div><div class="st"><div class="lab"><b>打卡 · 连续 3 天没打</b><span class="mono">首页轻提示</span></div><div class="stage"><div class="banner" style="background:var(--page-raised)"><i data-lucide="clock"></i><span>最近 3 天没打卡，要不要换个提醒时间？</span><span class="sp"></span><span class="btn btn-t btn-sm">换时间</span></div></div><div class="cap">只提示一次，关掉后 7 天内不再出现</div></div></div><div class="st-row c4"><div class="st"><div class="lab"><b>打卡记录 · 空</b><span class="mono">0 天</span></div><div class="stage"><div class="empty" style="border:0;padding:8px 0">还没有打卡。今晚 21:30 会提醒你</div><span class="btn btn-s btn-sm">现在打一次</span></div></div><div class="st"><div class="lab"><b>他人反馈 · 未开始</b><span class="mono">线索库入口</span></div><div class="stage"><div class="empty" style="border:0;padding:8px 0">别人能看到你自己看不到的部分</div><span class="btn btn-s btn-sm"><i data-lucide="users"></i>收集他人反馈</span></div></div><div class="st"><div class="lab"><b>他人反馈 · 已够 3 份</b><span class="mono">等待 V1</span></div><div class="stage"><div class="banner"><i data-lucide="check"></i><span>已收到 3 份，V1 上线后会一起分析</span></div></div></div><div class="st"><div class="lab"><b>设置 · 改目标</b><span class="mono">确认弹层</span></div><div class="stage"><div class="dlg sm"><h3 style="font-size:16px">要重新做一次目标设定吗？</h3><p style="margin:6px 0 0;font-size:13px;line-height:20px;color:var(--page-ink-2)">已有的故事和线索都会保留，只是之后的提问方向会变</p><div class="ft" style="margin-top:14px"><span class="btn btn-t btn-sm">只改文字</span><span class="btn btn-p btn-sm">重新设定</span></div></div></div></div></div></div></div></section><section class="fx-page" data-page="chk"><div class="fx-ab" data-name="第 5 批检查清单" data-desc="" style="left:0px;top:0px"><div class="fx-ab-label">第 5 批检查清单<span>1200 × 960</span></div><div class="ab spec" style="width:1200px;height:960px"><div class="sh"><h2>第 5 批画了 16 个画板，覆盖流程 F1 第一次使用和 F6 每日打卡</h2><span class="mono">对照框架文档第 8 节</span></div><table class="chk"><tr><th style="width:26%">页面 / 组件</th><th>本批画了</th><th style="width:16%">状态</th></tr><tr><td>P0.1 欢迎与隐私说明</td><td>桌面 + 移动 · 未勾选状态</td><td class="ok">✓ 完成</td></tr><tr><td>P2.1 目标设定</td><td>进行中（选项卡）· 确认总结（可编辑）· 被问「要不要辞职」</td><td class="ok">✓ 完成</td></tr><tr><td>P2.5 能量打卡</td><td>进行中 · 完成（移动）· 首页已打卡 · 连续未打卡提示</td><td class="ok">✓ 完成</td></tr><tr><td>系统通知</td><td>打卡提醒 · 画像完成</td><td class="ok">✓ 完成</td></tr><tr><td>P6 打卡记录</td><td>两周日历 + 最近记录 · 空</td><td class="ok">✓ 完成</td></tr><tr><td>P7.1 / P7.2 他人反馈</td><td>准备问卷（可复制、匿名 / 实名）· 导入回复 · 未开始 · 已够 3 份</td><td class="ok">✓ 完成</td></tr><tr><td>P8 设置</td><td>我的档案 · 提醒（含未授权）· 隐私与数据 · 删除全部数据两步确认 · 求助资源 · 改目标</td><td class="ok">✓ 完成</td></tr><tr><td>P6 / P7 / P8 · 移动</td><td>与桌面同结构，单列排列</td><td class="later">○ 共用</td></tr></table><h4 style="margin-top:32px">本批发现并处理的问题</h4><table class="chk"><tr><th style="width:26%">问题</th><th>处理</th></tr><tr><td>打卡日历需要表示分数，但规范只有一个强调色</td><td>用强调色的 4 档浅色（#F7F9FC → #A9BDD7）表示分数，不引入新颜色；未打卡用虚线框</td></tr><tr><td>求助热线号码未定</td><td>画板中写「按地区配置」，保留在决策总览的「留到以后的事项」</td></tr><tr><td>「打卡」和「首页打卡区」可能重复入口</td><td>保留两个入口：首页快速打分，P2.5 完成三问；两处写入同一条记录</td></tr></table><p class="mono" style="margin-top:24px">下一批：第 6 批 边界 · 安全暂停 · 错误与加载 · 中屏断点 · 移动端本次发现</p></div></div></section></div><div class="fx-hint">拖动平移 · 滚轮平移 · Ctrl / ⌘ + 滚轮缩放 · 点击画板看说明</div></main><aside class="fx-side r"><div class="fx-sec"><h4>画板</h4><div class="fx-kv"><span>名称</span><b id="iName">—</b><span>尺寸</span><b id="iSize">—</b></div></div><div class="fx-sec"><h4>说明</h4><div class="fx-note" id="iDesc">点击画布上的画板查看。</div></div><div class="fx-sec"><h4>规范来源</h4><div class="fx-note">设计稿 v0.2「研究笔记」（含补充 1）<br>页面结构与交互框架 v0.2</div></div></aside></div>
+<script>
+(function(){
+  if (window.lucide) lucide.createIcons();
+  const canvas=document.getElementById('canvas'), world=document.getElementById('world');
+  const zLab=document.getElementById('zLab'), layers=document.getElementById('layers');
+  let s=1,x=0,y=0,page='p0';
+  const apply=()=>{world.style.transform=`translate(${x}px,${y}px) scale(${s})`;zLab.textContent=Math.round(s*100)+'%';};
+  const abs=()=>[...document.querySelectorAll(`.fx-page[data-page="${page}"] .fx-ab`)];
+  const box=el=>{const a=el.querySelector('.ab');return {l:parseFloat(el.style.left)||0,t:parseFloat(el.style.top)||0,w:a.offsetWidth,h:a.offsetHeight};};
+  function fitTo(list){let L=1e9,T=1e9,R=-1e9,B=-1e9;list.forEach(e=>{const b=box(e);L=Math.min(L,b.l);T=Math.min(T,b.t-24);R=Math.max(R,b.l+b.w);B=Math.max(B,b.t+b.h);});
+    const W=canvas.clientWidth,H=canvas.clientHeight,p=48;s=Math.max(Math.min((W-p*2)/(R-L),(H-p*2)/(B-T),2),.04);x=(W-(R-L)*s)/2-L*s;y=(H-(B-T)*s)/2-T*s;apply();}
+  function select(el){document.querySelectorAll('.fx-ab.sel').forEach(e=>e.classList.remove('sel'));document.querySelectorAll('#layers .fx-item').forEach(e=>e.classList.toggle('on',e._ab===el));
+    if(!el){iName.textContent='—';iSize.textContent='—';iDesc.textContent='点击画布上的画板查看。';return;}
+    el.classList.add('sel');const b=box(el);iName.textContent=el.dataset.name;iSize.textContent=b.w+' × '+b.h;iDesc.textContent=el.dataset.desc||'';}
+  function show(p){page=p;document.querySelectorAll('.fx-page').forEach(e=>e.classList.toggle('on',e.dataset.page===p));document.querySelectorAll('.fx-item[data-page]').forEach(e=>e.classList.toggle('on',e.dataset.page===p));
+    layers.innerHTML='';abs().forEach(el=>{const b=document.createElement('button');b.className='fx-item';b.innerHTML='<i data-lucide="frame"></i>'+el.dataset.name;b._ab=el;b.onclick=()=>{fitTo([el]);select(el);};layers.appendChild(b);});
+    if(window.lucide) lucide.createIcons();select(null);requestAnimationFrame(()=>fitTo(abs()));}
+  document.querySelectorAll('.fx-item[data-page]').forEach(b=>b.onclick=()=>show(b.dataset.page));
+  function zoomAt(f,cx,cy){const ns=Math.min(Math.max(s*f,.04),4);x=cx-(cx-x)*(ns/s);y=cy-(cy-y)*(ns/s);s=ns;apply();}
+  canvas.addEventListener('wheel',e=>{e.preventDefault();const r=canvas.getBoundingClientRect();if(e.ctrlKey||e.metaKey){zoomAt(Math.exp(-e.deltaY*.01),e.clientX-r.left,e.clientY-r.top);}else{x-=e.deltaX;y-=e.deltaY;apply();}},{passive:false});
+  let d=null;
+  canvas.addEventListener('pointerdown',e=>{d={sx:e.clientX,sy:e.clientY,x,y,m:false};canvas.setPointerCapture(e.pointerId);});
+  canvas.addEventListener('pointermove',e=>{if(!d)return;const dx=e.clientX-d.sx,dy=e.clientY-d.sy;if(Math.abs(dx)+Math.abs(dy)>3){d.m=true;canvas.classList.add('drag');}x=d.x+dx;y=d.y+dy;apply();});
+  canvas.addEventListener('pointerup',e=>{if(d&&!d.m){const ab=document.elementFromPoint(e.clientX,e.clientY)?.closest('.fx-ab');select(ab||null);}d=null;canvas.classList.remove('drag');});
+  const c=()=>({cx:canvas.clientWidth/2,cy:canvas.clientHeight/2});
+  zIn.onclick=()=>{const{cx,cy}=c();zoomAt(1.25,cx,cy);};zOut.onclick=()=>{const{cx,cy}=c();zoomAt(.8,cx,cy);};
+  zFit.onclick=()=>fitTo(abs());z100.onclick=()=>{const{cx,cy}=c();zoomAt(1/s,cx,cy);};
+  window.addEventListener('keydown',e=>{if(e.shiftKey&&e.code==='Digit1')fitTo(abs());if(e.shiftKey&&e.code==='Digit0'){const{cx,cy}=c();zoomAt(1/s,cx,cy);}});
+  window.addEventListener('resize',()=>fitTo(abs()));
+  show('p0');
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>fitTo(abs()));
+})();
+</script>
+</body>
+</html>

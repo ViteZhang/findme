@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>照见 · 设计稿 第 2 批：档案</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+<style>
+/* 设计令牌：沿用 v0.2「研究笔记」，不做任何改动 */
+:root{
+  --page-bg:#FAFAFA;--page-surface:#FFFFFF;--page-raised:#F4F4F5;
+  --page-line:rgba(23,23,23,.08);--page-line-2:rgba(23,23,23,.14);
+  --page-ink:#171717;--page-ink-2:#525252;--page-ink-3:#737373;
+  --page-accent:#23406E;--page-accent-700:#1A3154;--page-accent-50:#EDF1F7;
+  --page-neg:#B4332B;--page-neg-50:#FBEFEE;
+  --page-sans:'Noto Sans SC','PingFang SC','Microsoft YaHei',system-ui,sans-serif;
+  --page-mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  --page-ease:cubic-bezier(.22,1,.36,1);
+}
+/* ===== 画布外壳 ===== */
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:#E5E5E5;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;color:#1e1e1e}
+.fx-app{display:grid;grid-template-rows:44px 1fr;grid-template-columns:240px 1fr 260px;height:100vh}
+.fx-top{grid-column:1/-1;display:flex;align-items:center;gap:12px;padding:0 12px;background:#2C2C2C;color:#fff;font-size:12px}
+.fx-top b{font-weight:600}.fx-top .s{color:#B3B3B3}.fx-top .sp{flex:1}
+.fx-btn{background:transparent;border:0;color:#fff;height:28px;min-width:28px;padding:0 8px;border-radius:5px;font:inherit;cursor:pointer}
+.fx-btn:hover{background:#444}.fx-zoom{min-width:48px;text-align:center}
+.fx-side{background:#fff;border-right:1px solid #E5E5E5;overflow:auto;font-size:12px}
+.fx-side.r{border-right:0;border-left:1px solid #E5E5E5}
+.fx-sec{padding:12px 0;border-bottom:1px solid #EEE}
+.fx-sec h4{margin:0 0 6px;padding:0 16px;font-size:11px;font-weight:600}
+.fx-item{display:flex;align-items:center;gap:8px;padding:6px 16px;cursor:pointer;color:#333;border:0;background:none;width:100%;text-align:left;font:inherit}
+.fx-item:hover{background:#F5F5F5}.fx-item.on{background:#E5F4FF;color:#0B6BB3;font-weight:600}
+.fx-item svg{width:14px;height:14px;stroke-width:1.6;flex:none}
+.fx-kv{display:grid;grid-template-columns:48px 1fr;gap:6px 8px;padding:0 16px;color:#555}.fx-kv b{color:#1e1e1e;font-weight:500}
+.fx-note{padding:0 16px;color:#555;line-height:1.6}
+.fx-canvas{position:relative;overflow:hidden;cursor:grab;background-color:#E5E5E5;background-image:radial-gradient(#CFCFCF 1px,transparent 1px);background-size:20px 20px}
+.fx-canvas.drag{cursor:grabbing}
+.fx-world{position:absolute;left:0;top:0;transform-origin:0 0}
+.fx-ab{position:absolute}
+.fx-ab-label{position:absolute;left:0;top:-22px;font-size:12px;color:#7A7A7A;white-space:nowrap}
+.fx-ab-label span{color:#AAA;margin-left:8px}
+.fx-ab.sel .fx-ab-label{color:#0D99FF}.fx-ab.sel>.ab{outline:2px solid #0D99FF}
+.fx-page{display:none}.fx-page.on{display:block}
+.fx-hint{position:absolute;left:12px;bottom:12px;font-size:11px;color:#666;background:rgba(255,255,255,.9);padding:6px 10px;border-radius:6px}
+
+/* ===== 产品基础 ===== */
+.ab{position:relative;background:var(--page-bg);font-family:var(--page-sans);color:var(--page-ink);overflow:hidden;font-size:14px;line-height:22px;font-variant-numeric:tabular-nums}
+.ab *{box-sizing:border-box}
+.ab svg.lucide{width:16px;height:16px;stroke-width:1.5;color:var(--page-ink-3);flex:none}
+.mono{font-family:var(--page-mono);font-size:12px;line-height:16px;color:var(--page-ink-3)}
+.c2{color:var(--page-ink-2)}.c3{color:var(--page-ink-3)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 16px;border-radius:8px;border:1px solid transparent;font:500 14px/1 var(--page-sans);white-space:nowrap}
+.btn-p{background:var(--page-accent);color:#fff}
+.btn-s{background:var(--page-raised);color:var(--page-ink);border-color:var(--page-line)}
+.btn-t{background:none;color:var(--page-ink-2);padding:0 4px;height:32px}
+.btn-sm{height:32px;padding:0 12px;font-size:13px}
+.btn-lg{height:44px;padding:0 20px}
+.ibtn{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;background:var(--page-ink)}
+.ibtn svg.lucide{color:#fff}
+.ibtn.off{background:var(--page-raised)}.ibtn.off svg.lucide{color:#A3A3A3}
+.tag{display:inline-flex;align-items:center;height:20px;padding:0 6px;border-radius:4px;font-size:12px;line-height:16px;color:var(--page-ink-2);background:var(--page-raised);white-space:nowrap}
+.tag.dash{background:none;border:1px dashed var(--page-line-2)}
+.tag.ok{background:var(--page-accent-50);color:var(--page-accent)}
+.tally{display:inline-flex;align-items:flex-end;gap:4px;height:20px;vertical-align:middle}
+.tally i{display:block;width:2px;border-radius:1px;background:var(--page-accent)}
+.tally i.s{height:20px}.tally i.m{height:14px}.tally i.w{height:8px}
+.tally i.self{height:14px;background:repeating-linear-gradient(to top,var(--page-ink-3) 0 2px,transparent 2px 4px)}
+.tally i.slot{height:20px;background:rgba(23,23,23,.12)}
+.tally i.new{box-shadow:0 0 0 3px var(--page-accent-50)}
+.tally.lg{height:40px;gap:8px}.tally.lg i{width:3px;border-radius:2px}
+.tally.lg i.s{height:40px}.tally.lg i.m{height:28px}.tally.lg i.slot{height:40px}
+
+/* 侧栏 */
+.side{background:var(--page-bg);border-right:1px solid var(--page-line);display:flex;flex-direction:column;padding:0 12px 16px}
+.brand{height:56px;display:flex;align-items:center;gap:10px;padding:0 8px}
+.brand .mk{display:inline-flex;align-items:flex-end;gap:3px;height:16px}
+.brand .mk i{display:block;width:3px;border-radius:1px;background:var(--page-accent)}
+.brand b{font-size:16px;font-weight:500;line-height:1}
+.nav{display:flex;flex-direction:column;gap:2px;margin-top:8px}
+.nav a{height:36px;display:flex;align-items:center;gap:10px;padding:0 8px;border-radius:8px;color:var(--page-ink-2);font-size:14px}
+.nav a.on{background:var(--page-raised);color:var(--page-ink);box-shadow:inset 0 0 0 1px var(--page-line)}
+.nav a.on svg.lucide{color:var(--page-ink)}
+.nav a .n{margin-left:auto}
+.slab{font-size:12px;color:var(--page-ink-3);padding:0 8px;margin:24px 0 8px}
+.story{height:36px;display:flex;align-items:center;gap:10px;padding:0 8px;border-radius:8px;font-size:13px;color:var(--page-ink-2)}
+.story span:first-child{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.story.on{background:var(--page-raised);color:var(--page-ink)}
+.story.all{color:var(--page-ink-3)}
+.side .grow{flex:1}
+.me{height:44px;display:flex;align-items:center;gap:10px;padding:8px 8px 0;border-top:1px solid var(--page-line);margin-top:8px}
+.av{width:24px;height:24px;border-radius:6px;background:var(--page-raised);display:grid;place-items:center;font-size:12px;color:var(--page-ink-2);box-shadow:inset 0 0 0 1px var(--page-line)}
+.hdr{height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 32px;border-bottom:1px solid var(--page-line);flex:none}
+.hdr h2{margin:0;font-size:15px;font-weight:500}
+.hdr .l{display:flex;align-items:center;gap:16px}
+
+/* ===== 对话页 ===== */
+.cv{width:1440px;height:1000px;display:grid;grid-template-columns:248px 1fr}
+.cv-main{display:flex;flex-direction:column;min-width:0}
+.cv-body{flex:1;display:grid;grid-template-columns:minmax(0,1fr) 320px;min-height:0}
+.cv-col{display:flex;flex-direction:column;min-height:0;border-right:1px solid var(--page-line)}
+.stream{flex:1;overflow:hidden;padding:32px 64px 24px;display:flex;flex-direction:column;gap:24px}
+.stream>*{max-width:680px}
+.seg3{display:inline-flex;background:var(--page-raised);border-radius:8px;padding:2px;gap:2px}
+.seg3 span{height:28px;padding:0 10px;display:inline-flex;align-items:center;border-radius:6px;font-size:13px;color:var(--page-ink-2)}
+.seg3 span.on{background:var(--page-surface);color:var(--page-ink);box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.coach{display:grid;grid-template-columns:24px 1fr;gap:12px}
+.mk2{height:26px;display:flex;align-items:flex-end;gap:2px;padding:0 0 6px 6px}
+.mk2 i{width:2px;border-radius:1px;background:var(--page-accent);display:block}
+.coach p{margin:0;font-size:15px;line-height:26px}
+.mine{align-self:flex-end;max-width:440px;background:var(--page-raised);border-radius:12px;padding:10px 14px;font-size:15px;line-height:26px}
+.rule{display:flex;align-items:center;gap:12px;max-width:680px}
+.rule:before,.rule:after{content:"";height:1px;background:var(--page-line);flex:1}
+.rule:before{flex:0 0 0}
+.fold{font-size:13px;color:var(--page-ink-3);padding-left:36px}
+/* 内联组件 */
+.inl{margin-left:36px;max-width:560px}
+.xcard{border:1px solid var(--page-line-2);border-radius:12px;padding:16px;background:var(--page-surface)}
+.xcard .k{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--page-ink-3)}
+.xcard .s{font-size:16px;line-height:24px;font-weight:500;margin:8px 0 4px}
+.xcard .w{font-size:13px;line-height:20px;color:var(--page-ink-2)}
+.xcard .a{display:flex;gap:8px;margin-top:12px}
+.xcard.done{padding:12px 16px;background:var(--page-bg);border-color:var(--page-line)}
+.xcard.done .s{font-size:14px;line-height:22px;margin:4px 0 0}
+.xcard.no .s{color:var(--page-ink-3)}
+.ta{border:1px solid var(--page-accent);border-radius:8px;padding:8px 12px;font-size:15px;line-height:24px;margin:8px 0 4px;background:var(--page-surface);box-shadow:0 0 0 3px var(--page-accent-50)}
+.merge{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:12px;background:var(--page-surface);border:1px solid var(--page-line)}
+.merge .t{flex:1;font-size:13px;line-height:20px;color:var(--page-ink-2)}
+.merge .t b{font-weight:500;color:var(--page-ink)}
+.lvl{display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center;padding:16px;border-radius:12px;border:1px solid var(--page-accent);background:var(--page-accent-50)}
+.lvl .t b{display:block;font-weight:500;font-size:15px;line-height:24px}
+.lvl .t span{font-size:13px;color:var(--page-ink-2)}
+.lvl.down{border-color:var(--page-line);background:var(--page-surface)}
+.sum{border:1px solid var(--page-line-2);border-radius:16px;background:var(--page-surface);padding:20px 24px;box-shadow:0 8px 24px rgba(0,0,0,.06)}
+.sum h4{margin:0;font-size:15px;font-weight:500}
+.sum .nums{display:grid;grid-template-columns:repeat(3,1fr);margin:16px 0;border-top:1px solid var(--page-line);border-bottom:1px solid var(--page-line)}
+.sum .nums div{padding:12px 0}
+.sum .nums b{display:block;font-family:var(--page-mono);font-size:22px;line-height:28px;font-weight:500}
+.sum .li{display:flex;align-items:center;gap:12px;padding:8px 0;font-size:14px}
+.sum .li span:nth-child(2){flex:1}
+.sum .next{margin-top:12px;padding-top:16px;border-top:1px solid var(--page-line);display:flex;align-items:center;justify-content:space-between;gap:16px}
+.sum .next p{margin:0;font-size:13px;line-height:20px;color:var(--page-ink-2)}
+.sum .next p b{display:block;color:var(--page-ink);font-weight:500;font-size:14px}
+.qr{display:flex;gap:8px;margin-left:36px}
+.qr span{height:32px;padding:0 12px;display:inline-flex;align-items:center;border:1px solid var(--page-line-2);border-radius:8px;font-size:13px;background:var(--page-surface)}
+/* 输入区 */
+.dock{padding:12px 64px 24px;flex:none}
+.dock .in{max-width:680px}
+.comp{background:var(--page-surface);border:1px solid var(--page-line-2);border-radius:12px;padding:12px 12px 12px 16px;display:flex;align-items:flex-end;gap:12px}
+.comp .ph{flex:1;color:var(--page-ink-3);font-size:15px;line-height:24px;padding:4px 0;min-height:32px}
+.comp .ph.has{color:var(--page-ink)}
+.comp .tools{display:flex;gap:4px;align-items:center}
+.tb{width:32px;height:32px;display:grid;place-items:center;border-radius:8px}
+.skip{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.dock .foot{margin-top:8px;display:flex;justify-content:space-between}
+/* 本次发现面板 */
+.disc{padding:24px;display:flex;flex-direction:column;gap:24px;background:var(--page-bg)}
+.disc h3{margin:0;font-size:15px;line-height:24px;font-weight:500}
+.disc h5{margin:0 0 8px;font-size:12px;font-weight:400;color:var(--page-ink-3)}
+.star{list-style:none;margin:0;padding:0}
+.star li{height:32px;display:flex;align-items:center;gap:10px;font-size:13px;border-bottom:1px solid var(--page-line)}
+.star li .v{margin-left:auto}
+.ck{width:14px;height:14px;border-radius:4px;border:1.5px solid var(--page-line-2);display:grid;place-items:center;flex:none}
+.ck.on{background:var(--page-accent);border-color:var(--page-accent)}
+.ck.on svg.lucide{width:10px;height:10px;color:#fff;stroke-width:3}
+.ck.cur{border-color:var(--page-accent)}
+.chg{padding:10px 0;border-bottom:1px solid var(--page-line)}
+.chg .s{font-size:13px;line-height:20px}
+.chg .m{display:flex;align-items:center;gap:10px;margin-top:6px}
+
+/* ===== 首页 ===== */
+.d{width:1440px;height:1000px;display:grid;grid-template-columns:248px 1fr}
+.main{display:flex;flex-direction:column;min-width:0}
+.wrap{padding:48px 32px 32px;display:flex;flex-direction:column;gap:56px}
+.hero{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:48px;align-items:center}
+.hero .meta{display:flex;gap:12px;align-items:center}
+.hero h1{margin:16px 0 16px;font-size:36px;line-height:44px;font-weight:500;letter-spacing:-.01em}
+.hero p{margin:0;font-size:16px;line-height:26px;color:var(--page-ink-2);max-width:36em}
+.hero .comp{margin-top:32px}
+.hero .comp .ph{min-height:56px}
+.resume{display:flex;align-items:center;gap:8px;margin-top:16px;font-size:13px;color:var(--page-ink-2)}
+.resume b{font-weight:500;color:var(--page-ink)}
+.card{background:var(--page-surface);border:1px solid var(--page-line);border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,.06);padding:24px 28px}
+.card .top{display:flex;align-items:center;justify-content:space-between}
+.card h3{margin:12px 0 20px;font-size:22px;line-height:30px;font-weight:500}
+.starters{list-style:none;margin:0;padding:0;border-top:1px solid var(--page-line)}
+.starters li{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid var(--page-line)}
+.starters li b{display:block;font-weight:500;font-size:15px;line-height:24px}
+.starters li span.d2{font-size:13px;color:var(--page-ink-2)}
+.how{display:flex;align-items:flex-end;gap:16px;padding:20px 0 0}
+.how p{margin:0;font-size:13px;line-height:20px;color:var(--page-ink-2)}
+.ev{display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:baseline;padding:10px 0}
+.ev .src{font-size:12px;color:var(--page-ink-3)}
+.ev.dim .q{color:var(--page-ink-3)}
+.gate{display:grid;grid-template-columns:72px 1fr 56px;align-items:center;gap:12px;height:28px}
+.gate .lab{font-size:13px;color:var(--page-ink-2)}
+.gate .bar{height:4px;border-radius:2px;background:var(--page-raised);position:relative;overflow:hidden}
+.gate .bar b{position:absolute;left:0;top:0;bottom:0;background:var(--page-accent);border-radius:2px}
+.gate .v{font-family:var(--page-mono);font-size:12px;color:var(--page-ink);text-align:right}
+.need{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-top:20px;margin-top:12px;border-top:1px solid var(--page-line)}
+.need p{margin:0;font-size:13px;line-height:20px;color:var(--page-ink-2);max-width:22em}
+.row{display:grid;grid-template-columns:minmax(0,8fr) minmax(0,4fr);gap:48px}
+.blk-h{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px}
+.blk-h h3{margin:0;font-size:15px;line-height:24px;font-weight:500}
+table.cl{width:100%;border-collapse:collapse}
+table.cl th{height:36px;font-size:12px;font-weight:400;color:var(--page-ink-3);text-align:left;border-bottom:1px solid var(--page-line-2);padding:0 12px}
+table.cl td{height:48px;padding:0 12px;border-bottom:1px solid var(--page-line);font-size:14px}
+table.cl th:first-child,table.cl td:first-child{padding-left:0}
+table.cl td.r,table.cl th.r{text-align:right;padding-right:0}
+table.cl tr.sel td{background:var(--page-accent-50)}
+table.cl tr.sel td:first-child{box-shadow:inset 2px 0 0 var(--page-accent);padding-left:12px}
+.empty{padding:28px 0;border-bottom:1px solid var(--page-line);display:flex;align-items:center;gap:16px;color:var(--page-ink-2);font-size:14px}
+.steps{list-style:none;margin:0;padding:0}
+.steps li{height:44px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--page-line);font-size:14px}
+.steps li .st{margin-left:auto}
+.steps li.cur{font-weight:500}.steps li.lock{color:var(--page-ink-3)}
+.dot{width:8px;height:8px;border-radius:50%;border:1.5px solid var(--page-line-2);flex:none}
+.dot.done{background:var(--page-ink-3);border-color:var(--page-ink-3)}
+.dot.cur{background:var(--page-accent);border-color:var(--page-accent)}
+.seg{display:grid;grid-template-columns:repeat(10,1fr);border:1px solid var(--page-line-2);border-radius:8px;overflow:hidden;margin-top:8px}
+.seg span{height:36px;display:grid;place-items:center;font-family:var(--page-mono);font-size:13px;color:var(--page-ink-2);background:var(--page-surface);border-left:1px solid var(--page-line)}
+.seg span:first-child{border-left:0}
+
+/* ===== 移动 ===== */
+.m{width:390px;height:844px;display:flex;flex-direction:column}
+.m-sb{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:14px;font-weight:500;flex:none}
+.m-sb .ic{display:flex;gap:6px}.m-sb .ic svg.lucide{color:var(--page-ink)}
+.m-hd{height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 12px 0 8px;border-bottom:1px solid var(--page-line);flex:none}
+.m-hd .l{display:flex;align-items:center;gap:4px}
+.m-hd h2{margin:0;font-size:15px;font-weight:500}
+.m-hd .back{width:36px;height:36px;display:grid;place-items:center}
+.m-hd .back svg.lucide{width:20px;height:20px;color:var(--page-ink)}
+.m-stream{flex:1;overflow:hidden;padding:20px 20px 12px;display:flex;flex-direction:column;gap:18px}
+.m-stream .coach p{font-size:15px;line-height:25px}
+.m-stream .mine{max-width:300px}
+.m-stream .inl{margin-left:36px}
+.m-dock{padding:8px 12px 12px;border-top:1px solid var(--page-line);background:var(--page-bg);flex:none}
+.m-dock .comp{padding:8px 8px 8px 14px;align-items:center}
+.m-dock .comp .ph{min-height:0;font-size:14px}
+.m-home-hd{height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;flex:none}
+.m-home-hd h2{margin:0;font-size:15px;font-weight:500}
+.m-bd{flex:1;padding:8px 20px 0;overflow:hidden}
+.m-bd h1{margin:0 0 8px;font-size:24px;line-height:32px;font-weight:500}
+.m-bd>p{margin:0 0 20px;font-size:14px;line-height:22px;color:var(--page-ink-2)}
+.m-comp{margin:0 12px 8px;background:var(--page-surface);border:1px solid var(--page-line-2);border-radius:12px;height:48px;display:flex;align-items:center;gap:8px;padding:0 8px 0 16px;color:var(--page-ink-3);font-size:14px;flex:none}
+.m-comp span{flex:1}
+.m-tab{height:83px;border-top:1px solid var(--page-line);background:var(--page-surface);display:grid;grid-template-columns:repeat(4,1fr);padding-top:8px;flex:none}
+.m-tab a{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;line-height:14px;color:var(--page-ink-3)}
+.m-tab a svg.lucide{width:22px;height:22px}
+.m-tab a.on,.m-tab a.on svg.lucide{color:var(--page-ink)}
+
+/* ===== 组件状态板 / 清单 ===== */
+.spec{padding:48px 56px;background:var(--page-surface)}
+.sh{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:16px;border-bottom:1px solid var(--page-ink);margin-bottom:32px}
+.sh h2{margin:0;font-size:28px;line-height:36px;font-weight:500}
+.spec h4{margin:0 0 12px;font-size:13px;line-height:20px;font-weight:500;color:var(--page-ink-2)}
+.st-row{display:grid;gap:24px;margin-bottom:40px}
+.st-row.c5{grid-template-columns:repeat(5,minmax(0,1fr))}
+.st-row.c4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.st-row.c3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.st-row.c2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.st{min-width:0}
+.st .lab{display:flex;justify-content:space-between;margin-bottom:8px}
+.st .lab b{font-size:13px;font-weight:500}
+.st .cap{margin-top:8px;font-size:12px;line-height:18px;color:var(--page-ink-3)}
+.stage{background:var(--page-bg);border-radius:12px;padding:16px}
+.up{display:grid;grid-template-columns:32px 1fr auto;gap:12px;align-items:center;padding:12px 14px;border:1px solid var(--page-line-2);border-radius:12px;background:var(--page-surface)}
+.up .f{width:32px;height:32px;border-radius:8px;background:var(--page-raised);display:grid;place-items:center}
+.up .n{font-size:14px;line-height:20px}
+.up .p{height:3px;border-radius:2px;background:var(--page-raised);margin-top:6px;position:relative;overflow:hidden}
+.up .p b{position:absolute;left:0;top:0;bottom:0;background:var(--page-accent)}
+.up.err{border-color:var(--page-ink-2)}
+.fail{display:flex;align-items:center;gap:8px;justify-content:flex-end;margin-top:6px;font-size:12px;color:var(--page-ink-2)}
+.fail u{text-decoration:none;color:var(--page-accent);font-weight:500}
+.thinking .mk2 i{opacity:.35}
+.thinking .mk2 i:nth-child(1){opacity:1}
+table.chk{width:100%;border-collapse:collapse}
+table.chk th{font-size:12px;font-weight:400;color:var(--page-ink-3);text-align:left;padding:0 12px 8px 0;border-bottom:1px solid var(--page-line-2)}
+table.chk td{font-size:13px;line-height:20px;padding:10px 12px 10px 0;border-bottom:1px solid var(--page-line);vertical-align:top}
+table.chk td.ok{color:var(--page-accent);font-family:var(--page-mono);white-space:nowrap}
+table.chk td.later{color:var(--page-ink-3);font-family:var(--page-mono);white-space:nowrap}
+
+/* ===== 第 2 批新增样式 ===== */
+.gate .bar.done b{background:var(--page-ink-3)}
+.bc{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--page-ink-3)}
+.bc b{color:var(--page-ink);font-weight:500}
+.bc svg.lucide{width:14px;height:14px}
+.banner{display:flex;align-items:center;gap:12px;padding:10px 12px 10px 16px;border-radius:12px;background:var(--page-accent-50);font-size:13px;line-height:20px;color:var(--page-ink)}
+.banner .sp{flex:1}
+.banner svg.lucide{color:var(--page-accent)}
+.filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.chipf{height:32px;padding:0 12px;display:inline-flex;align-items:center;gap:6px;border-radius:8px;border:1px solid var(--page-line-2);background:var(--page-surface);font-size:13px;color:var(--page-ink-2);white-space:nowrap}
+.chipf.on{border-color:var(--page-ink);color:var(--page-ink);box-shadow:inset 0 0 0 1px var(--page-ink)}
+.chipf .mono{font-size:11px}
+.fsep{width:1px;height:20px;background:var(--page-line-2);margin:0 4px}
+.tgl{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--page-ink-2);margin-left:auto}
+.tgl i{width:28px;height:16px;border-radius:8px;background:var(--page-line-2);position:relative;display:block}
+.tgl i:after{content:"";position:absolute;left:2px;top:2px;width:12px;height:12px;border-radius:50%;background:#fff}
+.tgl.on i{background:var(--page-accent)}.tgl.on i:after{left:14px}
+.lib{padding:32px;display:flex;flex-direction:column;gap:20px}
+.lib-h{display:flex;justify-content:space-between;align-items:flex-end;gap:24px}
+.lib-h h1{margin:0;font-size:28px;line-height:36px;font-weight:500}
+.lib-h p{margin:6px 0 0;font-size:14px;line-height:22px;color:var(--page-ink-2)}
+.lib-h .a{display:flex;gap:8px}
+table.cl td .sub{display:block;font-size:12px;line-height:16px;color:var(--page-ink-3);margin-top:2px}
+table.cl.tall td{height:60px}
+table.cl th .srt{color:var(--page-ink)}
+table.cl tr.arc td{color:var(--page-ink-3)}
+.archived{display:flex;align-items:center;gap:8px;height:44px;font-size:13px;color:var(--page-ink-3);border-bottom:1px solid var(--page-line)}
+.det{flex:1;display:grid;grid-template-columns:minmax(0,1fr) 320px;min-height:0}
+.det-main{padding:32px 56px 40px 32px;display:flex;flex-direction:column;gap:28px;border-right:1px solid var(--page-line);min-width:0}
+.det-side{padding:32px 24px;display:flex;flex-direction:column;gap:28px}
+.det-side h4,.det-main h4{margin:0 0 10px;font-size:12px;font-weight:400;color:var(--page-ink-3)}
+.stmt{display:flex;align-items:flex-start;gap:12px}
+.stmt h1{margin:0;font-size:28px;line-height:38px;font-weight:500;flex:1}
+.edit{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;border:1px solid var(--page-line);flex:none;margin-top:3px}
+.tags{display:flex;gap:8px;align-items:center;margin-top:12px}
+.score{display:grid;grid-template-columns:auto minmax(0,1fr);gap:40px;align-items:center;padding:24px 0;border-top:1px solid var(--page-line);border-bottom:1px solid var(--page-line)}
+.score .lv{display:flex;align-items:flex-end;gap:16px}
+.score .lv b{display:block;font-size:22px;line-height:28px;font-weight:500}
+.score .lv .mono{display:block;margin-top:4px}
+.pv{padding:16px 20px;border-radius:12px;background:var(--page-raised);font-size:14px;line-height:22px}
+.pv .mono{display:block;margin-bottom:6px}
+.pv b{font-weight:500}
+.evg-h{display:flex;align-items:baseline;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid var(--page-line-2)}
+.evg-h h3{margin:0;font-size:15px;font-weight:500}
+.evrow{display:grid;grid-template-columns:8px 56px minmax(0,1fr) 176px 64px;gap:16px;align-items:baseline;padding:14px 0;border-bottom:1px solid var(--page-line)}
+.evrow .b{width:2px;height:16px;background:var(--page-accent);align-self:center;border-radius:1px}
+.evrow .b.self{background:repeating-linear-gradient(to top,var(--page-ink-3) 0 2px,transparent 2px 4px)}
+.evrow .b.neg{background:none;border-left:2px solid var(--page-ink-2);height:16px}
+.evrow .src{font-size:12px;color:var(--page-ink-3)}
+.evrow .q{font-size:15px;line-height:24px}
+.evrow .q .sub{display:block;font-size:12px;line-height:18px;color:var(--page-ink-3);margin-top:4px}
+.evrow .from{font-size:13px;line-height:20px;color:var(--page-ink-2)}
+.evrow .from .mono{display:block}
+.evrow .st{text-align:right}
+.evrow.dim .q{color:var(--page-ink-3)}
+.none{padding:14px 0;font-size:13px;color:var(--page-ink-3);border-bottom:1px solid var(--page-line)}
+.kv{display:grid;grid-template-columns:80px 1fr;gap:10px 12px;font-size:13px;line-height:20px}
+.kv span:nth-child(odd){color:var(--page-ink-3)}
+.acts-v{display:flex;flex-direction:column;gap:8px}
+.acts-v .btn{justify-content:flex-start;width:100%}
+.rel{list-style:none;margin:0;padding:0}
+.rel li{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--page-line);font-size:13px;line-height:20px}
+.rel li span.t{flex:1;min-width:0}
+.log{list-style:none;margin:0;padding:0}
+.log li{display:grid;grid-template-columns:48px 1fr;gap:12px;padding:8px 0;border-bottom:1px solid var(--page-line);font-size:13px;line-height:20px;color:var(--page-ink-2)}
+.starx{display:grid;grid-template-columns:72px minmax(0,1fr);border-top:1px solid var(--page-line)}
+.starx>div{padding:16px 0;border-bottom:1px solid var(--page-line);font-size:15px;line-height:26px}
+.starx>div:nth-child(odd){font-size:13px;color:var(--page-ink-3);line-height:26px}
+.starx .miss{color:var(--page-ink-3);font-size:14px}
+mark.e{background:none;color:inherit;box-shadow:inset 0 -2px 0 rgba(35,64,110,.5);padding:0 1px}
+sup.n{font-family:var(--page-mono);font-size:10px;color:var(--page-accent);margin-left:2px}
+.quote{padding:16px 20px;border-left:2px solid var(--page-accent);background:var(--page-surface);font-size:17px;line-height:28px;border-radius:0 12px 12px 0}
+.quote .mono{display:block;margin-bottom:6px}
+.prod{list-style:none;margin:0;padding:0}
+.prod li{padding:12px 0;border-bottom:1px solid var(--page-line)}
+.prod li .t{font-size:14px;line-height:22px}
+.prod li .m{display:flex;align-items:center;gap:10px;margin-top:6px}
+.starq{display:inline-flex;gap:3px;vertical-align:middle}
+.starq i{width:10px;height:10px;border-radius:2px;background:var(--page-ink-3);display:block}
+.starq i.no{background:none;box-shadow:inset 0 0 0 1px var(--page-line-2)}
+.overlay{position:absolute;inset:0;background:rgba(23,23,23,.36)}
+.dlg{width:560px;background:var(--page-surface);border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,.12);padding:28px}
+.overlay .dlg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
+.dlg h3{margin:0;font-size:18px;line-height:26px;font-weight:500}
+.dlg>p{margin:8px 0 0;font-size:14px;line-height:22px;color:var(--page-ink-2)}
+.dlg table{width:100%;border-collapse:collapse;margin-top:20px}
+.dlg th{font-size:12px;font-weight:400;color:var(--page-ink-3);text-align:left;padding:0 0 8px;border-bottom:1px solid var(--page-line-2)}
+.dlg td{font-size:13px;line-height:20px;padding:10px 0;border-bottom:1px solid var(--page-line);vertical-align:top}
+.dlg td.c{font-family:var(--page-mono);font-size:12px;white-space:nowrap;padding-left:16px}
+.dlg .note{margin-top:16px;font-size:13px;line-height:20px;color:var(--page-ink-2)}
+.dlg .ft{display:flex;justify-content:flex-end;gap:8px;margin-top:24px}
+.dlg.sm{width:auto;padding:20px}
+.btn-k{background:var(--page-ink);color:#fff}
+.toast{display:inline-flex;align-items:center;gap:12px;height:44px;padding:0 6px 0 16px;border-radius:10px;background:var(--page-ink);color:#fff;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.12)}
+.toast u{text-decoration:none;color:#fff;font-weight:500;height:32px;padding:0 10px;display:inline-flex;align-items:center;border-radius:6px;background:rgba(255,255,255,.12)}
+.toast.n{padding-right:16px}
+.m-scroll{flex:1;overflow:hidden;padding:12px 20px 0}
+.m-scroll h1{margin:0;font-size:22px;line-height:30px;font-weight:500}
+.m-chips{display:flex;gap:8px;margin:12px -20px;padding:0 20px;overflow:hidden}
+.m-r{padding:12px 0;border-bottom:1px solid var(--page-line)}
+.m-r .t{font-size:15px;line-height:22px}
+.m-r .k{display:flex;align-items:center;gap:10px;margin-top:6px}
+.m-r .k .sp{flex:1}
+.m-sec{margin-top:20px}
+.m-sec h4{margin:0 0 4px;font-size:12px;font-weight:400;color:var(--page-ink-3)}
+.m-ev{padding:10px 0;border-bottom:1px solid var(--page-line);font-size:14px;line-height:22px}
+.m-ev .mono{display:block;margin-top:2px}
+.m-act{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:8px 12px 28px;border-top:1px solid var(--page-line);background:var(--page-surface);flex:none}
+.m-act .btn{padding:0 8px}
+</style></head><body><div class="fx-app">
+<div class="fx-top"><b>照见（暂定名）</b><span class="s">/ 设计稿 第 2 批：档案 · 基于 v0.2 规范</span><span class="sp"></span>
+<button class="fx-btn" id="zOut">−</button><span class="fx-zoom" id="zLab">100%</span><button class="fx-btn" id="zIn">+</button><button class="fx-btn" id="zFit">适应画布</button><button class="fx-btn" id="z100">100%</button></div>
+<aside class="fx-side"><div class="fx-sec"><h4>页面</h4>
+<button class="fx-item" data-page="p4"><i data-lucide="file"></i>P4 线索</button>
+<button class="fx-item" data-page="p4s"><i data-lucide="file"></i>P4 线索 · 状态与交互</button>
+<button class="fx-item" data-page="p3"><i data-lucide="file"></i>P3 故事</button>
+<button class="fx-item" data-page="p3s"><i data-lucide="file"></i>P3 故事 · 状态与交互</button>
+<button class="fx-item" data-page="chk"><i data-lucide="file"></i>第 2 批检查清单</button>
+</div><div class="fx-sec"><h4>画板</h4><div id="layers"></div></div></aside>
+<main class="fx-canvas" id="canvas"><div class="fx-world" id="world"><section class="fx-page" data-page="p4"><div class="fx-ab" data-name="P4.1 线索库 · 正常 · 桌面" data-desc="第 9 天的快照：做过价值观澄清、上传过大五人格。标题直接说进度；按等级排序；顶部提示条处理自动合并（框架 6.2）；他人反馈入口放在这里（Q3）。" style="left:0px;top:0px"><div class="fx-ab-label">P4.1 线索库 · 正常 · 桌面<span>1440 × 1000</span></div><div class="ab d" style="width:1440px;height:1000px"><aside class="side"><div class="brand"><span class="mk"><i style="height:16px"></i><i style="height:11px"></i><i style="height:6px"></i></span><b>照见</b></div><nav class="nav"><a class=""><i data-lucide="house"></i>首页</a><a class=""><i data-lucide="message-circle"></i>对话</a><a class="on"><i data-lucide="list"></i>线索<span class="n mono">8</span></a><a class=""><i data-lucide="user-round"></i>画像<span class="n mono">未生成</span></a><a class=""><i data-lucide="calendar-check"></i>打卡<span class="n mono">8 天</span></a></nav><div class="slab">你讲过的故事</div><div class="story"><span>上周的跨部门周会</span><span class="mono">11-27</span></div><div class="story"><span>第一份工作的主管</span><span class="mono">11-22</span></div><div class="story"><span>临时救场的发布会</span><span class="mono">11-21</span></div><div class="story all"><span>全部故事</span><span class="mono">5</span></div><div class="grow"></div><nav class="nav"><a><i data-lucide="settings"></i>设置</a></nav><div class="me"><span class="av">W</span><span style="font-size:13px">Wortley</span></div></aside><div class="main"><div class="hdr"><h2>线索</h2><span class="mono">第 9 天 · 2026-11-27</span></div>
+<div class="lib">
+ <div class="lib-h"><div><h1>8 条线索，1 条已经可以写进画像</h1><p>生成画像需要 3 条「高」，还差 2 条。离「高」最近的是「自主权对我很重要」，再有 1 条证据就够</p></div>
+  <div class="a"><span class="btn btn-s"><i data-lucide="users"></i>收集他人反馈</span><span class="btn btn-p">讲一个新故事</span></div></div>
+ <div class="banner"><i data-lucide="git-merge"></i><span>我自动合并了 2 处相似的说法，生成画像前需要你过目</span><span class="sp"></span><span class="btn btn-s btn-sm">现在过目</span></div>
+ <div class="filters">
+  <span class="chipf on">全部 <span class="mono">8</span></span><span class="chipf">优势候选 <span class="mono">3</span></span><span class="chipf">习得技能 <span class="mono">1</span></span><span class="chipf">价值观 <span class="mono">1</span></span><span class="chipf">能量 <span class="mono">2</span></span><span class="chipf">行为模式 <span class="mono">1</span></span>
+  <span class="fsep"></span><span class="chipf">等级：全部</span>
+  <span class="tgl"><i></i>只看缺例子的</span>
+ </div>
+ <table class="cl tall">
+  <tr><th>线索</th><th>类型</th><th>证据</th><th>来源</th><th>更新</th><th class="r"><span class="srt">等级 ↓</span></th></tr>
+  <tr class="sel"><td>在混乱的局面里，擅长先梳理结构再推进</td><td class="c2">优势候选<span class="sub">能力</span></td><td><span class="tally"><i class="s"></i><i class="m"></i><i class="m"></i></span></td><td class="c2">经历 · 测评</td><td class="mono">11-26</td><td class="r">高</td></tr><tr class=""><td>习惯用画图、画表的方式理清思路</td><td class="c2">行为模式<span class="sub">能力</span></td><td><span class="tally"><i class="m"></i><i class="m"></i><i class="slot"></i></span></td><td class="c2">经历</td><td class="mono">11-20</td><td class="r">中</td></tr><tr class=""><td>自主权对我很重要</td><td class="c2">价值观<span class="sub">价值观</span></td><td><span class="tally"><i class="s"></i><i class="m"></i><i class="slot"></i></span></td><td class="c2">经历 · 价值观</td><td class="mono">11-25</td><td class="r">中</td></tr><tr class=""><td>被管得过细会明显消耗我<span class="tag dash" style="margin-left:8px">1 处合并待过目</span></td><td class="c2">能量消耗<span class="sub">能量</span></td><td><span class="tally"><i class="s"></i><i class="slot"></i><i class="slot"></i></span></td><td class="c2">经历</td><td class="mono">11-22</td><td class="r">中</td></tr><tr class=""><td>临场压力下反而更冷静</td><td class="c2">优势候选<span class="sub">性格</span></td><td><span class="tally"><i class="s"></i><i class="slot"></i><i class="slot"></i></span></td><td class="c2">经历</td><td class="mono">11-21</td><td class="r">中</td></tr><tr class=""><td>能牵头大型活动，但做完需要较长时间恢复</td><td class="c2">习得技能<span class="sub">能力</span></td><td><span class="tally"><i class="s"></i><i class="slot"></i><i class="slot"></i></span></td><td class="c2">经历</td><td class="mono">11-26</td><td class="r">中</td></tr><tr class=""><td>独处时更容易恢复能量<span class="tag dash" style="margin-left:8px">等你回应</span></td><td class="c2">能量来源<span class="sub">能量</span></td><td><span class="tally"><i class="m"></i><i class="slot"></i><i class="slot"></i></span></td><td class="c2">测评</td><td class="mono">11-26</td><td class="r c3">线索</td></tr><tr class=""><td>有耐心<span class="tag dash" style="margin-left:8px">待补例子</span></td><td class="c2">优势候选<span class="sub">性格</span></td><td><span class="tally"><i class="self"></i><i class="slot"></i><i class="slot"></i></span></td><td class="c2">自述</td><td class="mono">11-21</td><td class="r c3">线索</td></tr>
+ </table>
+ <div class="archived"><i data-lucide="chevron-right"></i>已归档 1 条<span class="mono" style="margin-left:auto">你否认过的线索放在这里，可以恢复</span></div>
+</div></div></div></div><div class="fx-ab" data-name="P4.2 线索详情 · 高 · 桌面" data-desc="流程 F8 的起点。核心是刻痕 + 四道门槛（新增「本人经历」，对应规则 B5）+ 画像预览。证据按支持 / 相反 / 不计数分组，每条显示原话、出处故事、强度和权重。" style="left:1540px;top:0px"><div class="fx-ab-label">P4.2 线索详情 · 高 · 桌面<span>1440 × 1100</span></div><div class="ab d" style="width:1440px;height:1100px"><aside class="side"><div class="brand"><span class="mk"><i style="height:16px"></i><i style="height:11px"></i><i style="height:6px"></i></span><b>照见</b></div><nav class="nav"><a class=""><i data-lucide="house"></i>首页</a><a class=""><i data-lucide="message-circle"></i>对话</a><a class="on"><i data-lucide="list"></i>线索<span class="n mono">8</span></a><a class=""><i data-lucide="user-round"></i>画像<span class="n mono">未生成</span></a><a class=""><i data-lucide="calendar-check"></i>打卡<span class="n mono">8 天</span></a></nav><div class="slab">你讲过的故事</div><div class="story"><span>上周的跨部门周会</span><span class="mono">11-27</span></div><div class="story"><span>第一份工作的主管</span><span class="mono">11-22</span></div><div class="story"><span>临时救场的发布会</span><span class="mono">11-21</span></div><div class="story all"><span>全部故事</span><span class="mono">5</span></div><div class="grow"></div><nav class="nav"><a><i data-lucide="settings"></i>设置</a></nav><div class="me"><span class="av">W</span><span style="font-size:13px">Wortley</span></div></aside><div class="main"><div class="hdr"><div class="bc"><span>线索</span><i data-lucide="chevron-right"></i><b>在混乱的局面里，擅长先梳理结构再推进</b></div><span class="mono">clue_0001</span></div>
+<div class="det"><div class="det-main">
+ <div><div class="stmt"><h1>在混乱的局面里，擅长先梳理结构再推进</h1><span class="edit"><i data-lucide="pencil"></i></span></div>
+  <div class="tags"><span class="tag">优势候选</span><span class="tag">能力</span><span class="tag ok">可以写进画像</span></div></div>
+ <div class="score">
+  <div class="lv"><span class="tally lg"><i class="s"></i><i class="m"></i><i class="m"></i></span><div><b>高</b><span class="mono">1.5 + 1.0 + 0.5 = 3.0</span></div></div>
+  <div><div class="gate"><span class="lab">证据数</span><span class="bar done"><b style="width:100%"></b></span><span class="v">3 / 3</span></div>
+   <div class="gate"><span class="lab">来源种类</span><span class="bar done"><b style="width:100%"></b></span><span class="v">2 / 2</span></div>
+   <div class="gate"><span class="lab">加权分</span><span class="bar done"><b style="width:100%"></b></span><span class="v">3.0 / 3.0</span></div>
+   <div class="gate"><span class="lab">本人经历</span><span class="bar done"><b style="width:100%"></b></span><span class="v">有</span></div></div>
+ </div>
+ <div class="pv"><span class="mono">画像里会这样写</span><b>明显：</b>在混乱的局面里，你擅长先梳理结构再推进。依据是 2 个故事和 1 份测评</div>
+ <div>
+  <div class="evg-h"><h3>支持 · 3 条</h3><span class="mono">按强度</span></div>
+  <div class="evrow"><span class="b"></span><span class="src">经历</span><span class="q">其实是前期把一团乱麻理清楚的那段，熬夜都不觉得累<span class="sub">同一个故事里「画了一张流程表」并入这一条，只算一笔</span></span><span class="from">大学组织 200 人活动<span class="mono">11-19</span></span><span class="mono st">强 · 1.5</span></div>
+  <div class="evrow"><span class="b"></span><span class="src">经历</span><span class="q">画那张系统关系图的时候，整个项目一下子通了</span><span class="from">接手无文档的项目<span class="mono">11-20</span></span><span class="mono st">中 · 1.0</span></div>
+  <div class="evrow"><span class="b"></span><span class="src">测评</span><span class="q">尽责性：高，第 82 百分位<span class="sub">测评权重是经历的一半</span></span><span class="from">大五人格<span class="mono">11-26</span></span><span class="mono st">中 · 0.5</span></div>
+ </div>
+ <div>
+  <div class="evg-h"><h3>相反的情况 · 0 条</h3></div>
+  <div class="none">目前没有和它相反的证据</div>
+ </div>
+ <div>
+  <div class="evg-h"><h3>不计数 · 1 条</h3></div>
+  <div class="evrow dim"><span class="b self"></span><span class="src">自述</span><span class="q">我平时也喜欢列清单</span><span class="from">大学组织 200 人活动<span class="mono">11-19</span></span><span class="mono st">不计数</span></div>
+ </div>
+</div>
+<aside class="det-side">
+ <div><h4>操作</h4><div class="acts-v"><span class="btn btn-s"><i data-lucide="pencil"></i>改说法</span><span class="btn btn-s"><i data-lucide="message-circle-plus"></i>补一个例子</span><span class="btn btn-t" style="padding:0 16px;height:40px"><i data-lucide="x"></i>这不像我</span></div></div>
+ <div><h4>信息</h4><div class="kv"><span>首次出现</span><span>11-19 · 经历挖掘</span><span>你的态度</span><span>认同</span><span>最近变化</span><span>11-26 中 → 高</span><span>合并</span><span>1 处，已过目</span></div></div>
+ <div><h4>相关线索</h4><ul class="rel">
+  <li><span class="tally"><i class="m"></i><i class="m"></i><i class="slot"></i></span><span class="t">习惯用画图、画表的方式理清思路</span><span class="mono">包含</span></li>
+  <li><span class="tally"><i class="s"></i><i class="slot"></i><i class="slot"></i></span><span class="t">能牵头大型活动，但做完需要较长时间恢复</span><span class="mono">相关</span></li></ul></div>
+ <div><h4>变更记录</h4><ul class="log">
+  <li><span class="mono">11-26</span>测评解读加入 1 条证据，中 → 高</li>
+  <li><span class="mono">11-20</span>经历挖掘加入 1 条证据</li>
+  <li><span class="mono">11-19</span>新建，你认同</li></ul>
+  <span class="btn btn-t btn-sm" style="padding:0;margin-top:4px">全部 5 条</span></div>
+</aside></div></div></div></div><div class="fx-ab" data-name="P4.1 线索库 · 移动" data-desc="筛选收成横向滚动；合并提示条保留；他人反馈入口收进右上角菜单。" style="left:3080px;top:0px"><div class="fx-ab-label">P4.1 线索库 · 移动<span>390 × 844</span></div><div class="ab m" style="width:390px;height:844px"><div class="m-sb"><span>21:50</span><span class="ic"><i data-lucide="signal"></i><i data-lucide="wifi"></i><i data-lucide="battery-full"></i></span></div><div class="m-home-hd"><h2>线索</h2><span class="tb"><i data-lucide="ellipsis"></i></span></div><div class="m-scroll"><h1>8 条线索，1 条可以写进画像</h1><div class="m-chips"><span class="chipf on">全部 <span class="mono">8</span></span><span class="chipf">优势候选</span><span class="chipf">价值观</span><span class="chipf">能量</span></div><div class="banner" style="padding:10px 12px"><i data-lucide="git-merge"></i><span>2 处合并待过目</span><span class="sp"></span><span class="btn btn-t btn-sm" style="color:var(--page-accent)">过目</span></div><div class="m-r"><div class="t">在混乱的局面里，擅长先梳理结构再推进</div><div class="k"><span class="tally"><i class="s"></i><i class="m"></i><i class="m"></i></span><span class="mono">优势候选</span><span class="sp"></span><span class="mono" style="color:var(--page-ink)">高</span></div></div><div class="m-r"><div class="t">习惯用画图、画表的方式理清思路</div><div class="k"><span class="tally"><i class="m"></i><i class="m"></i><i class="slot"></i></span><span class="mono">行为模式</span><span class="sp"></span><span class="mono" style="color:var(--page-ink)">中</span></div></div><div class="m-r"><div class="t">自主权对我很重要</div><div class="k"><span class="tally"><i class="s"></i><i class="m"></i><i class="slot"></i></span><span class="mono">价值观</span><span class="sp"></span><span class="mono" style="color:var(--page-ink)">中</span></div></div><div class="m-r"><div class="t">被管得过细会明显消耗我</div><div class="k"><span class="tally"><i class="s"></i><i class="slot"></i><i class="slot"></i></span><span class="mono">能量消耗</span><span class="sp"></span><span class="mono" style="color:var(--page-ink)">中</span></div></div><div class="m-r"><div class="t">临场压力下反而更冷静</div><div class="k"><span class="tally"><i class="s"></i><i class="slot"></i><i class="slot"></i></span><span class="mono">优势候选</span><span class="sp"></span><span class="mono" style="color:var(--page-ink)">中</span></div></div><div class="m-r"><div class="t">能牵头大型活动，但做完需要较长时间恢复</div><div class="k"><span class="tally"><i class="s"></i><i class="slot"></i><i class="slot"></i></span><span class="mono">习得技能</span><span class="sp"></span><span class="mono" style="color:var(--page-ink)">中</span></div></div></div><nav class="m-tab"><a><i data-lucide="house"></i>首页</a><a class="on"><i data-lucide="list"></i>线索</a><a><i data-lucide="calendar-check"></i>打卡</a><a><i data-lucide="user-round"></i>画像</a></nav></div></div><div class="fx-ab" data-name="P4.2 线索详情 · 移动" data-desc="三个操作固定在底部；证据只显示原话和出处，点开看强度与权重。" style="left:3570px;top:0px"><div class="fx-ab-label">P4.2 线索详情 · 移动<span>390 × 844</span></div><div class="ab m" style="width:390px;height:844px"><div class="m-sb"><span>21:50</span><span class="ic"><i data-lucide="signal"></i><i data-lucide="wifi"></i><i data-lucide="battery-full"></i></span></div><div class="m-hd"><div class="l"><span class="back"><i data-lucide="chevron-left"></i></span><h2>线索</h2></div><span class="tb"><i data-lucide="pencil"></i></span></div><div class="m-scroll"><div class="tags" style="margin-top:4px"><span class="tag">优势候选</span><span class="tag ok">可以写进画像</span></div><h1 style="margin-top:10px">在混乱的局面里，擅长先梳理结构再推进</h1><div style="display:flex;align-items:flex-end;gap:14px;margin:16px 0 8px"><span class="tally lg"><i class="s"></i><i class="m"></i><i class="m"></i></span><div><b style="font-size:20px;font-weight:500">高</b><span class="mono" style="display:block">3 条 · 2 种来源 · 3.0</span></div></div><div class="m-sec"><h4>支持 · 3 条</h4><div class="m-ev">其实是前期把一团乱麻理清楚的那段，熬夜都不觉得累<span class="mono">经历 · 大学组织 200 人活动 · 强</span></div><div class="m-ev">画那张系统关系图的时候，整个项目一下子通了<span class="mono">经历 · 接手无文档的项目 · 中</span></div><div class="m-ev">尽责性：高，第 82 百分位<span class="mono">测评 · 大五人格 · 中</span></div></div><div class="m-sec"><h4>不计数 · 1 条</h4><div class="m-ev" style="color:var(--page-ink-3)">我平时也喜欢列清单<span class="mono">自述</span></div></div></div><div class="m-act"><span class="btn btn-s btn-sm">改说法</span><span class="btn btn-s btn-sm">补例子</span><span class="btn btn-t btn-sm" style="justify-content:center">这不像我</span></div></div></div></section><section class="fx-page" data-page="p4s"><div class="fx-ab" data-name="P4 · 状态与交互" data-desc="框架文档 P4.1、P4.2 列出的全部状态，以及流程 F8 的每一步。" style="left:0px;top:1200px"><div class="fx-ab-label">P4 · 状态与交互<span>1600 × 1560</span></div><div class="ab spec" style="width:1600px;height:1560px"><div class="sh"><h2>每个可以推翻 AI 的操作，都先说清楚会发生什么</h2><span class="mono">P4 · 状态与交互</span></div><h4>线索库 · 其他状态</h4><div class="st-row c4"><div class="st"><div class="lab"><b>空</b><span class="mono">0 条线索</span></div><div class="stage"><div class="empty" style="border:0;padding:12px 0"><span class="tally"><i class="slot"></i></span>讲完第一个故事，线索会出现在这里</div><span class="btn btn-p btn-sm">讲第一个故事</span></div></div><div class="st"><div class="lab"><b>筛选无结果</b><span class="mono">习得技能 + 只看缺例子</span></div><div class="stage"><div class="empty" style="border:0;padding:12px 0">没有符合条件的线索</div><span class="btn btn-s btn-sm">清除筛选</span></div><div class="cap">不说「暂无数据」，直接给出退路</div></div><div class="st"><div class="lab"><b>合并过目</b><span class="mono">点「现在过目」后展开</span></div><div class="stage"><div class="rel"><li style="display:block"><div class="mono">「我平时也喜欢列清单」并入</div><div style="font-size:13px;margin:4px 0 8px">在混乱的局面里，擅长先梳理结构再推进</div><span class="btn btn-s btn-sm">对</span> <span class="btn btn-t btn-sm">拆开</span></li><li style="display:block"><div class="mono">「讨厌被催进度」并入</div><div style="font-size:13px;margin:4px 0 8px">被管得过细会明显消耗我</div><span class="btn btn-s btn-sm">对</span> <span class="btn btn-t btn-sm">拆开</span></li></div></div><div class="cap">选「拆开」立即新建一条线索，标记「相关」</div></div><div class="st"><div class="lab"><b>已归档展开</b><span class="mono">否认 2 次</span></div><div class="stage"><table class="cl"><tr class="arc"><td>在团队里倾向扮演协调者<span class="sub">你说：没人做我才做</span></td><td class="r"><span class="btn btn-s btn-sm">恢复</span></td></tr></table></div><div class="cap">恢复后回到「线索」级，不保留原等级</div></div></div><h4>线索详情 · 头部状态</h4><div class="st-row c4"><div class="st"><div class="lab"><b>线索 · 待补例子</b><span class="mono">只有自述</span></div><div class="stage"><div style="font-size:16px;font-weight:500">有耐心</div><div style="display:flex;gap:12px;align-items:flex-end;margin:12px 0"><span class="tally lg"><i class="self"></i><i class="slot"></i><i class="slot"></i></span><span class="mono">自述不计入证据数</span></div><div class="gate"><span class="lab">证据数</span><span class="bar"><b style="width:0"></b></span><span class="v">0 / 3</span></div><div class="gate"><span class="lab">本人经历</span><span class="bar"><b style="width:0"></b></span><span class="v">无</span></div><div style="margin-top:12px"><span class="btn btn-p btn-sm">讲一次你很有耐心的经历</span></div></div><div class="cap">主操作换成「补例子」，进入日常模式并带着这条线索</div></div><div class="st"><div class="lab"><b>中 · 有相反的情况</b><span class="mono">W− ≥ W+ × 0.3</span></div><div class="stage"><div style="font-size:16px;font-weight:500">自主权对我很重要</div><div style="display:flex;gap:12px;align-items:flex-end;margin:12px 0"><span class="tally lg"><i class="s"></i><i class="m"></i></span><span class="mono">支持 2.3 · 相反 0.8</span></div><div class="evrow" style="grid-template-columns:8px 1fr;gap:10px;border-bottom:0;padding:4px 0"><span class="b neg"></span><span class="q" style="font-size:13px;line-height:20px">两难题里你选了「稳定的大公司」，说创业太不确定<span class="sub">价值观澄清 · 11-25</span></span></div><div class="pv" style="margin-top:8px;font-size:13px;padding:10px 12px">画像里会写成：可能是……，但也有相反的情况</div></div><div class="cap">相反证据用实线描边的空心条，不用红色</div></div><div class="st"><div class="lab"><b>你修改过</b><span class="mono">部分准 → 改写</span></div><div class="stage"><div style="font-size:16px;font-weight:500">在乱的时候，我会先把事情列清楚再动手</div><div class="tags"><span class="tag">你修改过</span></div><div class="mono" style="margin-top:10px">原说法：在混乱的局面里，擅长先梳理结构再推进</div></div><div class="cap">之后所有地方都用你的说法，原说法只在这里保留</div></div><div class="st"><div class="lab"><b>已归档</b><span class="mono">否认 2 次</span></div><div class="stage"><div style="font-size:16px;font-weight:500;color:var(--page-ink-3)">在团队里倾向扮演协调者</div><div style="display:flex;gap:12px;align-items:flex-end;margin:12px 0"><span class="tally lg"><i class="m"></i></span><span class="mono">不参与画像</span></div><div style="font-size:13px;color:var(--page-ink-2)">你说过两次不像你，我不会再主动提起</div><div style="margin-top:12px"><span class="btn btn-s btn-sm">恢复</span></div></div></div></div><h4>交互</h4><div class="st-row c3"><div class="st"><div class="lab"><b>改说法</b><span class="mono">原地编辑</span></div><div class="stage"><div class="ta" style="margin:0">在乱的时候，我会先把事情列清楚再动手</div><div style="display:flex;gap:8px;margin-top:10px"><span class="btn btn-p btn-sm">保存</span><span class="btn btn-t btn-sm">取消</span></div></div><div class="cap">可撤销：保存后 toast 带撤销</div></div><div class="st"><div class="lab"><b>这不像我 · 第 1 次</b><span class="mono">确认弹层</span></div><div class="stage"><div class="dlg sm"><h3 style="font-size:16px">这条线索先往后放？</h3><p style="margin:6px 0 0;font-size:13px;line-height:20px;color:var(--page-ink-2)">它会从「高」降到「中」，暂时不写进画像。证据都会保留</p><div class="ta" style="margin-top:12px;font-size:13px;line-height:20px;border-color:var(--page-line-2);box-shadow:none;color:var(--page-ink-3)">哪里不像你？（可选，我会参考）</div><div class="ft" style="margin-top:14px"><span class="btn btn-t btn-sm">取消</span><span class="btn btn-k btn-sm">往后放</span></div></div></div></div><div class="st"><div class="lab"><b>这不像我 · 第 2 次</b><span class="mono">确认弹层</span></div><div class="stage"><div class="dlg sm"><h3 style="font-size:16px">不再提这条线索？</h3><p style="margin:6px 0 0;font-size:13px;line-height:20px;color:var(--page-ink-2)">这是你第 2 次说不像你。它会移到「已归档」，我不会再主动提起，之后可以恢复</p><div class="ft" style="margin-top:14px"><span class="btn btn-t btn-sm">取消</span><span class="btn btn-k btn-sm">归档</span></div></div></div><div class="cap">确认按钮用主文字色，不用红色，红色只给安全提示</div></div></div><div class="st-row c3"><div class="st"><div class="lab"><b>Toast</b><span class="mono">可撤销操作，5 秒</span></div><div class="stage"><span class="toast">已归档「在团队里倾向扮演协调者」<u>撤销</u></span><div style="height:10px"></div><span class="toast">已改成你的说法<u>撤销</u></span></div></div><div class="st"><div class="lab"><b>变更记录 · 展开</b><span class="mono">全部 5 条</span></div><div class="stage"><ul class="log"><li><span class="mono">11-26</span>测评解读加入 1 条证据，中 → 高</li><li><span class="mono">11-24</span>你过目了 1 处合并：对</li><li><span class="mono">11-20</span>经历挖掘加入 1 条证据</li><li><span class="mono">11-19</span>合并「我平时也喜欢列清单」</li><li><span class="mono">11-19</span>新建，你认同</li></ul></div></div><div class="st"><div class="lab"><b>证据行 · 悬停菜单</b><span class="mono">每条证据都能单独去掉</span></div><div class="stage"><div class="evrow" style="grid-template-columns:8px 1fr auto;gap:10px"><span class="b"></span><span class="q" style="font-size:13px;line-height:20px">画那张系统关系图的时候……</span><span class="tb"><i data-lucide="ellipsis"></i></span></div><div class="dlg sm" style="padding:6px;width:200px;margin-left:auto;font-size:13px"><div style="padding:8px 10px">打开原故事</div><div style="padding:8px 10px">这条不算</div></div></div><div class="cap">「这条不算」：证据失效并重新计算，可撤销</div></div></div></div></div></section><section class="fx-page" data-page="p3"><div class="fx-ab" data-name="P3.1 故事列表 · 桌面" data-desc="从侧栏「全部故事」进入（Q1）。每行带一句关键原话；STAR 用 4 个小方块表示完整度；没讲完的故事直接给「继续讲完」。" style="left:0px;top:0px"><div class="fx-ab-label">P3.1 故事列表 · 桌面<span>1440 × 1000</span></div><div class="ab d" style="width:1440px;height:1000px"><aside class="side"><div class="brand"><span class="mk"><i style="height:16px"></i><i style="height:11px"></i><i style="height:6px"></i></span><b>照见</b></div><nav class="nav"><a class=""><i data-lucide="house"></i>首页</a><a class=""><i data-lucide="message-circle"></i>对话</a><a class=""><i data-lucide="list"></i>线索<span class="n mono">8</span></a><a class=""><i data-lucide="user-round"></i>画像<span class="n mono">未生成</span></a><a class=""><i data-lucide="calendar-check"></i>打卡<span class="n mono">8 天</span></a></nav><div class="slab">你讲过的故事</div><div class="story"><span>上周的跨部门周会</span><span class="mono">11-27</span></div><div class="story"><span>第一份工作的主管</span><span class="mono">11-22</span></div><div class="story"><span>临时救场的发布会</span><span class="mono">11-21</span></div><div class="story all on"><span>全部故事</span><span class="mono">5</span></div><div class="grow"></div><nav class="nav"><a><i data-lucide="settings"></i>设置</a></nav><div class="me"><span class="av">W</span><span style="font-size:13px">Wortley</span></div></aside><div class="main"><div class="hdr"><h2>全部故事</h2><span class="mono">第 9 天 · 2026-11-27</span></div><div class="lib">
+ <div class="lib-h"><div><h1>5 个故事，产生了 8 条证据</h1><p>高光 3 个、低谷 1 个、日常 1 个。低谷再讲 1 个，经历挖掘就完成了</p></div><div class="a"><span class="btn btn-p">讲一个新故事</span></div></div>
+ <div class="filters"><span class="chipf on">全部 <span class="mono">5</span></span><span class="chipf">高光 <span class="mono">3</span></span><span class="chipf">低谷 <span class="mono">1</span></span><span class="chipf">日常 <span class="mono">1</span></span></div>
+ <table class="cl tall"><tr><th>故事</th><th>类型</th><th>发生在</th><th>情境 任务 行动 结果</th><th>证据</th><th class="r">讲述</th></tr><tr><td>上周的跨部门周会<span class="tag dash" style="margin-left:8px">缺结果</span><span class="sub">还没讲完</span></td><td class="c2">日常</td><td class="c2">本周 · 工作</td><td><span class="starq"><i></i><i></i><i></i><i class="no"></i></span></td><td><span class="btn btn-t btn-sm" style="color:var(--page-accent)">继续讲完</span></td><td class="mono r">11-27</td></tr><tr><td>第一份工作的主管<span class="sub">事情不难，难受的是完全没有自主权</span></td><td class="c2">低谷</td><td class="c2">2020 年 · 工作</td><td><span class="starq"><i></i><i></i><i></i><i></i></span></td><td><span class="mono">2 条</span></td><td class="mono r">11-22</td></tr><tr><td>临时救场的发布会<span class="sub">越是来不及，我脑子反而越清楚</span></td><td class="c2">高光</td><td class="c2">2025 年 · 工作</td><td><span class="starq"><i></i><i></i><i></i><i></i></span></td><td><span class="mono">1 条</span></td><td class="mono r">11-21</td></tr><tr><td>接手无文档的项目<span class="sub">画完关系图，整个项目一下子通了</span></td><td class="c2">高光</td><td class="c2">2025 年 · 工作</td><td><span class="starq"><i></i><i></i><i></i><i></i></span></td><td><span class="mono">2 条</span></td><td class="mono r">11-20</td></tr><tr><td>大学组织 200 人活动<span class="sub">把一团乱麻理清楚的那段，熬夜都不觉得累</span></td><td class="c2">高光</td><td class="c2">2019 年 · 学业</td><td><span class="starq"><i></i><i></i><i></i><i></i></span></td><td><span class="mono">3 条</span></td><td class="mono r">11-19</td></tr></table>
+</div></div></div></div><div class="fx-ab" data-name="P3.2 故事详情 · 桌面" data-desc="STAR 四段完整展示；变成证据的原话加下划线和编号，与右侧证据一一对应，能看清每条线索是从哪句话来的。" style="left:1540px;top:0px"><div class="fx-ab-label">P3.2 故事详情 · 桌面<span>1440 × 1000</span></div><div class="ab d" style="width:1440px;height:1000px"><aside class="side"><div class="brand"><span class="mk"><i style="height:16px"></i><i style="height:11px"></i><i style="height:6px"></i></span><b>照见</b></div><nav class="nav"><a class=""><i data-lucide="house"></i>首页</a><a class=""><i data-lucide="message-circle"></i>对话</a><a class=""><i data-lucide="list"></i>线索<span class="n mono">8</span></a><a class=""><i data-lucide="user-round"></i>画像<span class="n mono">未生成</span></a><a class=""><i data-lucide="calendar-check"></i>打卡<span class="n mono">8 天</span></a></nav><div class="slab">你讲过的故事</div><div class="story"><span>上周的跨部门周会</span><span class="mono">11-27</span></div><div class="story"><span>第一份工作的主管</span><span class="mono">11-22</span></div><div class="story"><span>临时救场的发布会</span><span class="mono">11-21</span></div><div class="story all on"><span>全部故事</span><span class="mono">5</span></div><div class="grow"></div><nav class="nav"><a><i data-lucide="settings"></i>设置</a></nav><div class="me"><span class="av">W</span><span style="font-size:13px">Wortley</span></div></aside><div class="main"><div class="hdr"><div class="bc"><span>全部故事</span><i data-lucide="chevron-right"></i><b>大学组织 200 人活动</b></div><span class="mono">story_0001</span></div>
+<div class="det"><div class="det-main">
+ <div><div class="stmt"><h1>大学组织 200 人活动</h1><span class="edit"><i data-lucide="pencil"></i></span></div>
+  <div class="tags"><span class="tag">高光</span><span class="mono">2019 年 · 大三 · 学业 · 情绪强度 4 / 5 · 11-19 讲述 · 14 分钟</span></div></div>
+ <div class="quote"><span class="mono">最投入的环节</span>其实是一开始把一团乱麻理清楚的那几天，熬夜都不觉得累</div>
+ <div class="starx">
+  <div>情境</div><div>社团要办一场跨院系的活动，前期特别乱，好几个部门各干各的，没人统筹</div>
+  <div>任务</div><div>后来大家推我做总负责人</div>
+  <div>行动</div><div>先把所有要做的事列出来，<mark class="e">画了一张流程表</mark><sup class="n">②</sup>，按活动日期倒排，再分给各组，每周开一次短会对进度</div>
+  <div>结果</div><div>很顺利，老师说比往年有序很多。我自己特别有成就感<span class="c3">，但做完一个人在宿舍待了两天</span><sup class="n">③</sup></div>
+ </div>
+ <p class="mono" style="margin:-12px 0 0">带下划线和编号的原话变成了证据，编号对应右侧</p>
+</div>
+<aside class="det-side">
+ <div><h4>这个故事产生的证据 · 3 条</h4><ul class="prod">
+  <li><div class="t"><sup class="n" style="margin:0 6px 0 0">①</sup>在混乱的局面里，擅长先梳理结构再推进</div><div class="m"><span class="tally"><i class="s"></i><i class="m"></i><i class="m"></i></span><span class="mono">强 · 线索为高</span></div></li>
+  <li><div class="t"><sup class="n" style="margin:0 6px 0 0">②</sup>习惯用画图、画表的方式理清思路</div><div class="m"><span class="tally"><i class="m"></i><i class="m"></i><i class="slot"></i></span><span class="mono">中 · 线索为中</span></div></li>
+  <li><div class="t"><sup class="n" style="margin:0 6px 0 0">③</sup>能牵头大型活动，但做完需要较长时间恢复</div><div class="m"><span class="tally"><i class="s"></i><i class="slot"></i><i class="slot"></i></span><span class="mono">强 · 线索为中</span></div></li></ul>
+  <p class="mono" style="margin:8px 0 0">① 来自「最投入的环节」</p></div>
+ <div><h4>操作</h4><div class="acts-v"><span class="btn btn-s"><i data-lucide="message-circle"></i>打开原对话</span><span class="btn btn-s"><i data-lucide="plus"></i>补充细节</span><span class="btn btn-t" style="padding:0 16px;height:40px"><i data-lucide="trash-2"></i>删除这个故事</span></div></div>
+</aside></div></div></div></div><div class="fx-ab" data-name="P3.2 删除故事 · 影响预览 · 桌面" data-desc="流程 F9。删除不能撤销，所以先列出每条受影响线索的等级变化（数值按规则实算）。删除按钮用主文字色，不用红色。" style="left:3080px;top:0px"><div class="fx-ab-label">P3.2 删除故事 · 影响预览 · 桌面<span>1440 × 1000</span></div><div class="ab d" style="width:1440px;height:1000px"><aside class="side"><div class="brand"><span class="mk"><i style="height:16px"></i><i style="height:11px"></i><i style="height:6px"></i></span><b>照见</b></div><nav class="nav"><a class=""><i data-lucide="house"></i>首页</a><a class=""><i data-lucide="message-circle"></i>对话</a><a class=""><i data-lucide="list"></i>线索<span class="n mono">8</span></a><a class=""><i data-lucide="user-round"></i>画像<span class="n mono">未生成</span></a><a class=""><i data-lucide="calendar-check"></i>打卡<span class="n mono">8 天</span></a></nav><div class="slab">你讲过的故事</div><div class="story"><span>上周的跨部门周会</span><span class="mono">11-27</span></div><div class="story"><span>第一份工作的主管</span><span class="mono">11-22</span></div><div class="story"><span>临时救场的发布会</span><span class="mono">11-21</span></div><div class="story all on"><span>全部故事</span><span class="mono">5</span></div><div class="grow"></div><nav class="nav"><a><i data-lucide="settings"></i>设置</a></nav><div class="me"><span class="av">W</span><span style="font-size:13px">Wortley</span></div></aside><div class="main"><div class="hdr"><div class="bc"><span>全部故事</span><i data-lucide="chevron-right"></i><b>大学组织 200 人活动</b></div><span class="mono">story_0001</span></div>
+<div class="det"><div class="det-main">
+ <div><div class="stmt"><h1>大学组织 200 人活动</h1><span class="edit"><i data-lucide="pencil"></i></span></div>
+  <div class="tags"><span class="tag">高光</span><span class="mono">2019 年 · 大三 · 学业 · 情绪强度 4 / 5 · 11-19 讲述 · 14 分钟</span></div></div>
+ <div class="quote"><span class="mono">最投入的环节</span>其实是一开始把一团乱麻理清楚的那几天，熬夜都不觉得累</div>
+ <div class="starx">
+  <div>情境</div><div>社团要办一场跨院系的活动，前期特别乱，好几个部门各干各的，没人统筹</div>
+  <div>任务</div><div>后来大家推我做总负责人</div>
+  <div>行动</div><div>先把所有要做的事列出来，<mark class="e">画了一张流程表</mark><sup class="n">②</sup>，按活动日期倒排，再分给各组，每周开一次短会对进度</div>
+  <div>结果</div><div>很顺利，老师说比往年有序很多。我自己特别有成就感<span class="c3">，但做完一个人在宿舍待了两天</span><sup class="n">③</sup></div>
+ </div>
+ <p class="mono" style="margin:-12px 0 0">带下划线和编号的原话变成了证据，编号对应右侧</p>
+</div>
+<aside class="det-side">
+ <div><h4>这个故事产生的证据 · 3 条</h4><ul class="prod">
+  <li><div class="t"><sup class="n" style="margin:0 6px 0 0">①</sup>在混乱的局面里，擅长先梳理结构再推进</div><div class="m"><span class="tally"><i class="s"></i><i class="m"></i><i class="m"></i></span><span class="mono">强 · 线索为高</span></div></li>
+  <li><div class="t"><sup class="n" style="margin:0 6px 0 0">②</sup>习惯用画图、画表的方式理清思路</div><div class="m"><span class="tally"><i class="m"></i><i class="m"></i><i class="slot"></i></span><span class="mono">中 · 线索为中</span></div></li>
+  <li><div class="t"><sup class="n" style="margin:0 6px 0 0">③</sup>能牵头大型活动，但做完需要较长时间恢复</div><div class="m"><span class="tally"><i class="s"></i><i class="slot"></i><i class="slot"></i></span><span class="mono">强 · 线索为中</span></div></li></ul>
+  <p class="mono" style="margin:8px 0 0">① 来自「最投入的环节」</p></div>
+ <div><h4>操作</h4><div class="acts-v"><span class="btn btn-s"><i data-lucide="message-circle"></i>打开原对话</span><span class="btn btn-s"><i data-lucide="plus"></i>补充细节</span><span class="btn btn-t" style="padding:0 16px;height:40px"><i data-lucide="trash-2"></i>删除这个故事</span></div></div>
+</aside></div></div><div class="overlay"><div class="dlg"><h3>删除「大学组织 200 人活动」？</h3><p>这个故事产生的 3 条证据会一起失效，相关线索会重新计算。删除后不能恢复</p>
+<table><tr><th>会受影响的线索</th><th style="padding-left:16px">变化</th></tr>
+<tr><td>在混乱的局面里，擅长先梳理结构再推进</td><td class="c">高 → 中<br><span class="c3">证据 3 → 2 · 加权分 3.0 → 1.5</span></td></tr>
+<tr><td>习惯用画图、画表的方式理清思路</td><td class="c">中 → 中<br><span class="c3">证据 2 → 1 · 你认同过</span></td></tr>
+<tr><td>能牵头大型活动，但做完需要较长时间恢复</td><td class="c">中 → 已归档<br><span class="c3">没有剩下的证据</span></td></tr></table>
+<div class="note">「高」线索会从 1 条变成 0 条。这段对话里的 11 条消息也会删除</div>
+<div class="ft"><span class="btn btn-s">取消</span><span class="btn btn-k">删除故事</span></div></div></div></div></div><div class="fx-ab" data-name="P3.2 故事详情 · 移动" data-desc="STAR 竖排；证据收成编号列表；删除放在页面最底部，和其他操作分开。" style="left:4620px;top:0px"><div class="fx-ab-label">P3.2 故事详情 · 移动<span>390 × 844</span></div><div class="ab m" style="width:390px;height:844px"><div class="m-sb"><span>21:50</span><span class="ic"><i data-lucide="signal"></i><i data-lucide="wifi"></i><i data-lucide="battery-full"></i></span></div><div class="m-hd"><div class="l"><span class="back"><i data-lucide="chevron-left"></i></span><h2>故事</h2></div><span class="tb"><i data-lucide="ellipsis"></i></span></div><div class="m-scroll"><div class="tags" style="margin-top:4px"><span class="tag">高光</span><span class="mono">2019 年 · 学业</span></div><h1 style="margin-top:10px">大学组织 200 人活动</h1><div class="quote" style="margin-top:16px;font-size:15px;line-height:24px;padding:12px 14px"><span class="mono">最投入的环节</span>把一团乱麻理清楚的那几天，熬夜都不觉得累</div><div class="starx" style="grid-template-columns:44px 1fr;margin-top:16px"><div>情境</div><div style="font-size:14px;line-height:22px">社团跨院系活动，前期很乱，没人统筹</div><div>行动</div><div style="font-size:14px;line-height:22px">把事情列出来，<mark class="e">画了一张流程表</mark><sup class="n">②</sup>，按日期倒排分给各组</div><div>结果</div><div style="font-size:14px;line-height:22px">很顺利。做完一个人待了两天<sup class="n">③</sup></div></div><div class="m-sec"><h4>产生的证据 · 3 条</h4><div class="m-ev"><sup class="n" style="margin:0 6px 0 0">①</sup>擅长先梳理结构再推进<span class="mono">强 · 高</span></div><div class="m-ev"><sup class="n" style="margin:0 6px 0 0">②</sup>习惯用画图、画表理清思路<span class="mono">中 · 中</span></div></div></div><div class="m-act" style="grid-template-columns:1fr 1fr"><span class="btn btn-s btn-sm">打开原对话</span><span class="btn btn-s btn-sm">补充细节</span></div></div></div></section><section class="fx-page" data-page="p3s"><div class="fx-ab" data-name="P3 · 状态与交互" data-desc="故事列表与详情的其他状态。" style="left:0px;top:1100px"><div class="fx-ab-label">P3 · 状态与交互<span>1600 × 520</span></div><div class="ab spec" style="width:1600px;height:520px"><div class="sh"><h2>故事是所有证据的源头，所以删除要慎重，补充要容易</h2><span class="mono">P3 · 状态与交互</span></div><div class="st-row c4"><div class="st"><div class="lab"><b>故事列表 · 空</b><span class="mono">0 个故事</span></div><div class="stage"><div class="empty" style="border:0;padding:12px 0">还没有故事，从首页开始讲第一个</div><span class="btn btn-p btn-sm">讲第一个故事</span></div></div><div class="st"><div class="lab"><b>故事未完成</b><span class="mono">STAR 缺结果</span></div><div class="stage"><div style="font-size:16px;font-weight:500">上周的跨部门周会</div><div class="tags"><span class="tag">日常</span><span class="tag dash">缺结果</span></div><div class="starx" style="grid-template-columns:44px 1fr;margin-top:12px"><div>行动</div><div style="font-size:13px;line-height:20px">我在会上直接把三个方案画成一张对比表</div><div>结果</div><div class="miss">还没讲到</div></div><div style="margin-top:12px"><span class="btn btn-p btn-sm">继续讲完</span></div></div><div class="cap">未完成的故事不产生证据；「继续讲完」回到原对话的续聊分隔线</div></div><div class="st"><div class="lab"><b>改标题</b><span class="mono">原地编辑</span></div><div class="stage"><div class="ta" style="margin:0;font-size:16px">大三那次 200 人的跨院系活动</div><div style="display:flex;gap:8px;margin-top:10px"><span class="btn btn-p btn-sm">保存</span><span class="btn btn-t btn-sm">取消</span></div></div><div class="cap">标题由教练生成，可以随时改</div></div><div class="st"><div class="lab"><b>删除完成</b><span class="mono">不可撤销，所以没有撤销按钮</span></div><div class="stage"><span class="toast n">已删除，3 条线索已重新计算</span><div style="font-size:13px;color:var(--page-ink-2);margin-top:12px">返回故事列表；首页下次打开时，开场句会说明哪条线索降级了</div></div></div></div></div></div></section><section class="fx-page" data-page="chk"><div class="fx-ab" data-name="第 2 批检查清单" data-desc="对照框架文档的状态矩阵，以及本批发现的问题。" style="left:0px;top:0px"><div class="fx-ab-label">第 2 批检查清单<span>1200 × 1080</span></div><div class="ab spec" style="width:1200px;height:1080px"><div class="sh"><h2>第 2 批画了 10 个画板，覆盖流程 F8 修正线索和 F9 删除故事</h2><span class="mono">对照框架文档第 8 节</span></div>
+<table class="chk"><tr><th style="width:26%">页面 / 组件</th><th>本批画了</th><th style="width:16%">状态</th></tr>
+<tr><td>P4.1 线索库</td><td>正常（桌面 + 移动）· 空 · 筛选无结果 · 合并过目展开 · 已归档展开</td><td class="ok">✓ 完成</td></tr>
+<tr><td>P4.2 线索详情</td><td>高（桌面 + 移动）· 线索 / 待补例子 · 中 / 有相反情况 · 你修改过 · 已归档</td><td class="ok">✓ 完成</td></tr>
+<tr><td>F8 修正线索</td><td>改说法 · 这不像我（第 1 次降级 / 第 2 次归档）· 补一个例子 · 恢复 · 证据「这条不算」</td><td class="ok">✓ 完成</td></tr>
+<tr><td>P3.1 故事列表</td><td>正常（桌面）· 空</td><td class="ok">✓ 完成</td></tr>
+<tr><td>P3.2 故事详情</td><td>完整（桌面 + 移动）· 未完成 · 改标题</td><td class="ok">✓ 完成</td></tr>
+<tr><td>F9 删除故事</td><td>影响预览弹层（数值按规则实算）· 删除完成 toast</td><td class="ok">✓ 完成</td></tr>
+<tr><td>全局组件</td><td>确认弹层 · Toast（带撤销 / 不带撤销）· 筛选 chip · 提示条 · 悬停菜单</td><td class="ok">✓ 新增</td></tr>
+<tr><td>他人反馈入口</td><td>线索库标题区（Q3）；P7 页面本身在第 5 批</td><td class="later">→ 第 5 批</td></tr>
+<tr><td>P3.1 故事列表 · 移动</td><td>和线索库移动端同结构</td><td class="later">○ 共用</td></tr>
+<tr><td>已验证状态</td><td>行为实验在 V2</td><td class="later">— V2</td></tr>
+</table>
+<h4 style="margin-top:32px">本批发现并修正的问题</h4>
+<table class="chk"><tr><th style="width:26%">问题</th><th>处理</th></tr>
+<tr><td>第 1 批首页侧栏有「带实习生讲了五遍」，但线索里「有耐心」还是「待补例子」，两者矛盾</td><td>该故事改为「临时救场的发布会」（高光），与首页「高光 3 · 低谷 1」一致，第 1 批文件已同步修改。v0.2 规范原有画板保持不动</td></tr>
+<tr><td>弹层的危险操作按钮用什么颜色，规范里没写</td><td>定为主文字色实底 btn-k；红色仍然只用于高风险安全提示。已写入 v0.2 规范「05 补充规则」</td></tr>
+<tr><td>规则 B5「优势须有本人经历」在界面上没有体现</td><td>线索详情的门槛条增加第 4 条「本人经历」，只对优势候选显示。已写入 v0.2 规范「05 补充规则」</td></tr>
+</table>
+<p class="mono" style="margin-top:24px">下一批：第 3 批 补来源 · P2.3 价值观澄清（选词、两难取舍、排序）· P2.4 测评解读 · 上传面板</p></div></div></section></div><div class="fx-hint">拖动平移 · 滚轮平移 · Ctrl / ⌘ + 滚轮缩放 · 点击画板看说明</div></main>
+<aside class="fx-side r"><div class="fx-sec"><h4>画板</h4><div class="fx-kv"><span>名称</span><b id="iName">—</b><span>尺寸</span><b id="iSize">—</b></div></div>
+<div class="fx-sec"><h4>说明</h4><div class="fx-note" id="iDesc">点击画布上的画板查看。</div></div>
+<div class="fx-sec"><h4>规范来源</h4><div class="fx-note">设计稿 v0.2「研究笔记」<br>页面结构与交互框架 v0.2</div></div></aside></div>
+<script>
+(function(){
+  if (window.lucide) lucide.createIcons();
+  const canvas=document.getElementById('canvas'), world=document.getElementById('world');
+  const zLab=document.getElementById('zLab'), layers=document.getElementById('layers');
+  let s=1,x=0,y=0,page='p4';
+  const apply=()=>{world.style.transform=`translate(${x}px,${y}px) scale(${s})`;zLab.textContent=Math.round(s*100)+'%';};
+  const abs=()=>[...document.querySelectorAll(`.fx-page[data-page="${page}"] .fx-ab`)];
+  const box=el=>{const a=el.querySelector('.ab');return {l:parseFloat(el.style.left)||0,t:parseFloat(el.style.top)||0,w:a.offsetWidth,h:a.offsetHeight};};
+  function fitTo(list){let L=1e9,T=1e9,R=-1e9,B=-1e9;list.forEach(e=>{const b=box(e);L=Math.min(L,b.l);T=Math.min(T,b.t-24);R=Math.max(R,b.l+b.w);B=Math.max(B,b.t+b.h);});
+    const W=canvas.clientWidth,H=canvas.clientHeight,p=48;s=Math.max(Math.min((W-p*2)/(R-L),(H-p*2)/(B-T),2),.04);x=(W-(R-L)*s)/2-L*s;y=(H-(B-T)*s)/2-T*s;apply();}
+  function select(el){document.querySelectorAll('.fx-ab.sel').forEach(e=>e.classList.remove('sel'));document.querySelectorAll('#layers .fx-item').forEach(e=>e.classList.toggle('on',e._ab===el));
+    if(!el){iName.textContent='—';iSize.textContent='—';iDesc.textContent='点击画布上的画板查看。';return;}
+    el.classList.add('sel');const b=box(el);iName.textContent=el.dataset.name;iSize.textContent=b.w+' × '+b.h;iDesc.textContent=el.dataset.desc||'';}
+  function show(p){page=p;document.querySelectorAll('.fx-page').forEach(e=>e.classList.toggle('on',e.dataset.page===p));document.querySelectorAll('.fx-item[data-page]').forEach(e=>e.classList.toggle('on',e.dataset.page===p));
+    layers.innerHTML='';abs().forEach(el=>{const b=document.createElement('button');b.className='fx-item';b.innerHTML='<i data-lucide="frame"></i>'+el.dataset.name;b._ab=el;b.onclick=()=>{fitTo([el]);select(el);};layers.appendChild(b);});
+    if(window.lucide) lucide.createIcons();select(null);requestAnimationFrame(()=>fitTo(abs()));}
+  document.querySelectorAll('.fx-item[data-page]').forEach(b=>b.onclick=()=>show(b.dataset.page));
+  function zoomAt(f,cx,cy){const ns=Math.min(Math.max(s*f,.04),4);x=cx-(cx-x)*(ns/s);y=cy-(cy-y)*(ns/s);s=ns;apply();}
+  canvas.addEventListener('wheel',e=>{e.preventDefault();const r=canvas.getBoundingClientRect();if(e.ctrlKey||e.metaKey){zoomAt(Math.exp(-e.deltaY*.01),e.clientX-r.left,e.clientY-r.top);}else{x-=e.deltaX;y-=e.deltaY;apply();}},{passive:false});
+  let d=null;
+  canvas.addEventListener('pointerdown',e=>{d={sx:e.clientX,sy:e.clientY,x,y,m:false};canvas.setPointerCapture(e.pointerId);});
+  canvas.addEventListener('pointermove',e=>{if(!d)return;const dx=e.clientX-d.sx,dy=e.clientY-d.sy;if(Math.abs(dx)+Math.abs(dy)>3){d.m=true;canvas.classList.add('drag');}x=d.x+dx;y=d.y+dy;apply();});
+  canvas.addEventListener('pointerup',e=>{if(d&&!d.m){const ab=document.elementFromPoint(e.clientX,e.clientY)?.closest('.fx-ab');select(ab||null);}d=null;canvas.classList.remove('drag');});
+  const c=()=>({cx:canvas.clientWidth/2,cy:canvas.clientHeight/2});
+  zIn.onclick=()=>{const{cx,cy}=c();zoomAt(1.25,cx,cy);};zOut.onclick=()=>{const{cx,cy}=c();zoomAt(.8,cx,cy);};
+  zFit.onclick=()=>fitTo(abs());z100.onclick=()=>{const{cx,cy}=c();zoomAt(1/s,cx,cy);};
+  window.addEventListener('keydown',e=>{if(e.shiftKey&&e.code==='Digit1')fitTo(abs());if(e.shiftKey&&e.code==='Digit0'){const{cx,cy}=c();zoomAt(1/s,cx,cy);}});
+  window.addEventListener('resize',()=>fitTo(abs()));
+  show('p4');
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>fitTo(abs()));
+})();
+</script>
+</body>
+</html>

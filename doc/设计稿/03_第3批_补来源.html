@@ -1,0 +1,507 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>照见 · 设计稿 第 3 批：补来源</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+<style>
+/* 设计令牌：沿用 v0.2「研究笔记」，不做任何改动 */
+:root{
+  --page-bg:#FAFAFA;--page-surface:#FFFFFF;--page-raised:#F4F4F5;
+  --page-line:rgba(23,23,23,.08);--page-line-2:rgba(23,23,23,.14);
+  --page-ink:#171717;--page-ink-2:#525252;--page-ink-3:#737373;
+  --page-accent:#23406E;--page-accent-700:#1A3154;--page-accent-50:#EDF1F7;
+  --page-neg:#B4332B;--page-neg-50:#FBEFEE;
+  --page-sans:'Noto Sans SC','PingFang SC','Microsoft YaHei',system-ui,sans-serif;
+  --page-mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  --page-ease:cubic-bezier(.22,1,.36,1);
+}
+/* ===== 画布外壳 ===== */
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:#E5E5E5;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;color:#1e1e1e}
+.fx-app{display:grid;grid-template-rows:44px 1fr;grid-template-columns:240px 1fr 260px;height:100vh}
+.fx-top{grid-column:1/-1;display:flex;align-items:center;gap:12px;padding:0 12px;background:#2C2C2C;color:#fff;font-size:12px}
+.fx-top b{font-weight:600}.fx-top .s{color:#B3B3B3}.fx-top .sp{flex:1}
+.fx-btn{background:transparent;border:0;color:#fff;height:28px;min-width:28px;padding:0 8px;border-radius:5px;font:inherit;cursor:pointer}
+.fx-btn:hover{background:#444}.fx-zoom{min-width:48px;text-align:center}
+.fx-side{background:#fff;border-right:1px solid #E5E5E5;overflow:auto;font-size:12px}
+.fx-side.r{border-right:0;border-left:1px solid #E5E5E5}
+.fx-sec{padding:12px 0;border-bottom:1px solid #EEE}
+.fx-sec h4{margin:0 0 6px;padding:0 16px;font-size:11px;font-weight:600}
+.fx-item{display:flex;align-items:center;gap:8px;padding:6px 16px;cursor:pointer;color:#333;border:0;background:none;width:100%;text-align:left;font:inherit}
+.fx-item:hover{background:#F5F5F5}.fx-item.on{background:#E5F4FF;color:#0B6BB3;font-weight:600}
+.fx-item svg{width:14px;height:14px;stroke-width:1.6;flex:none}
+.fx-kv{display:grid;grid-template-columns:48px 1fr;gap:6px 8px;padding:0 16px;color:#555}.fx-kv b{color:#1e1e1e;font-weight:500}
+.fx-note{padding:0 16px;color:#555;line-height:1.6}
+.fx-canvas{position:relative;overflow:hidden;cursor:grab;background-color:#E5E5E5;background-image:radial-gradient(#CFCFCF 1px,transparent 1px);background-size:20px 20px}
+.fx-canvas.drag{cursor:grabbing}
+.fx-world{position:absolute;left:0;top:0;transform-origin:0 0}
+.fx-ab{position:absolute}
+.fx-ab-label{position:absolute;left:0;top:-22px;font-size:12px;color:#7A7A7A;white-space:nowrap}
+.fx-ab-label span{color:#AAA;margin-left:8px}
+.fx-ab.sel .fx-ab-label{color:#0D99FF}.fx-ab.sel>.ab{outline:2px solid #0D99FF}
+.fx-page{display:none}.fx-page.on{display:block}
+.fx-hint{position:absolute;left:12px;bottom:12px;font-size:11px;color:#666;background:rgba(255,255,255,.9);padding:6px 10px;border-radius:6px}
+
+/* ===== 产品基础 ===== */
+.ab{position:relative;background:var(--page-bg);font-family:var(--page-sans);color:var(--page-ink);overflow:hidden;font-size:14px;line-height:22px;font-variant-numeric:tabular-nums}
+.ab *{box-sizing:border-box}
+.ab svg.lucide{width:16px;height:16px;stroke-width:1.5;color:var(--page-ink-3);flex:none}
+.mono{font-family:var(--page-mono);font-size:12px;line-height:16px;color:var(--page-ink-3)}
+.c2{color:var(--page-ink-2)}.c3{color:var(--page-ink-3)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 16px;border-radius:8px;border:1px solid transparent;font:500 14px/1 var(--page-sans);white-space:nowrap}
+.btn-p{background:var(--page-accent);color:#fff}
+.btn-s{background:var(--page-raised);color:var(--page-ink);border-color:var(--page-line)}
+.btn-t{background:none;color:var(--page-ink-2);padding:0 4px;height:32px}
+.btn-sm{height:32px;padding:0 12px;font-size:13px}
+.btn-lg{height:44px;padding:0 20px}
+.ibtn{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;background:var(--page-ink)}
+.ibtn svg.lucide{color:#fff}
+.ibtn.off{background:var(--page-raised)}.ibtn.off svg.lucide{color:#A3A3A3}
+.tag{display:inline-flex;align-items:center;height:20px;padding:0 6px;border-radius:4px;font-size:12px;line-height:16px;color:var(--page-ink-2);background:var(--page-raised);white-space:nowrap}
+.tag.dash{background:none;border:1px dashed var(--page-line-2)}
+.tag.ok{background:var(--page-accent-50);color:var(--page-accent)}
+.tally{display:inline-flex;align-items:flex-end;gap:4px;height:20px;vertical-align:middle}
+.tally i{display:block;width:2px;border-radius:1px;background:var(--page-accent)}
+.tally i.s{height:20px}.tally i.m{height:14px}.tally i.w{height:8px}
+.tally i.self{height:14px;background:repeating-linear-gradient(to top,var(--page-ink-3) 0 2px,transparent 2px 4px)}
+.tally i.slot{height:20px;background:rgba(23,23,23,.12)}
+.tally i.new{box-shadow:0 0 0 3px var(--page-accent-50)}
+.tally.lg{height:40px;gap:8px}.tally.lg i{width:3px;border-radius:2px}
+.tally.lg i.s{height:40px}.tally.lg i.m{height:28px}.tally.lg i.slot{height:40px}
+
+/* 侧栏 */
+.side{background:var(--page-bg);border-right:1px solid var(--page-line);display:flex;flex-direction:column;padding:0 12px 16px}
+.brand{height:56px;display:flex;align-items:center;gap:10px;padding:0 8px}
+.brand .mk{display:inline-flex;align-items:flex-end;gap:3px;height:16px}
+.brand .mk i{display:block;width:3px;border-radius:1px;background:var(--page-accent)}
+.brand b{font-size:16px;font-weight:500;line-height:1}
+.nav{display:flex;flex-direction:column;gap:2px;margin-top:8px}
+.nav a{height:36px;display:flex;align-items:center;gap:10px;padding:0 8px;border-radius:8px;color:var(--page-ink-2);font-size:14px}
+.nav a.on{background:var(--page-raised);color:var(--page-ink);box-shadow:inset 0 0 0 1px var(--page-line)}
+.nav a.on svg.lucide{color:var(--page-ink)}
+.nav a .n{margin-left:auto}
+.slab{font-size:12px;color:var(--page-ink-3);padding:0 8px;margin:24px 0 8px}
+.story{height:36px;display:flex;align-items:center;gap:10px;padding:0 8px;border-radius:8px;font-size:13px;color:var(--page-ink-2)}
+.story span:first-child{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.story.on{background:var(--page-raised);color:var(--page-ink)}
+.story.all{color:var(--page-ink-3)}
+.side .grow{flex:1}
+.me{height:44px;display:flex;align-items:center;gap:10px;padding:8px 8px 0;border-top:1px solid var(--page-line);margin-top:8px}
+.av{width:24px;height:24px;border-radius:6px;background:var(--page-raised);display:grid;place-items:center;font-size:12px;color:var(--page-ink-2);box-shadow:inset 0 0 0 1px var(--page-line)}
+.hdr{height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 32px;border-bottom:1px solid var(--page-line);flex:none}
+.hdr h2{margin:0;font-size:15px;font-weight:500}
+.hdr .l{display:flex;align-items:center;gap:16px}
+
+/* ===== 对话页 ===== */
+.cv{width:1440px;height:1000px;display:grid;grid-template-columns:248px 1fr}
+.cv-main{display:flex;flex-direction:column;min-width:0}
+.cv-body{flex:1;display:grid;grid-template-columns:minmax(0,1fr) 320px;min-height:0}
+.cv-col{display:flex;flex-direction:column;min-height:0;border-right:1px solid var(--page-line)}
+.stream{flex:1;overflow:hidden;padding:32px 64px 24px;display:flex;flex-direction:column;gap:24px}
+.stream>*{max-width:680px}
+.seg3{display:inline-flex;background:var(--page-raised);border-radius:8px;padding:2px;gap:2px}
+.seg3 span{height:28px;padding:0 10px;display:inline-flex;align-items:center;border-radius:6px;font-size:13px;color:var(--page-ink-2)}
+.seg3 span.on{background:var(--page-surface);color:var(--page-ink);box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.coach{display:grid;grid-template-columns:24px 1fr;gap:12px}
+.mk2{height:26px;display:flex;align-items:flex-end;gap:2px;padding:0 0 6px 6px}
+.mk2 i{width:2px;border-radius:1px;background:var(--page-accent);display:block}
+.coach p{margin:0;font-size:15px;line-height:26px}
+.mine{align-self:flex-end;max-width:440px;background:var(--page-raised);border-radius:12px;padding:10px 14px;font-size:15px;line-height:26px}
+.rule{display:flex;align-items:center;gap:12px;max-width:680px}
+.rule:before,.rule:after{content:"";height:1px;background:var(--page-line);flex:1}
+.rule:before{flex:0 0 0}
+.fold{font-size:13px;color:var(--page-ink-3);padding-left:36px}
+/* 内联组件 */
+.inl{margin-left:36px;max-width:560px}
+.xcard{border:1px solid var(--page-line-2);border-radius:12px;padding:16px;background:var(--page-surface)}
+.xcard .k{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--page-ink-3)}
+.xcard .s{font-size:16px;line-height:24px;font-weight:500;margin:8px 0 4px}
+.xcard .w{font-size:13px;line-height:20px;color:var(--page-ink-2)}
+.xcard .a{display:flex;gap:8px;margin-top:12px}
+.xcard.done{padding:12px 16px;background:var(--page-bg);border-color:var(--page-line)}
+.xcard.done .s{font-size:14px;line-height:22px;margin:4px 0 0}
+.xcard.no .s{color:var(--page-ink-3)}
+.ta{border:1px solid var(--page-accent);border-radius:8px;padding:8px 12px;font-size:15px;line-height:24px;margin:8px 0 4px;background:var(--page-surface);box-shadow:0 0 0 3px var(--page-accent-50)}
+.merge{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:12px;background:var(--page-surface);border:1px solid var(--page-line)}
+.merge .t{flex:1;font-size:13px;line-height:20px;color:var(--page-ink-2)}
+.merge .t b{font-weight:500;color:var(--page-ink)}
+.lvl{display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center;padding:16px;border-radius:12px;border:1px solid var(--page-accent);background:var(--page-accent-50)}
+.lvl .t b{display:block;font-weight:500;font-size:15px;line-height:24px}
+.lvl .t span{font-size:13px;color:var(--page-ink-2)}
+.lvl.down{border-color:var(--page-line);background:var(--page-surface)}
+.sum{border:1px solid var(--page-line-2);border-radius:16px;background:var(--page-surface);padding:20px 24px;box-shadow:0 8px 24px rgba(0,0,0,.06)}
+.sum h4{margin:0;font-size:15px;font-weight:500}
+.sum .nums{display:grid;grid-template-columns:repeat(3,1fr);margin:16px 0;border-top:1px solid var(--page-line);border-bottom:1px solid var(--page-line)}
+.sum .nums div{padding:12px 0}
+.sum .nums b{display:block;font-family:var(--page-mono);font-size:22px;line-height:28px;font-weight:500}
+.sum .li{display:flex;align-items:center;gap:12px;padding:8px 0;font-size:14px}
+.sum .li span:nth-child(2){flex:1}
+.sum .next{margin-top:12px;padding-top:16px;border-top:1px solid var(--page-line);display:flex;align-items:center;justify-content:space-between;gap:16px}
+.sum .next p{margin:0;font-size:13px;line-height:20px;color:var(--page-ink-2)}
+.sum .next p b{display:block;color:var(--page-ink);font-weight:500;font-size:14px}
+.qr{display:flex;gap:8px;margin-left:36px}
+.qr span{height:32px;padding:0 12px;display:inline-flex;align-items:center;border:1px solid var(--page-line-2);border-radius:8px;font-size:13px;background:var(--page-surface)}
+/* 输入区 */
+.dock{padding:12px 64px 24px;flex:none}
+.dock .in{max-width:680px}
+.comp{background:var(--page-surface);border:1px solid var(--page-line-2);border-radius:12px;padding:12px 12px 12px 16px;display:flex;align-items:flex-end;gap:12px}
+.comp .ph{flex:1;color:var(--page-ink-3);font-size:15px;line-height:24px;padding:4px 0;min-height:32px}
+.comp .ph.has{color:var(--page-ink)}
+.comp .tools{display:flex;gap:4px;align-items:center}
+.tb{width:32px;height:32px;display:grid;place-items:center;border-radius:8px}
+.skip{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.dock .foot{margin-top:8px;display:flex;justify-content:space-between}
+/* 本次发现面板 */
+.disc{padding:24px;display:flex;flex-direction:column;gap:24px;background:var(--page-bg)}
+.disc h3{margin:0;font-size:15px;line-height:24px;font-weight:500}
+.disc h5{margin:0 0 8px;font-size:12px;font-weight:400;color:var(--page-ink-3)}
+.star{list-style:none;margin:0;padding:0}
+.star li{height:32px;display:flex;align-items:center;gap:10px;font-size:13px;border-bottom:1px solid var(--page-line)}
+.star li .v{margin-left:auto}
+.ck{width:14px;height:14px;border-radius:4px;border:1.5px solid var(--page-line-2);display:grid;place-items:center;flex:none}
+.ck.on{background:var(--page-accent);border-color:var(--page-accent)}
+.ck.on svg.lucide{width:10px;height:10px;color:#fff;stroke-width:3}
+.ck.cur{border-color:var(--page-accent)}
+.chg{padding:10px 0;border-bottom:1px solid var(--page-line)}
+.chg .s{font-size:13px;line-height:20px}
+.chg .m{display:flex;align-items:center;gap:10px;margin-top:6px}
+
+/* ===== 首页 ===== */
+.d{width:1440px;height:1000px;display:grid;grid-template-columns:248px 1fr}
+.main{display:flex;flex-direction:column;min-width:0}
+.wrap{padding:48px 32px 32px;display:flex;flex-direction:column;gap:56px}
+.hero{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:48px;align-items:center}
+.hero .meta{display:flex;gap:12px;align-items:center}
+.hero h1{margin:16px 0 16px;font-size:36px;line-height:44px;font-weight:500;letter-spacing:-.01em}
+.hero p{margin:0;font-size:16px;line-height:26px;color:var(--page-ink-2);max-width:36em}
+.hero .comp{margin-top:32px}
+.hero .comp .ph{min-height:56px}
+.resume{display:flex;align-items:center;gap:8px;margin-top:16px;font-size:13px;color:var(--page-ink-2)}
+.resume b{font-weight:500;color:var(--page-ink)}
+.card{background:var(--page-surface);border:1px solid var(--page-line);border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,.06);padding:24px 28px}
+.card .top{display:flex;align-items:center;justify-content:space-between}
+.card h3{margin:12px 0 20px;font-size:22px;line-height:30px;font-weight:500}
+.starters{list-style:none;margin:0;padding:0;border-top:1px solid var(--page-line)}
+.starters li{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid var(--page-line)}
+.starters li b{display:block;font-weight:500;font-size:15px;line-height:24px}
+.starters li span.d2{font-size:13px;color:var(--page-ink-2)}
+.how{display:flex;align-items:flex-end;gap:16px;padding:20px 0 0}
+.how p{margin:0;font-size:13px;line-height:20px;color:var(--page-ink-2)}
+.ev{display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:baseline;padding:10px 0}
+.ev .src{font-size:12px;color:var(--page-ink-3)}
+.ev.dim .q{color:var(--page-ink-3)}
+.gate{display:grid;grid-template-columns:72px 1fr 56px;align-items:center;gap:12px;height:28px}
+.gate .lab{font-size:13px;color:var(--page-ink-2)}
+.gate .bar{height:4px;border-radius:2px;background:var(--page-raised);position:relative;overflow:hidden}
+.gate .bar b{position:absolute;left:0;top:0;bottom:0;background:var(--page-accent);border-radius:2px}
+.gate .v{font-family:var(--page-mono);font-size:12px;color:var(--page-ink);text-align:right}
+.need{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-top:20px;margin-top:12px;border-top:1px solid var(--page-line)}
+.need p{margin:0;font-size:13px;line-height:20px;color:var(--page-ink-2);max-width:22em}
+.row{display:grid;grid-template-columns:minmax(0,8fr) minmax(0,4fr);gap:48px}
+.blk-h{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px}
+.blk-h h3{margin:0;font-size:15px;line-height:24px;font-weight:500}
+table.cl{width:100%;border-collapse:collapse}
+table.cl th{height:36px;font-size:12px;font-weight:400;color:var(--page-ink-3);text-align:left;border-bottom:1px solid var(--page-line-2);padding:0 12px}
+table.cl td{height:48px;padding:0 12px;border-bottom:1px solid var(--page-line);font-size:14px}
+table.cl th:first-child,table.cl td:first-child{padding-left:0}
+table.cl td.r,table.cl th.r{text-align:right;padding-right:0}
+table.cl tr.sel td{background:var(--page-accent-50)}
+table.cl tr.sel td:first-child{box-shadow:inset 2px 0 0 var(--page-accent);padding-left:12px}
+.empty{padding:28px 0;border-bottom:1px solid var(--page-line);display:flex;align-items:center;gap:16px;color:var(--page-ink-2);font-size:14px}
+.steps{list-style:none;margin:0;padding:0}
+.steps li{height:44px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--page-line);font-size:14px}
+.steps li .st{margin-left:auto}
+.steps li.cur{font-weight:500}.steps li.lock{color:var(--page-ink-3)}
+.dot{width:8px;height:8px;border-radius:50%;border:1.5px solid var(--page-line-2);flex:none}
+.dot.done{background:var(--page-ink-3);border-color:var(--page-ink-3)}
+.dot.cur{background:var(--page-accent);border-color:var(--page-accent)}
+.seg{display:grid;grid-template-columns:repeat(10,1fr);border:1px solid var(--page-line-2);border-radius:8px;overflow:hidden;margin-top:8px}
+.seg span{height:36px;display:grid;place-items:center;font-family:var(--page-mono);font-size:13px;color:var(--page-ink-2);background:var(--page-surface);border-left:1px solid var(--page-line)}
+.seg span:first-child{border-left:0}
+
+/* ===== 移动 ===== */
+.m{width:390px;height:844px;display:flex;flex-direction:column}
+.m-sb{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:14px;font-weight:500;flex:none}
+.m-sb .ic{display:flex;gap:6px}.m-sb .ic svg.lucide{color:var(--page-ink)}
+.m-hd{height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 12px 0 8px;border-bottom:1px solid var(--page-line);flex:none}
+.m-hd .l{display:flex;align-items:center;gap:4px}
+.m-hd h2{margin:0;font-size:15px;font-weight:500}
+.m-hd .back{width:36px;height:36px;display:grid;place-items:center}
+.m-hd .back svg.lucide{width:20px;height:20px;color:var(--page-ink)}
+.m-stream{flex:1;overflow:hidden;padding:20px 20px 12px;display:flex;flex-direction:column;gap:18px}
+.m-stream .coach p{font-size:15px;line-height:25px}
+.m-stream .mine{max-width:300px}
+.m-stream .inl{margin-left:36px}
+.m-dock{padding:8px 12px 12px;border-top:1px solid var(--page-line);background:var(--page-bg);flex:none}
+.m-dock .comp{padding:8px 8px 8px 14px;align-items:center}
+.m-dock .comp .ph{min-height:0;font-size:14px}
+.m-home-hd{height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;flex:none}
+.m-home-hd h2{margin:0;font-size:15px;font-weight:500}
+.m-bd{flex:1;padding:8px 20px 0;overflow:hidden}
+.m-bd h1{margin:0 0 8px;font-size:24px;line-height:32px;font-weight:500}
+.m-bd>p{margin:0 0 20px;font-size:14px;line-height:22px;color:var(--page-ink-2)}
+.m-comp{margin:0 12px 8px;background:var(--page-surface);border:1px solid var(--page-line-2);border-radius:12px;height:48px;display:flex;align-items:center;gap:8px;padding:0 8px 0 16px;color:var(--page-ink-3);font-size:14px;flex:none}
+.m-comp span{flex:1}
+.m-tab{height:83px;border-top:1px solid var(--page-line);background:var(--page-surface);display:grid;grid-template-columns:repeat(4,1fr);padding-top:8px;flex:none}
+.m-tab a{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;line-height:14px;color:var(--page-ink-3)}
+.m-tab a svg.lucide{width:22px;height:22px}
+.m-tab a.on,.m-tab a.on svg.lucide{color:var(--page-ink)}
+
+/* ===== 组件状态板 / 清单 ===== */
+.spec{padding:48px 56px;background:var(--page-surface)}
+.sh{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:16px;border-bottom:1px solid var(--page-ink);margin-bottom:32px}
+.sh h2{margin:0;font-size:28px;line-height:36px;font-weight:500}
+.spec h4{margin:0 0 12px;font-size:13px;line-height:20px;font-weight:500;color:var(--page-ink-2)}
+.st-row{display:grid;gap:24px;margin-bottom:40px}
+.st-row.c5{grid-template-columns:repeat(5,minmax(0,1fr))}
+.st-row.c4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.st-row.c3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.st-row.c2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.st{min-width:0}
+.st .lab{display:flex;justify-content:space-between;margin-bottom:8px}
+.st .lab b{font-size:13px;font-weight:500}
+.st .cap{margin-top:8px;font-size:12px;line-height:18px;color:var(--page-ink-3)}
+.stage{background:var(--page-bg);border-radius:12px;padding:16px}
+.up{display:grid;grid-template-columns:32px 1fr auto;gap:12px;align-items:center;padding:12px 14px;border:1px solid var(--page-line-2);border-radius:12px;background:var(--page-surface)}
+.up .f{width:32px;height:32px;border-radius:8px;background:var(--page-raised);display:grid;place-items:center}
+.up .n{font-size:14px;line-height:20px}
+.up .p{height:3px;border-radius:2px;background:var(--page-raised);margin-top:6px;position:relative;overflow:hidden}
+.up .p b{position:absolute;left:0;top:0;bottom:0;background:var(--page-accent)}
+.up.err{border-color:var(--page-ink-2)}
+.fail{display:flex;align-items:center;gap:8px;justify-content:flex-end;margin-top:6px;font-size:12px;color:var(--page-ink-2)}
+.fail u{text-decoration:none;color:var(--page-accent);font-weight:500}
+.thinking .mk2 i{opacity:.35}
+.thinking .mk2 i:nth-child(1){opacity:1}
+table.chk{width:100%;border-collapse:collapse}
+table.chk th{font-size:12px;font-weight:400;color:var(--page-ink-3);text-align:left;padding:0 12px 8px 0;border-bottom:1px solid var(--page-line-2)}
+table.chk td{font-size:13px;line-height:20px;padding:10px 12px 10px 0;border-bottom:1px solid var(--page-line);vertical-align:top}
+table.chk td.ok{color:var(--page-accent);font-family:var(--page-mono);white-space:nowrap}
+table.chk td.later{color:var(--page-ink-3);font-family:var(--page-mono);white-space:nowrap}
+
+/* ===== 第 2 批新增样式 ===== */
+.gate .bar.done b{background:var(--page-ink-3)}
+.bc{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--page-ink-3)}
+.bc b{color:var(--page-ink);font-weight:500}
+.bc svg.lucide{width:14px;height:14px}
+.banner{display:flex;align-items:center;gap:12px;padding:10px 12px 10px 16px;border-radius:12px;background:var(--page-accent-50);font-size:13px;line-height:20px;color:var(--page-ink)}
+.banner .sp{flex:1}
+.banner svg.lucide{color:var(--page-accent)}
+.filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.chipf{height:32px;padding:0 12px;display:inline-flex;align-items:center;gap:6px;border-radius:8px;border:1px solid var(--page-line-2);background:var(--page-surface);font-size:13px;color:var(--page-ink-2);white-space:nowrap}
+.chipf.on{border-color:var(--page-ink);color:var(--page-ink);box-shadow:inset 0 0 0 1px var(--page-ink)}
+.chipf .mono{font-size:11px}
+.fsep{width:1px;height:20px;background:var(--page-line-2);margin:0 4px}
+.tgl{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--page-ink-2);margin-left:auto}
+.tgl i{width:28px;height:16px;border-radius:8px;background:var(--page-line-2);position:relative;display:block}
+.tgl i:after{content:"";position:absolute;left:2px;top:2px;width:12px;height:12px;border-radius:50%;background:#fff}
+.tgl.on i{background:var(--page-accent)}.tgl.on i:after{left:14px}
+.lib{padding:32px;display:flex;flex-direction:column;gap:20px}
+.lib-h{display:flex;justify-content:space-between;align-items:flex-end;gap:24px}
+.lib-h h1{margin:0;font-size:28px;line-height:36px;font-weight:500}
+.lib-h p{margin:6px 0 0;font-size:14px;line-height:22px;color:var(--page-ink-2)}
+.lib-h .a{display:flex;gap:8px}
+table.cl td .sub{display:block;font-size:12px;line-height:16px;color:var(--page-ink-3);margin-top:2px}
+table.cl.tall td{height:60px}
+table.cl th .srt{color:var(--page-ink)}
+table.cl tr.arc td{color:var(--page-ink-3)}
+.archived{display:flex;align-items:center;gap:8px;height:44px;font-size:13px;color:var(--page-ink-3);border-bottom:1px solid var(--page-line)}
+.det{flex:1;display:grid;grid-template-columns:minmax(0,1fr) 320px;min-height:0}
+.det-main{padding:32px 56px 40px 32px;display:flex;flex-direction:column;gap:28px;border-right:1px solid var(--page-line);min-width:0}
+.det-side{padding:32px 24px;display:flex;flex-direction:column;gap:28px}
+.det-side h4,.det-main h4{margin:0 0 10px;font-size:12px;font-weight:400;color:var(--page-ink-3)}
+.stmt{display:flex;align-items:flex-start;gap:12px}
+.stmt h1{margin:0;font-size:28px;line-height:38px;font-weight:500;flex:1}
+.edit{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;border:1px solid var(--page-line);flex:none;margin-top:3px}
+.tags{display:flex;gap:8px;align-items:center;margin-top:12px}
+.score{display:grid;grid-template-columns:auto minmax(0,1fr);gap:40px;align-items:center;padding:24px 0;border-top:1px solid var(--page-line);border-bottom:1px solid var(--page-line)}
+.score .lv{display:flex;align-items:flex-end;gap:16px}
+.score .lv b{display:block;font-size:22px;line-height:28px;font-weight:500}
+.score .lv .mono{display:block;margin-top:4px}
+.pv{padding:16px 20px;border-radius:12px;background:var(--page-raised);font-size:14px;line-height:22px}
+.pv .mono{display:block;margin-bottom:6px}
+.pv b{font-weight:500}
+.evg-h{display:flex;align-items:baseline;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid var(--page-line-2)}
+.evg-h h3{margin:0;font-size:15px;font-weight:500}
+.evrow{display:grid;grid-template-columns:8px 56px minmax(0,1fr) 176px 64px;gap:16px;align-items:baseline;padding:14px 0;border-bottom:1px solid var(--page-line)}
+.evrow .b{width:2px;height:16px;background:var(--page-accent);align-self:center;border-radius:1px}
+.evrow .b.self{background:repeating-linear-gradient(to top,var(--page-ink-3) 0 2px,transparent 2px 4px)}
+.evrow .b.neg{background:none;border-left:2px solid var(--page-ink-2);height:16px}
+.evrow .src{font-size:12px;color:var(--page-ink-3)}
+.evrow .q{font-size:15px;line-height:24px}
+.evrow .q .sub{display:block;font-size:12px;line-height:18px;color:var(--page-ink-3);margin-top:4px}
+.evrow .from{font-size:13px;line-height:20px;color:var(--page-ink-2)}
+.evrow .from .mono{display:block}
+.evrow .st{text-align:right}
+.evrow.dim .q{color:var(--page-ink-3)}
+.none{padding:14px 0;font-size:13px;color:var(--page-ink-3);border-bottom:1px solid var(--page-line)}
+.kv{display:grid;grid-template-columns:80px 1fr;gap:10px 12px;font-size:13px;line-height:20px}
+.kv span:nth-child(odd){color:var(--page-ink-3)}
+.acts-v{display:flex;flex-direction:column;gap:8px}
+.acts-v .btn{justify-content:flex-start;width:100%}
+.rel{list-style:none;margin:0;padding:0}
+.rel li{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--page-line);font-size:13px;line-height:20px}
+.rel li span.t{flex:1;min-width:0}
+.log{list-style:none;margin:0;padding:0}
+.log li{display:grid;grid-template-columns:48px 1fr;gap:12px;padding:8px 0;border-bottom:1px solid var(--page-line);font-size:13px;line-height:20px;color:var(--page-ink-2)}
+.starx{display:grid;grid-template-columns:72px minmax(0,1fr);border-top:1px solid var(--page-line)}
+.starx>div{padding:16px 0;border-bottom:1px solid var(--page-line);font-size:15px;line-height:26px}
+.starx>div:nth-child(odd){font-size:13px;color:var(--page-ink-3);line-height:26px}
+.starx .miss{color:var(--page-ink-3);font-size:14px}
+mark.e{background:none;color:inherit;box-shadow:inset 0 -2px 0 rgba(35,64,110,.5);padding:0 1px}
+sup.n{font-family:var(--page-mono);font-size:10px;color:var(--page-accent);margin-left:2px}
+.quote{padding:16px 20px;border-left:2px solid var(--page-accent);background:var(--page-surface);font-size:17px;line-height:28px;border-radius:0 12px 12px 0}
+.quote .mono{display:block;margin-bottom:6px}
+.prod{list-style:none;margin:0;padding:0}
+.prod li{padding:12px 0;border-bottom:1px solid var(--page-line)}
+.prod li .t{font-size:14px;line-height:22px}
+.prod li .m{display:flex;align-items:center;gap:10px;margin-top:6px}
+.starq{display:inline-flex;gap:3px;vertical-align:middle}
+.starq i{width:10px;height:10px;border-radius:2px;background:var(--page-ink-3);display:block}
+.starq i.no{background:none;box-shadow:inset 0 0 0 1px var(--page-line-2)}
+.overlay{position:absolute;inset:0;background:rgba(23,23,23,.36)}
+.dlg{width:560px;background:var(--page-surface);border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,.12);padding:28px}
+.overlay .dlg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
+.dlg h3{margin:0;font-size:18px;line-height:26px;font-weight:500}
+.dlg>p{margin:8px 0 0;font-size:14px;line-height:22px;color:var(--page-ink-2)}
+.dlg table{width:100%;border-collapse:collapse;margin-top:20px}
+.dlg th{font-size:12px;font-weight:400;color:var(--page-ink-3);text-align:left;padding:0 0 8px;border-bottom:1px solid var(--page-line-2)}
+.dlg td{font-size:13px;line-height:20px;padding:10px 0;border-bottom:1px solid var(--page-line);vertical-align:top}
+.dlg td.c{font-family:var(--page-mono);font-size:12px;white-space:nowrap;padding-left:16px}
+.dlg .note{margin-top:16px;font-size:13px;line-height:20px;color:var(--page-ink-2)}
+.dlg .ft{display:flex;justify-content:flex-end;gap:8px;margin-top:24px}
+.dlg.sm{width:auto;padding:20px}
+.btn-k{background:var(--page-ink);color:#fff}
+.toast{display:inline-flex;align-items:center;gap:12px;height:44px;padding:0 6px 0 16px;border-radius:10px;background:var(--page-ink);color:#fff;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.12)}
+.toast u{text-decoration:none;color:#fff;font-weight:500;height:32px;padding:0 10px;display:inline-flex;align-items:center;border-radius:6px;background:rgba(255,255,255,.12)}
+.toast.n{padding-right:16px}
+.m-scroll{flex:1;overflow:hidden;padding:12px 20px 0}
+.m-scroll h1{margin:0;font-size:22px;line-height:30px;font-weight:500}
+.m-chips{display:flex;gap:8px;margin:12px -20px;padding:0 20px;overflow:hidden}
+.m-r{padding:12px 0;border-bottom:1px solid var(--page-line)}
+.m-r .t{font-size:15px;line-height:22px}
+.m-r .k{display:flex;align-items:center;gap:10px;margin-top:6px}
+.m-r .k .sp{flex:1}
+.m-sec{margin-top:20px}
+.m-sec h4{margin:0 0 4px;font-size:12px;font-weight:400;color:var(--page-ink-3)}
+.m-ev{padding:10px 0;border-bottom:1px solid var(--page-line);font-size:14px;line-height:22px}
+.m-ev .mono{display:block;margin-top:2px}
+.m-act{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:8px 12px 28px;border-top:1px solid var(--page-line);background:var(--page-surface);flex:none}
+.m-act .btn{padding:0 8px}
+
+/* ===== 第 3 批新增样式 ===== */
+.flow3{display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--page-ink-3)}
+.flow3 b{font-weight:500;color:var(--page-ink)}
+.flow3 i.sep{width:16px;height:1px;background:var(--page-line-2);display:block}
+.vgrid{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin-top:12px}
+.vchip{height:40px;display:flex;align-items:center;justify-content:space-between;padding:0 12px;border-radius:8px;border:1px solid var(--page-line-2);background:var(--page-surface);font-size:14px}
+.vchip.on{border-color:var(--page-accent);box-shadow:inset 0 0 0 1px var(--page-accent);background:var(--page-accent-50)}
+.vchip.on svg.lucide{color:var(--page-accent);width:14px;height:14px}
+.vchip.off{color:#A3A3A3;background:var(--page-bg)}
+.vbar{display:flex;align-items:center;justify-content:space-between;margin-top:16px;padding-top:12px;border-top:1px solid var(--page-line)}
+.dil{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:12px}
+.opt{border:1px solid var(--page-line-2);border-radius:12px;padding:16px;background:var(--page-surface);min-height:112px;display:flex;flex-direction:column;gap:8px}
+.opt .k{font-family:var(--page-mono);font-size:12px;color:var(--page-ink-3)}
+.opt .t{font-size:15px;line-height:24px}
+.opt.on{border-color:var(--page-accent);box-shadow:inset 0 0 0 1px var(--page-accent)}
+.opt.on .k{color:var(--page-accent)}
+.opt.dim{opacity:.55}
+.dil-done{display:flex;align-items:center;gap:12px;padding:10px 14px;border-radius:10px;background:var(--page-surface);border:1px solid var(--page-line);font-size:13px;line-height:20px;color:var(--page-ink-2)}
+.dil-done b{color:var(--page-ink);font-weight:500}
+.vs2{display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--page-line-2);border-radius:12px;overflow:hidden;background:var(--page-surface)}
+.vs2>div{padding:14px 16px}
+.vs2>div+div{border-left:1px solid var(--page-line)}
+.vs2 .mono{display:block;margin-bottom:6px}
+.vs2 .t{font-size:14px;line-height:22px}
+.rank{list-style:none;margin:12px 0 0;padding:0;border-top:1px solid var(--page-line)}
+.rank li{display:grid;grid-template-columns:20px 28px 88px minmax(0,1fr);gap:12px;align-items:center;min-height:56px;padding:8px 0;border-bottom:1px solid var(--page-line)}
+.rank li .h svg.lucide{width:16px;height:16px}
+.rank li .n{font-family:var(--page-mono);font-size:13px;color:var(--page-ink-3)}
+.rank li .v{font-size:15px;font-weight:500}
+.rank li .d{font-size:14px;line-height:22px;color:var(--page-ink-2)}
+.rank li .d.ph{color:var(--page-ink-3)}
+.rank li .d .in2{border:1px solid var(--page-line-2);border-radius:8px;padding:6px 10px;background:var(--page-surface);color:var(--page-ink)}
+.rank li.drag{background:var(--page-surface);box-shadow:0 8px 24px rgba(0,0,0,.08);border-radius:8px;border-bottom-color:transparent;padding-left:8px;padding-right:8px;margin:0 -8px}
+.rank li.gap{min-height:4px;padding:0;border-bottom:2px solid var(--page-accent)}
+.rank.m li{grid-template-columns:24px minmax(0,1fr) 72px}
+.arrows{display:flex;gap:4px}
+.arrows span{width:32px;height:32px;border-radius:8px;border:1px solid var(--page-line);display:grid;place-items:center;background:var(--page-surface)}
+.arrows span.x svg.lucide{color:#C4C4C4}
+.mini-rank{list-style:none;margin:0;padding:0}
+.mini-rank li{height:32px;display:flex;align-items:center;gap:10px;border-bottom:1px solid var(--page-line);font-size:13px}
+.mini-rank li .mono{width:16px}
+.overlay2{position:absolute;inset:0;background:rgba(23,23,23,.36)}
+.up-dlg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:600px;background:var(--page-surface);border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,.12);padding:28px}
+.up-dlg h3{margin:0;font-size:18px;line-height:26px;font-weight:500}
+.up-dlg>p{margin:6px 0 0;font-size:14px;line-height:22px;color:var(--page-ink-2)}
+.tabs2{display:flex;gap:20px;border-bottom:1px solid var(--page-line);margin-top:20px}
+.tabs2 span{height:36px;display:flex;align-items:center;font-size:14px;color:var(--page-ink-3)}
+.tabs2 span.on{color:var(--page-ink);box-shadow:inset 0 -2px 0 var(--page-ink)}
+.drop{margin-top:16px;height:168px;border:1.5px dashed var(--page-line-2);border-radius:12px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:var(--page-bg);font-size:14px;color:var(--page-ink-2)}
+.drop svg.lucide{width:20px;height:20px}
+.drop.hover{border-color:var(--page-accent);background:var(--page-accent-50)}
+.support{display:grid;grid-template-columns:repeat(4,1fr);margin-top:16px;border-top:1px solid var(--page-line)}
+.support div{padding:10px 12px 0 0;font-size:13px;line-height:20px}
+.support div .mono{display:block}
+.paste{margin-top:16px;height:168px;border:1px solid var(--page-line-2);border-radius:12px;padding:12px 14px;font-family:var(--page-mono);font-size:12px;line-height:20px;color:var(--page-ink-2);background:var(--page-surface)}
+.as-card{border:1px solid var(--page-line-2);border-radius:12px;background:var(--page-surface);padding:16px 18px}
+.as-card .hd{display:flex;align-items:center;justify-content:space-between;padding-bottom:10px;border-bottom:1px solid var(--page-line)}
+.as-card .hd b{font-size:15px;font-weight:500}
+.dim5{display:grid;grid-template-columns:72px minmax(0,1fr) 112px 44px;gap:12px;align-items:center;padding:10px 0;border-bottom:1px solid var(--page-line);font-size:14px;line-height:22px}
+.dim5:last-child{border-bottom:0}
+.dim5 .p{height:4px;border-radius:2px;background:var(--page-raised);position:relative}
+.dim5 .p b{position:absolute;top:-3px;width:2px;height:10px;background:var(--page-accent);border-radius:1px}
+.dim5 .p i{position:absolute;left:50%;top:-2px;width:1px;height:8px;background:var(--page-line-2)}
+.dim5 .x{font-size:13px;color:var(--page-ink-2)}
+.dim5 .v{font-family:var(--page-mono);font-size:12px;text-align:right}
+.mt-item{border:1px solid var(--page-line-2);border-radius:12px;background:var(--page-surface);padding:14px 16px}
+.mt-item .k{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--page-ink-3)}
+.mt-item .t{font-size:15px;line-height:24px;margin:6px 0 0}
+.mt-item .a{display:flex;gap:8px;margin-top:12px}
+.mt-item.done{background:var(--page-bg);border-color:var(--page-line);padding:10px 16px}
+.mt-item.done .t{font-size:14px;line-height:22px}
+.mt-item.lock{background:var(--page-bg);border-style:dashed;color:var(--page-ink-3);padding:10px 16px;font-size:13px}
+.kind{height:20px;padding:0 6px;border-radius:4px;display:inline-flex;align-items:center;font-size:12px;background:var(--page-raised);color:var(--page-ink-2)}
+.kind.c{background:none;box-shadow:inset 0 0 0 1px var(--page-ink-2);color:var(--page-ink)}
+.prog2{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--page-ink-2)}
+.prog2 .b{width:120px;height:4px;border-radius:2px;background:var(--page-raised);position:relative;overflow:hidden}
+.prog2 .b i{position:absolute;left:0;top:0;bottom:0;background:var(--page-accent)}
+</style></head><body><div class="fx-app"><div class="fx-top"><b>照见（暂定名）</b><span class="s">/ 设计稿 第 3 批：补来源 · 基于 v0.2 规范</span><span class="sp"></span><button class="fx-btn" id="zOut">−</button><span class="fx-zoom" id="zLab">100%</span><button class="fx-btn" id="zIn">+</button><button class="fx-btn" id="zFit">适应画布</button><button class="fx-btn" id="z100">100%</button></div><aside class="fx-side"><div class="fx-sec"><h4>页面</h4><button class="fx-item" data-page="p23"><i data-lucide="file"></i>P2.3 价值观澄清</button><button class="fx-item" data-page="p24"><i data-lucide="file"></i>P2.4 测评解读</button><button class="fx-item" data-page="st"><i data-lucide="file"></i>状态与交互</button><button class="fx-item" data-page="chk"><i data-lucide="file"></i>第 3 批检查清单</button></div><div class="fx-sec"><h4>画板</h4><div id="layers"></div></div></aside><main class="fx-canvas" id="canvas"><div class="fx-world" id="world"><section class="fx-page" data-page="p23"><div class="fx-ab" data-name="P2.3 价值观澄清 · 选词 · 桌面" data-desc="流程 F4 第一步。30 个词的网格，选中态用墨水色描边和浅底。没选满时继续按钮不可用，并写明还差几个（框架 6.3）。" style="left:0px;top:0px"><div class="fx-ab-label">P2.3 价值观澄清 · 选词 · 桌面<span>1440 × 1000</span></div><div class="ab cv" style="width:1440px;height:1000px"><aside class="side"><div class="brand"><span class="mk"><i style="height:16px"></i><i style="height:11px"></i><i style="height:6px"></i></span><b>照见</b></div><nav class="nav"><a class=""><i data-lucide="house"></i>首页</a><a class="on"><i data-lucide="message-circle"></i>对话<span class="n mono">进行中</span></a><a class=""><i data-lucide="list"></i>线索<span class="n mono">5</span></a><a class=""><i data-lucide="user-round"></i>画像<span class="n mono">未生成</span></a><a class=""><i data-lucide="calendar-check"></i>打卡<span class="n mono">7 天</span></a></nav><div class="slab">你讲过的故事</div><div class="story"><span>第一份工作的主管</span><span class="mono">11-22</span></div><div class="story"><span>临时救场的发布会</span><span class="mono">11-21</span></div><div class="story"><span>接手无文档的项目</span><span class="mono">11-20</span></div><div class="story all"><span>全部故事</span><span class="mono">4</span></div><div class="grow"></div><nav class="nav"><a class=""><i data-lucide="settings"></i>设置</a></nav><div class="me"><span class="av">W</span><span style="font-size:13px">Wortley</span></div></aside><div class="cv-main"><div class="hdr"><div class="l"><h2>价值观澄清</h2><span class="flow3"><b>选词</b><i class="sep"></i>两难取舍<i class="sep"></i>排序与定义</span></div><div class="l"><span class="mono">约 15 分钟 · 11-25</span><span class="btn btn-s btn-sm">结束本次</span></div></div><div class="cv-body"><div class="cv-col"><div class="stream"><div class="coach"><span class="mk2"><i style="height:14px"></i><i style="height:9px"></i><i style="height:5px"></i></span><div><p>先从这些词里挑出 10 个你最有共鸣的。不用想哪个更「对」，凭第一感觉</p></div></div><div class="inl" style="max-width:640px"><div class="xcard"><div class="k">已选 <b style="color:var(--page-ink);font-weight:500">9</b> / 10 · 再选 1 个</div><div class="vgrid"><span class="vchip on">自由<i data-lucide="check"></i></span><span class="vchip on">成就<i data-lucide="check"></i></span><span class="vchip">安全</span><span class="vchip on">认可<i data-lucide="check"></i></span><span class="vchip on">成长<i data-lucide="check"></i></span><span class="vchip on">关系<i data-lucide="check"></i></span><span class="vchip on">意义<i data-lucide="check"></i></span><span class="vchip on">影响力<i data-lucide="check"></i></span><span class="vchip on">稳定<i data-lucide="check"></i></span><span class="vchip on">创造<i data-lucide="check"></i></span><span class="vchip">健康</span><span class="vchip">家庭</span><span class="vchip">财富</span><span class="vchip">公平</span><span class="vchip">挑战</span><span class="vchip">专业</span><span class="vchip">独立</span><span class="vchip">归属</span><span class="vchip">好奇</span><span class="vchip">秩序</span><span class="vchip">冒险</span><span class="vchip">尊重</span><span class="vchip">责任</span><span class="vchip">乐趣</span><span class="vchip">美</span><span class="vchip">平衡</span><span class="vchip">诚实</span><span class="vchip">帮助他人</span><span class="vchip">学习</span><span class="vchip">掌控感</span></div><div class="vbar"><span class="mono">想到不在这里的词，可以直接在下面输入</span><span class="btn btn-x btn-sm">选满 10 个后继续</span></div></div></div></div><div class="dock"><div class="in"><div class="comp"><div class="ph">也可以输入其他的词</div><div class="tools"><span class="tb"><i data-lucide="paperclip"></i></span><span class="tb"><i data-lucide="mic"></i></span><span class="ibtn off"><i data-lucide="arrow-up"></i></span></div></div><div class="foot"><span class="mono">Enter 发送 · Shift + Enter 换行</span><span class="mono">自动保存</span></div></div></div></div><aside class="disc"><h3>本次发现</h3><div><h5>进度</h5><ul class="star"><li><span class="ck cur"></span>选词<span class="v mono">9 / 10</span></li><li><span class="ck "></span>两难取舍<span class="v mono">0 / 5–7</span></li><li><span class="ck "></span>排序与定义<span class="v mono">—</span></li></ul></div><p class="mono" style="margin:0">中途离开会保留已选的词</p></aside></div></div></div></div><div class="fx-ab" data-name="P2.3 价值观澄清 · 两难取舍 · 桌面" data-desc="第二步。选完一个选项不立即进入下一道，要用一句话说理由（理由才是证据）。已完成的题目收起为一行。" style="left:1540px;top:0px"><div class="fx-ab-label">P2.3 价值观澄清 · 两难取舍 · 桌面<span>1440 × 1000</span></div><div class="ab cv" style="width:1440px;height:1000px"><aside class="side"><div class="brand"><span class="mk"><i style="height:16px"></i><i style="height:11px"></i><i style="height:6px"></i></span><b>照见</b></div><nav class="nav"><a class=""><i data-lucide="house"></i>首页</a><a class="on"><i data-lucide="message-circle"></i>对话<span class="n mono">进行中</span></a><a class=""><i data-lucide="list"></i>线索<span class="n mono">5</span></a><a class=""><i data-lucide="user-round"></i>画像<span class="n mono">未生成</span></a><a class=""><i data-lucide="calendar-check"></i>打卡<span class="n mono">7 天</span></a></nav><div class="slab">你讲过的故事</div><div class="story"><span>第一份工作的主管</span><span class="mono">11-22</span></div><div class="story"><span>临时救场的发布会</span><span class="mono">11-21</span></div><div class="story"><span>接手无文档的项目</span><span class="mono">11-20</span></div><div class="story all"><span>全部故事</span><span class="mono">4</span></div><div class="grow"></div><nav class="nav"><a class=""><i data-lucide="settings"></i>设置</a></nav><div class="me"><span class="av">W</span><span style="font-size:13px">Wortley</span></div></aside><div class="cv-main"><div class="hdr"><div class="l"><h2>价值观澄清</h2><span class="flow3">选词<i class="sep"></i><b>两难取舍</b><i class="sep"></i>排序与定义</span></div><div class="l"><span class="mono">第 2 道 · 共 5–7 道</span><span class="btn btn-s btn-sm">结束本次</span></div></div><div class="cv-body"><div class="cv-col"><div class="stream"><div class="fold" style="padding-left:0">选词 · 你选了 10 个 · 展开</div><div class="coach"><span class="mk2"><i style="height:14px"></i><i style="height:9px"></i><i style="height:5px"></i></span><div><p>来几道两难题。每道选一个，再用一句话说为什么</p></div></div><div class="inl dil-done"><span class="mono">第 1 道</span><span><b>薪水不变，但你可以自己决定怎么做</b>　胜过　薪水高 30%，但每件事都要请示</span></div><div class="mine">B，毫不犹豫。被人盯着做事比少拿钱难受多了。</div><div class="coach"><span class="mk2"><i style="height:14px"></i><i style="height:9px"></i><i style="height:5px"></i></span><div><p>稳定和成长放在一起呢？</p></div></div><div class="inl" style="max-width:600px"><div class="dil"><div class="opt"><span class="k">A</span><span class="t">稳定的大公司，晋升慢，但每一步都可预期</span></div><div class="opt on"><span class="k">B · 你选的</span><span class="t">创业公司，成长快，但可能一年后就倒闭</span></div></div><div class="mono" style="margin-top:10px">选好了，再说一句为什么就进入下一道</div></div></div><div class="dock"><div class="in"><div class="comp"><div class="ph has">选 B 吧，但说实话会很焦虑</div><div class="tools"><span class="tb"><i data-lucide="paperclip"></i></span><span class="tb"><i data-lucide="mic"></i></span><span class="ibtn"><i data-lucide="arrow-up"></i></span></div></div><div class="foot"><span class="mono">Enter 发送 · Shift + Enter 换行</span><span class="mono">自动保存</span></div></div></div></div><aside class="disc"><h3>本次发现</h3><div><h5>进度</h5><ul class="star"><li><span class="ck on"><i data-lucide=check></i></span>选词<span class="v mono">10 / 10</span></li><li><span class="ck cur"></span>两难取舍<span class="v mono">1 / 5–7</span></li><li><span class="ck "></span>排序与定义<span class="v mono">—</span></li></ul></div><div><h5>取舍记录</h5><div class="chg"><div class="s">自由 &gt; 财富</div><div class="m"><span class="mono">第 1 道 · 毫不犹豫</span></div></div><div class="chg"><div class="s">成长 vs 稳定</div><div class="m"><span class="tag dash">等你说理由</span></div></div></div></aside></div></div></div></div><div class="fx-ab" data-name="P2.3 价值观澄清 · 排序与定义 · 桌面" data-desc="第三步。先用「说的 vs 做的」对照探讨不一致（只探讨，不进画像），再排 Top 5 并写定义。拖动手柄排序；全部写完定义才能确认。" style="left:3080px;top:0px"><div class="fx-ab-label">P2.3 价值观澄清 · 排序与定义 · 桌面<span>1440 × 1100</span></div><div class="ab cv" style="width:1440px;height:1100px"><aside class="side"><div class="brand"><span class="mk"><i style="height:16px"></i><i style="height:11px"></i><i style="height:6px"></i></span><b>照见</b></div><nav class="nav"><a class=""><i data-lucide="house"></i>首页</a><a class="on"><i data-lucide="message-circle"></i>对话<span class="n mono">进行中</span></a><a class=""><i data-lucide="list"></i>线索<span class="n mono">5</span></a><a class=""><i data-lucide="user-round"></i>画像<span class="n mono">未生成</span></a><a class=""><i data-lucide="calendar-check"></i>打卡<span class="n mono">7 天</span></a></nav><div class="slab">你讲过的故事</div><div class="story"><span>第一份工作的主管</span><span class="mono">11-22</span></div><div class="story"><span>临时救场的发布会</span><span class="mono">11-21</span></div><div class="story"><span>接手无文档的项目</span><span class="mono">11-20</span></div><div class="story all"><span>全部故事</span><span class="mono">4</span></div><div class="grow"></div><nav class="nav"><a class=""><i data-lucide="settings"></i>设置</a></nav><div class="me"><span class="av">W</span><span style="font-size:13px">Wortley</span></div></aside><div class="cv-main"><div class="hdr"><div class="l"><h2>价值观澄清</h2><span class="flow3">选词<i class="sep"></i>两难取舍<i class="sep"></i><b>排序与定义</b></span></div><div class="l"><span class="mono">最后一步</span><span class="btn btn-s btn-sm">结束本次</span></div></div><div class="cv-body"><div class="cv-col"><div class="stream"><div class="fold" style="padding-left:0">选词 · 两难取舍 6 道 · 展开</div><div class="coach"><span class="mk2"><i style="height:14px"></i><i style="height:9px"></i><i style="height:5px"></i></span><div><p>有一点想和你探讨，不是说你说得不对：你把「成长」放在前面，但三个高光故事里有两个，最后都落在「老师说比往年好」「领导说早该有人做」</p></div></div><div class="inl vs2"><div><span class="mono">你说的</span><div class="t">成长排在认可前面</div></div><div><span class="mono">你讲过的</span><div class="t">3 个高光里 2 个的高潮是被人肯定</div></div></div><div class="mine">……好像是。我确实挺在意别人的评价。</div><div class="coach"><span class="mk2"><i style="height:14px"></i><i style="height:9px"></i><i style="height:5px"></i></span><div><p>那我们把顺序排一下。拖动调整，每个用一句话说说对你意味着什么</p></div></div><div class="inl" style="max-width:600px"><div class="xcard"><ul class="rank"><li><span class="h"><i data-lucide="grip-vertical"></i></span><span class="n">1</span><span class="v">自由</span><span class="d">自己决定做什么、怎么做</span></li><li><span class="h"><i data-lucide="grip-vertical"></i></span><span class="n">2</span><span class="v">成长</span><span class="d">每年都比去年会得多一点</span></li><li><span class="h"><i data-lucide="grip-vertical"></i></span><span class="n">3</span><span class="v">认可</span><span class="d">做得好的时候，有人看见</span></li><li><span class="h"><i data-lucide="grip-vertical"></i></span><span class="n">4</span><span class="v">成就</span><span class="d">做成一件别人觉得难的事</span></li><li><span class="h"><i data-lucide="grip-vertical"></i></span><span class="n">5</span><span class="v">稳定</span><span class="d"><span class="in2">对你来说它意味着什么？</span></span></li></ul><div class="vbar"><span class="mono">还差 1 个定义</span><span class="btn btn-x btn-sm">确认这个顺序</span></div></div></div></div><div class="dock"><div class="in"><div class="comp"><div class="ph">也可以直接说你想怎么排</div><div class="tools"><span class="tb"><i data-lucide="paperclip"></i></span><span class="tb"><i data-lucide="mic"></i></span><span class="ibtn off"><i data-lucide="arrow-up"></i></span></div></div><div class="foot"><span class="mono">Enter 发送 · Shift + Enter 换行</span><span class="mono">自动保存</span></div></div></div></div><aside class="disc"><h3>本次发现</h3><div><h5>进度</h5><ul class="star"><li><span class="ck on"><i data-lucide=check></i></span>选词<span class="v mono">10 / 10</span></li><li><span class="ck on"><i data-lucide=check></i></span>两难取舍<span class="v mono">6 / 5–7</span></li><li><span class="ck cur"></span>排序与定义<span class="v mono">4 / 5</span></li></ul></div><div><h5>线索变化</h5><div class="chg"><div class="s">自主权对我很重要</div><div class="m"><span class="tally"><i class="s"></i><i class="s"></i></span><span class="mono">+1 价值观证据 · 中</span></div></div><div class="chg"><div class="s">被管得过细会明显消耗我</div><div class="m"><span class="tally"><i class="s"></i><i class="s"></i></span><span class="mono">+1 价值观证据 · 中</span></div></div><div class="chg"><div class="s">说看重成长，但成就感常来自被认可</div><div class="m"><span class="tag">不一致 · 只探讨</span></div></div></div></aside></div></div></div></div><div class="fx-ab" data-name="P2.3 排序 · 移动" data-desc="移动端不用拖拽，改为上下箭头；首尾不可移动的方向置灰。定义点击后展开输入。" style="left:4620px;top:0px"><div class="fx-ab-label">P2.3 排序 · 移动<span>390 × 844</span></div><div class="ab m" style="width:390px;height:844px"><div class="m-sb"><span>21:50</span><span class="ic"><i data-lucide="signal"></i><i data-lucide="wifi"></i><i data-lucide="battery-full"></i></span></div><div class="m-hd"><div class="l"><span class="back"><i data-lucide="chevron-left"></i></span><h2>价值观澄清</h2></div><span class="mono" style="padding-right:8px">排序</span></div><div class="m-stream"><div class="coach"><span class="mk2"><i style="height:14px"></i><i style="height:9px"></i><i style="height:5px"></i></span><div><p>排一下顺序，每个写一句它对你意味着什么</p></div></div><div class="inl" style="margin-left:0"><ul class="rank m"><li><span class="n">1</span><div><div class="v">自由</div><div class="d" style="font-size:13px;line-height:20px">自己决定做什么、怎么做</div></div><span class="arrows"><span class="x"><i data-lucide="chevron-up"></i></span><span><i data-lucide="chevron-down"></i></span></span></li><li><span class="n">2</span><div><div class="v">成长</div><div class="d" style="font-size:13px;line-height:20px">每年都比去年会得多一点</div></div><span class="arrows"><span><i data-lucide="chevron-up"></i></span><span><i data-lucide="chevron-down"></i></span></span></li><li><span class="n">3</span><div><div class="v">认可</div><div class="d" style="font-size:13px;line-height:20px">做得好的时候，有人看见</div></div><span class="arrows"><span><i data-lucide="chevron-up"></i></span><span><i data-lucide="chevron-down"></i></span></span></li><li><span class="n">4</span><div><div class="v">成就</div><div class="d" style="font-size:13px;line-height:20px">做成一件别人觉得难的事</div></div><span class="arrows"><span><i data-lucide="chevron-up"></i></span><span><i data-lucide="chevron-down"></i></span></span></li><li><span class="n">5</span><div><div class="v">稳定</div><div class="d ph" style="font-size:13px;line-height:20px">点击写一句定义</div></div><span class="arrows"><span><i data-lucide="chevron-up"></i></span><span class="x"><i data-lucide="chevron-down"></i></span></span></li></ul></div><span class="btn btn-x btn-lg" style="width:100%">还差 1 个定义</span></div><div class="m-dock"><div class="comp"><div class="ph">也可以直接说你想怎么排</div><span class="tb"><i data-lucide="mic"></i></span><span class="ibtn off"><i data-lucide="arrow-up"></i></span></div></div></div></div></section><section class="fx-page" data-page="p24"><div class="fx-ab" data-name="P2.4 上传面板 · 拖入文件 · 桌面" data-desc="流程 F3 第一步。从首页线索卡「上传测评报告」打开。拖入时投放区变为墨水色；支持的测评和是否计入证据写在面板里，避免上传后才知道 MBTI 不算。" style="left:0px;top:1200px"><div class="fx-ab-label">P2.4 上传面板 · 拖入文件 · 桌面<span>1440 × 1000</span></div><div class="ab d" style="width:1440px;height:1000px"><aside class="side"><div class="brand"><span class="mk"><i style="height:16px"></i><i style="height:11px"></i><i style="height:6px"></i></span><b>照见</b></div><nav class="nav"><a class="on"><i data-lucide="house"></i>首页</a><a class=""><i data-lucide="message-circle"></i>对话</a><a class=""><i data-lucide="list"></i>线索<span class="n mono">6</span></a><a class=""><i data-lucide="user-round"></i>画像<span class="n mono">未生成</span></a><a class=""><i data-lucide="calendar-check"></i>打卡<span class="n mono">8 天</span></a></nav><div class="slab">你讲过的故事</div><div class="story"><span>第一份工作的主管</span><span class="mono">11-22</span></div><div class="story"><span>临时救场的发布会</span><span class="mono">11-21</span></div><div class="story"><span>接手无文档的项目</span><span class="mono">11-20</span></div><div class="story all"><span>全部故事</span><span class="mono">4</span></div><div class="grow"></div><nav class="nav"><a class=""><i data-lucide="settings"></i>设置</a></nav><div class="me"><span class="av">W</span><span style="font-size:13px">Wortley</span></div></aside><div class="main"><div class="hdr"><h2>首页</h2><span class="mono">第 8 天 · 2026-11-26</span></div><div class="wrap"><div class="hero"><div><div class="meta"><span class="tag">优势候选</span></div><h1>「梳理结构」这条线索，只差一条别处来的证据</h1><p>上传一份测评，它就能写进核心优势。</p></div><div class="card" style="height:420px"></div></div></div></div><div class="overlay2"></div><div class="up-dlg"><h3>上传测评报告</h3><p>测评是一种参考来源，权重是真实经历的一半。上传后我会用大白话翻译，再和你讲过的故事逐条对照</p><div class="tabs2"><span class="on">上传文件</span><span>粘贴文字</span></div><div class="drop hover"><i data-lucide="upload"></i><span>松开即可上传「大五人格结果.pdf」</span><span class="mono">PDF 或图片 · 最大 10 MB</span></div><div class="support"><div>大五人格<span class="mono">计入证据</span></div><div>VIA 性格优势<span class="mono">计入证据</span></div><div>盖洛普优势<span class="mono">计入证据</span></div><div>MBTI<span class="mono">只用来聊天</span></div></div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:24px"><span class="mono"><i data-lucide="lock" style="width:12px;height:12px;vertical-align:-1px"></i> 解析后可以选择删除原文件</span><span class="btn btn-s">取消</span></div></div></div></div><div class="fx-ab" data-name="P2.4 上传面板 · 粘贴文字 · 桌面" data-desc="截图识别失败时的退路，也适合只记得分数的情况。" style="left:1540px;top:1200px"><div class="fx-ab-label">P2.4 上传面板 · 粘贴文字 · 桌面<span>1440 × 1000</span></div><div class="ab d" style="width:1440px;height:1000px"><aside class="side"><div class="brand"><span class="mk"><i style="height:16px"></i><i style="height:11px"></i><i style="height:6px"></i></span><b>照见</b></div><nav class="nav"><a class="on"><i data-lucide="house"></i>首页</a><a class=""><i data-lucide="message-circle"></i>对话</a><a class=""><i data-lucide="list"></i>线索<span class="n mono">6</span></a><a class=""><i data-lucide="user-round"></i>画像<span class="n mono">未生成</span></a><a class=""><i data-lucide="calendar-check"></i>打卡<span class="n mono">8 天</span></a></nav><div class="slab">你讲过的故事</div><div class="story"><span>第一份工作的主管</span><span class="mono">11-22</span></div><div class="story"><span>临时救场的发布会</span><span class="mono">11-21</span></div><div class="story"><span>接手无文档的项目</span><span class="mono">11-20</span></div><div class="story all"><span>全部故事</span><span class="mono">4</span></div><div class="grow"></div><nav class="nav"><a class=""><i data-lucide="settings"></i>设置</a></nav><div class="me"><span class="av">W</span><span style="font-size:13px">Wortley</span></div></aside><div class="main"><div class="hdr"><h2>首页</h2><span class="mono">第 8 天 · 2026-11-26</span></div><div class="wrap"><div class="hero"><div><div class="meta"><span class="tag">优势候选</span></div><h1>「梳理结构」这条线索，只差一条别处来的证据</h1><p>上传一份测评，它就能写进核心优势。</p></div><div class="card" style="height:420px"></div></div></div></div><div class="overlay2"></div><div class="up-dlg"><h3>上传测评报告</h3><p>测评是一种参考来源，权重是真实经历的一半。上传后我会用大白话翻译，再和你讲过的故事逐条对照</p><div class="tabs2"><span>上传文件</span><span class="on">粘贴文字</span></div><div class="paste">开放性 71<br>尽责性 82<br>外向性 28<br>宜人性 55<br>情绪稳定性 54</div><div style="display:flex;justify-content:flex-end;margin-top:12px"><span class="btn btn-p btn-sm">识别这段文字</span></div><div class="support"><div>大五人格<span class="mono">计入证据</span></div><div>VIA 性格优势<span class="mono">计入证据</span></div><div>盖洛普优势<span class="mono">计入证据</span></div><div>MBTI<span class="mono">只用来聊天</span></div></div><div style="display:flex;justify-content:space-between;align-items:center;margin-top:24px"><span class="mono"><i data-lucide="lock" style="width:12px;height:12px;vertical-align:-1px"></i> 解析后可以选择删除原文件</span><span class="btn btn-s">取消</span></div></div></div></div><div class="fx-ab" data-name="P2.4 测评解读 · 逐条对照 · 桌面" data-desc="流程 F3 主体。摘要卡用刻度位置表示百分位（中线 = 平均）。对照逐条出现，必须回应当前一条才出现下一条；矛盾用描边标签「值得聊聊」，不判定谁对。" style="left:3080px;top:1200px"><div class="fx-ab-label">P2.4 测评解读 · 逐条对照 · 桌面<span>1440 × 1100</span></div><div class="ab cv" style="width:1440px;height:1100px"><aside class="side"><div class="brand"><span class="mk"><i style="height:16px"></i><i style="height:11px"></i><i style="height:6px"></i></span><b>照见</b></div><nav class="nav"><a class=""><i data-lucide="house"></i>首页</a><a class="on"><i data-lucide="message-circle"></i>对话<span class="n mono">进行中</span></a><a class=""><i data-lucide="list"></i>线索<span class="n mono">6</span></a><a class=""><i data-lucide="user-round"></i>画像<span class="n mono">未生成</span></a><a class=""><i data-lucide="calendar-check"></i>打卡<span class="n mono">8 天</span></a></nav><div class="slab">你讲过的故事</div><div class="story"><span>第一份工作的主管</span><span class="mono">11-22</span></div><div class="story"><span>临时救场的发布会</span><span class="mono">11-21</span></div><div class="story"><span>接手无文档的项目</span><span class="mono">11-20</span></div><div class="story all"><span>全部故事</span><span class="mono">4</span></div><div class="grow"></div><nav class="nav"><a class=""><i data-lucide="settings"></i>设置</a></nav><div class="me"><span class="av">W</span><span style="font-size:13px">Wortley</span></div></aside><div class="cv-main"><div class="hdr"><div class="l"><h2>测评解读</h2><span class="mono">大五人格</span></div><div class="l"><span class="prog2">已回应 1 / 4<span class="b"><i style="width:25%"></i></span></span><span class="btn btn-s btn-sm">结束本次</span></div></div><div class="cv-body"><div class="cv-col"><div class="stream"><div class="inl up" style="margin-left:36px;max-width:560px"><span class="f"><i data-lucide="file-text"></i></span><div><div class="n">大五人格 · 5 个维度</div><div class="mono" style="margin-top:4px">已识别 · 11-26</div></div><span class="tag ok">可计入</span></div><div class="coach"><span class="mk2"><i style="height:14px"></i><i style="height:9px"></i><i style="height:5px"></i></span><div><p>我先用大白话翻译一下</p></div></div><div class="inl" style="max-width:600px"><div class="as-card"><div class="hd"><b>大五人格 · 5 个维度</b><span class="mono">百分位 · 50 为平均</span></div><div class="dim5"><span>开放性</span><span class="x">喜欢新想法、新做法</span><span class="p"><i></i><b style="left:71%"></b></span><span class="v">71</span></div><div class="dim5"><span>尽责性</span><span class="x">做事有计划、靠谱</span><span class="p"><i></i><b style="left:82%"></b></span><span class="v">82</span></div><div class="dim5"><span>外向性</span><span class="x">更多从独处中恢复能量</span><span class="p"><i></i><b style="left:28%"></b></span><span class="v">28</span></div><div class="dim5"><span>宜人性</span><span class="x">合作和坚持己见之间比较平衡</span><span class="p"><i></i><b style="left:55%"></b></span><span class="v">55</span></div><div class="dim5"><span>情绪稳定性</span><span class="x">情绪起伏和多数人差不多</span><span class="p"><i></i><b style="left:54%"></b></span><span class="v">54</span></div></div></div><div class="coach"><span class="mk2"><i style="height:14px"></i><i style="height:9px"></i><i style="height:5px"></i></span><div><p>接下来逐条和你讲过的故事对一下，一共 4 条，每条都请你说说准不准</p></div></div><div class="inl mt-item done"><div class="k"><span class="kind">吻合</span>尽责性 高 ↔ 2 个故事</div><div class="t">和你「理清乱麻」「画关系图」的故事一致</div><div class="mono" style="margin-top:6px">你说：准 · 「梳理结构」+1 测评证据</div></div><div class="inl lvl" style="padding:12px 16px"><span class="tally lg"><i class="s"></i><i class="m"></i><i class="m"></i></span><div class="t"><b>「梳理结构」可以写进画像了</b><span>3 条证据，经历和测评两种来源，加权分 3.0</span></div><span class="btn btn-s btn-sm">查看线索</span></div><div class="inl mt-item"><div class="k"><span class="kind c">值得聊聊</span>外向性 偏低 ↔ 牵头 200 人活动</div><div class="t">测评说你更多从独处中恢复能量，但你大学时做了 200 人活动的总负责人。你怎么看？</div><div class="a"><span class="btn btn-s btn-sm">测评更准</span><span class="btn btn-s btn-sm">故事更准</span><span class="btn btn-s btn-sm">两个都对，我解释一下</span></div></div><div class="inl mt-item lock">还有 2 条，回应上面这条后出现</div></div><div class="dock"><div class="in"><div class="comp"><div class="ph">或者直接说你的看法</div><div class="tools"><span class="tb"><i data-lucide="paperclip"></i></span><span class="tb"><i data-lucide="mic"></i></span><span class="ibtn off"><i data-lucide="arrow-up"></i></span></div></div><div class="foot"><span class="mono">Enter 发送 · Shift + Enter 换行</span><span class="mono">自动保存</span></div></div></div></div><aside class="disc"><h3>本次发现</h3><div><h5>对照</h5><ul class="star"><li><span class="ck on"><i data-lucide="check"></i></span>吻合 · 尽责性</li><li><span class="ck cur"></span>值得聊聊 · 外向性</li><li><span class="ck"></span>新发现 · 开放性</li><li><span class="ck"></span>新发现 · 外向性</li></ul></div><div><h5>线索变化</h5><div class="chg"><div class="s">在混乱的局面里，擅长先梳理结构再推进</div><div class="m"><span class="tally"><i class="s"></i><i class="m"></i><i class="m"></i></span><span class="mono">中 → 高</span></div></div></div><p class="mono" style="margin:0">测评证据权重 0.5，是经历的一半</p></aside></div></div></div></div><div class="fx-ab" data-name="P2.4 测评解读 · 移动" data-desc="摘要卡只保留维度、刻度和分数；大白话收进点开后的说明。对照卡按钮竖排。" style="left:4620px;top:1200px"><div class="fx-ab-label">P2.4 测评解读 · 移动<span>390 × 844</span></div><div class="ab m" style="width:390px;height:844px"><div class="m-sb"><span>21:50</span><span class="ic"><i data-lucide="signal"></i><i data-lucide="wifi"></i><i data-lucide="battery-full"></i></span></div><div class="m-hd"><div class="l"><span class="back"><i data-lucide="chevron-left"></i></span><h2>测评解读</h2></div><span class="mono" style="padding-right:8px">1 / 4</span></div><div class="m-stream"><div class="as-card" style="padding:12px 14px"><div class="dim5" style="grid-template-columns:72px 1fr 32px"><span>开放性</span><span class="p"><i></i><b style="left:71%"></b></span><span class="v">71</span></div><div class="dim5" style="grid-template-columns:72px 1fr 32px"><span>尽责性</span><span class="p"><i></i><b style="left:82%"></b></span><span class="v">82</span></div><div class="dim5" style="grid-template-columns:72px 1fr 32px"><span>外向性</span><span class="p"><i></i><b style="left:28%"></b></span><span class="v">28</span></div><div class="dim5" style="grid-template-columns:72px 1fr 32px"><span>宜人性</span><span class="p"><i></i><b style="left:55%"></b></span><span class="v">55</span></div><div class="dim5" style="grid-template-columns:72px 1fr 32px"><span>情绪稳定性</span><span class="p"><i></i><b style="left:54%"></b></span><span class="v">54</span></div></div><div class="mt-item"><div class="k"><span class="kind c">值得聊聊</span>外向性 偏低</div><div class="t" style="font-size:14px;line-height:22px">测评说你更多从独处中恢复能量，但你做过 200 人活动的总负责人。你怎么看？</div><div class="a" style="flex-direction:column"><span class="btn btn-s btn-sm">测评更准</span><span class="btn btn-s btn-sm">故事更准</span><span class="btn btn-s btn-sm">两个都对，我解释一下</span></div></div></div><div class="m-dock"><div class="comp"><div class="ph">或者直接说你的看法</div><span class="tb"><i data-lucide="mic"></i></span><span class="ibtn off"><i data-lucide="arrow-up"></i></span></div></div></div></div></section><section class="fx-page" data-page="st"><div class="fx-ab" data-name="P2.3 · P2.4 · 状态与交互" data-desc="价值观澄清和测评解读的其余状态。" style="left:0px;top:0px"><div class="fx-ab-label">P2.3 · P2.4 · 状态与交互<span>1600 × 1560</span></div><div class="ab spec" style="width:1600px;height:1560px"><div class="sh"><h2>选择题都要说理由，对照题都要你回应，AI 不替你下结论</h2><span class="mono">P2.3 · P2.4 · 状态与交互</span></div><h4>价值观澄清</h4><div class="st-row c4"><div class="st"><div class="lab"><b>选词 · 选满 10 个</b><span class="mono">其余变灰</span></div><div class="stage"><div class="vgrid" style="grid-template-columns:repeat(3,1fr)"><span class="vchip on">自由<i data-lucide="check"></i></span><span class="vchip on">成长<i data-lucide="check"></i></span><span class="vchip off">安全</span><span class="vchip off">财富</span><span class="vchip on">认可<i data-lucide="check"></i></span><span class="vchip off">公平</span></div><div style="margin-top:12px"><span class="btn btn-p btn-sm">继续</span></div></div><div class="cap">想换词先取消一个已选的；变灰的词仍可点击，点击时提示「先取消一个」</div></div><div class="st"><div class="lab"><b>两难题 · 3 个状态</b><span class="mono"></span></div><div class="stage"><div class="opt" style="min-height:0"><span class="k">A · 未选</span></div><div class="opt on" style="min-height:0;margin-top:8px"><span class="k">B · 已选，等理由</span></div><div class="dil-done" style="margin-top:8px"><span class="mono">完成</span><b>B</b> 胜过 A</div></div><div class="cap">已选后另一项降低不透明度，可以改选</div></div><div class="st"><div class="lab"><b>用户说「都重要」</b><span class="mono">教练出更极端的题</span></div><div class="stage"><div class="coach"><span class="mk2"><i style="height:14px"></i><i style="height:9px"></i><i style="height:5px"></i></span><div><p style="font-size:14px;line-height:22px">那换个说法：如果只能保留一个，另一个永远没有，你留哪个？</p></div></div></div><div class="cap">规则：不接受并列，但不催促，最多追问 2 次，之后允许跳过这道</div></div><div class="st"><div class="lab"><b>拖动排序</b><span class="mono">拖动中</span></div><div class="stage"><ul class="rank" style="margin:0"><li><span class="h"><i data-lucide="grip-vertical"></i></span><span class="n">1</span><span class="v">自由</span><span></span></li><li class="gap"></li><li class="drag"><span class="h"><i data-lucide="grip-vertical"></i></span><span class="n">2</span><span class="v">认可</span><span></span></li><li><span class="h"><i data-lucide="grip-vertical"></i></span><span class="n">3</span><span class="v">成长</span><span></span></li></ul></div><div class="cap">拖动项浮起，落点显示 2px 墨水线；键盘：空格拿起，上下移动，空格放下</div></div></div><div class="st-row c2"><div class="st"><div class="lab"><b>价值观澄清 · 本次小结</b><span class="mono">会话结束</span></div><div class="stage"><div class="sum" style="box-shadow:none"><h4>你的价值观 Top 5</h4><ul class="mini-rank" style="margin-top:12px"><li><span class="mono">1</span><b style="font-weight:500;width:48px">自由</b><span class="c2">自己决定做什么、怎么做</span></li><li><span class="mono">2</span><b style="font-weight:500;width:48px">成长</b><span class="c2">每年都比去年会得多一点</span></li><li><span class="mono">3</span><b style="font-weight:500;width:48px">认可</b><span class="c2">做得好的时候，有人看见</span></li><li><span class="mono">4</span><b style="font-weight:500;width:48px">成就</b><span class="c2">做成一件别人觉得难的事</span></li><li><span class="mono">5</span><b style="font-weight:500;width:48px">稳定</b><span class="c2">安稳，不用担心明年</span></li></ul><div class="nums" style="grid-template-columns:repeat(3,1fr)"><div><b>6</b><span class="mono">两难题</span></div><div><b>2</b><span class="mono">线索 +1 证据</span></div><div><b>1</b><span class="mono">待探讨</span></div></div><div class="next" style="margin-top:0"><p><b>建议下一步：上传一份测评</b>「梳理结构」还差一种来源</p><span class="btn btn-p btn-sm">上传测评</span></div></div></div></div><div class="st"><div class="lab"><b>「说的 vs 做的」· 用户不同意</b><span class="mono">只探讨，不坚持</span></div><div class="stage"><div class="mine">不是，我觉得被认可只是顺带的</div><div style="height:12px"></div><div class="coach"><span class="mk2"><i style="height:14px"></i><i style="height:9px"></i><i style="height:5px"></i></span><div><p style="font-size:14px;line-height:22px">好，按你的理解来。我把这一点记成「待探讨」，不会写进画像</p></div></div></div><div class="cap">「不一致」类线索永远不进画像；用户不同意时不再追问</div></div></div><h4>测评解读</h4><div class="st-row c4"><div class="st"><div class="lab"><b>识别不确定</b><span class="mono">请用户确认测评类型</span></div><div class="stage"><div class="mt-item"><div class="k">识别结果</div><div class="t" style="font-size:14px">这看起来是 <b style="font-weight:500">VIA 性格优势</b>的前 5 项，对吗？</div><div class="a"><span class="btn btn-s btn-sm">对</span><span class="btn btn-t btn-sm">不是，我来选</span></div></div></div></div><div class="st"><div class="lab"><b>对照 · 吻合</b><span class="mono">已回应</span></div><div class="stage"><div class="mt-item done"><div class="k"><span class="kind">吻合</span>尽责性 高</div><div class="t">和「理清乱麻」的故事一致</div><div class="mono" style="margin-top:6px">你说：准 · +1 测评证据</div></div></div><div class="cap">回应「不准」：不加证据，记录你的说法</div></div><div class="st"><div class="lab"><b>对照 · 值得聊聊 · 已回应</b><span class="mono">两个都对</span></div><div class="stage"><div class="mt-item done"><div class="k"><span class="kind c">值得聊聊</span>外向性 偏低</div><div class="t">你说：能做，但做完要一个人待两天</div><div class="mono" style="margin-top:6px">新线索：能牵头大型活动，但做完需要较长时间恢复 · 习得技能</div></div></div><div class="cap">矛盾本身产出新线索，这里识别出习得技能</div></div><div class="st"><div class="lab"><b>对照 · 新发现</b><span class="mono">测评有、对话里还没出现</span></div><div class="stage"><div class="mt-item"><div class="k"><span class="kind">新发现</span>开放性 较高</div><div class="t" style="font-size:14px">测评说你喜欢新想法，我们还没聊到。你有类似的经历吗？</div><div class="a"><span class="btn btn-s btn-sm">有，我讲讲</span><span class="btn btn-t btn-sm">先记下</span></div></div></div><div class="cap">「先记下」：新建线索，等级为「线索」，标「等你回应」</div></div></div><div class="st-row c3"><div class="st"><div class="lab"><b>MBTI</b><span class="mono">不计入证据</span></div><div class="stage"><div class="up"><span class="f"><i data-lucide="file-text"></i></span><div><div class="n">MBTI · INTJ</div><div class="mono" style="margin-top:4px">用来聊天，不算证据</div></div><span class="tag">不计入</span></div><div style="height:12px"></div><div class="coach"><span class="mk2"><i style="height:14px"></i><i style="height:9px"></i><i style="height:5px"></i></span><div><p style="font-size:14px;line-height:22px">INTJ 的描述里，哪一点你觉得最像自己？能举个例子吗？</p></div></div></div><div class="cap">不出现摘要卡和对照；直接转成追问例子</div></div><div class="st"><div class="lab"><b>测评解读 · 本次小结</b><span class="mono">会话结束</span></div><div class="stage"><div class="sum" style="box-shadow:none;padding:16px 18px"><h4>大五人格对照完了</h4><div class="nums"><div><b>1</b><span class="mono">升到「高」</span></div><div><b>2</b><span class="mono">新线索</span></div><div><b>1</b><span class="mono">习得技能</span></div></div><div class="li"><span class="tally"><i class="s"></i><i class="m"></i><i class="m"></i></span><span>在混乱的局面里，擅长先梳理结构再推进</span><span class="mono">高</span></div><div class="li"><span class="tally"><i class="m"></i><i class="slot"></i><i class="slot"></i></span><span>独处时更容易恢复能量</span><span class="mono">线索</span></div></div></div></div><div class="st"><div class="lab"><b>删除原文件</b><span class="mono">隐私</span></div><div class="stage"><div class="mt-item"><div class="t" style="font-size:14px;margin:0">分数已经记下了。原文件要保留吗？</div><div class="a"><span class="btn btn-s btn-sm">删除原文件</span><span class="btn btn-t btn-sm">保留</span></div></div></div><div class="cap">放在本次小结之后；选择会记住，下次不再问</div></div></div></div></div></section><section class="fx-page" data-page="chk"><div class="fx-ab" data-name="第 3 批检查清单" data-desc="" style="left:0px;top:0px"><div class="fx-ab-label">第 3 批检查清单<span>1200 × 1040</span></div><div class="ab spec" style="width:1200px;height:1040px"><div class="sh"><h2>第 3 批画了 9 个设计画板，覆盖流程 F3 补测评和 F4 价值观澄清</h2><span class="mono">对照框架文档第 8 节</span></div><table class="chk"><tr><th style="width:26%">页面 / 组件</th><th>本批画了</th><th style="width:16%">状态</th></tr><tr><td>P2.3 价值观澄清</td><td>选词 · 两难取舍 · 排序与定义（桌面）· 排序（移动）</td><td class="ok">✓ 完成</td></tr><tr><td>选词网格</td><td>未选 · 已选 · 选满后变灰 · 自由输入</td><td class="ok">✓ 完成</td></tr><tr><td>两难取舍</td><td>未选 · 已选等理由 · 完成收起 · 「都重要」处理</td><td class="ok">✓ 完成</td></tr><tr><td>排序</td><td>拖动（桌面）· 上下箭头（移动）· 键盘操作说明</td><td class="ok">✓ 完成</td></tr><tr><td>说的 vs 做的</td><td>对照卡 · 用户认同 · 用户不同意</td><td class="ok">✓ 完成</td></tr><tr><td>P2.4 测评解读</td><td>逐条对照（桌面 + 移动）· 识别不确定 · 吻合 · 值得聊聊 · 新发现 · MBTI</td><td class="ok">✓ 完成</td></tr><tr><td>上传面板</td><td>拖入文件 · 粘贴文字；上传中 / 失败等卡片状态见第 1 批</td><td class="ok">✓ 完成</td></tr><tr><td>本次小结</td><td>价值观版 · 测评版</td><td class="ok">✓ 完成</td></tr><tr><td>价值观选词 · 移动</td><td>网格改为 3 列，结构同桌面</td><td class="later">○ 共用</td></tr></table><h4 style="margin-top:32px">本批发现并处理的问题</h4><table class="chk"><tr><th style="width:26%">问题</th><th>处理</th></tr><tr><td>两难题的理由算不算证据，规则里没写</td><td>算。两难题产出的证据来源记为「价值观」，理由原话存为 excerpt；只选不说理由时强度记为「弱」</td></tr><tr><td>测评对照必须逐条回应，可能让人卡住</td><td>每条都提供「先跳过」（放在最后），跳过的对照不产生证据，在本次小结里列为「未回应」</td></tr><tr><td>第 2 批线索库里「临场压力下反而更冷静」只有经历来源，测评情绪稳定性若吻合会产生冲突</td><td>本批把情绪稳定性设为 54（中等），不与该线索对照，数据保持一致</td></tr></table><p class="mono" style="margin-top:24px">下一批：第 4 批 画像 · P5.1 未生成 / 已生成 · P5.2 生成流程 · P5.3 历史版本 · 首页 S3–S5</p></div></div></section></div><div class="fx-hint">拖动平移 · 滚轮平移 · Ctrl / ⌘ + 滚轮缩放 · 点击画板看说明</div></main><aside class="fx-side r"><div class="fx-sec"><h4>画板</h4><div class="fx-kv"><span>名称</span><b id="iName">—</b><span>尺寸</span><b id="iSize">—</b></div></div><div class="fx-sec"><h4>说明</h4><div class="fx-note" id="iDesc">点击画布上的画板查看。</div></div><div class="fx-sec"><h4>规范来源</h4><div class="fx-note">设计稿 v0.2「研究笔记」（含补充 1）<br>页面结构与交互框架 v0.2</div></div></aside></div>
+<script>
+(function(){
+  if (window.lucide) lucide.createIcons();
+  const canvas=document.getElementById('canvas'), world=document.getElementById('world');
+  const zLab=document.getElementById('zLab'), layers=document.getElementById('layers');
+  let s=1,x=0,y=0,page='p23';
+  const apply=()=>{world.style.transform=`translate(${x}px,${y}px) scale(${s})`;zLab.textContent=Math.round(s*100)+'%';};
+  const abs=()=>[...document.querySelectorAll(`.fx-page[data-page="${page}"] .fx-ab`)];
+  const box=el=>{const a=el.querySelector('.ab');return {l:parseFloat(el.style.left)||0,t:parseFloat(el.style.top)||0,w:a.offsetWidth,h:a.offsetHeight};};
+  function fitTo(list){let L=1e9,T=1e9,R=-1e9,B=-1e9;list.forEach(e=>{const b=box(e);L=Math.min(L,b.l);T=Math.min(T,b.t-24);R=Math.max(R,b.l+b.w);B=Math.max(B,b.t+b.h);});
+    const W=canvas.clientWidth,H=canvas.clientHeight,p=48;s=Math.max(Math.min((W-p*2)/(R-L),(H-p*2)/(B-T),2),.04);x=(W-(R-L)*s)/2-L*s;y=(H-(B-T)*s)/2-T*s;apply();}
+  function select(el){document.querySelectorAll('.fx-ab.sel').forEach(e=>e.classList.remove('sel'));document.querySelectorAll('#layers .fx-item').forEach(e=>e.classList.toggle('on',e._ab===el));
+    if(!el){iName.textContent='—';iSize.textContent='—';iDesc.textContent='点击画布上的画板查看。';return;}
+    el.classList.add('sel');const b=box(el);iName.textContent=el.dataset.name;iSize.textContent=b.w+' × '+b.h;iDesc.textContent=el.dataset.desc||'';}
+  function show(p){page=p;document.querySelectorAll('.fx-page').forEach(e=>e.classList.toggle('on',e.dataset.page===p));document.querySelectorAll('.fx-item[data-page]').forEach(e=>e.classList.toggle('on',e.dataset.page===p));
+    layers.innerHTML='';abs().forEach(el=>{const b=document.createElement('button');b.className='fx-item';b.innerHTML='<i data-lucide="frame"></i>'+el.dataset.name;b._ab=el;b.onclick=()=>{fitTo([el]);select(el);};layers.appendChild(b);});
+    if(window.lucide) lucide.createIcons();select(null);requestAnimationFrame(()=>fitTo(abs()));}
+  document.querySelectorAll('.fx-item[data-page]').forEach(b=>b.onclick=()=>show(b.dataset.page));
+  function zoomAt(f,cx,cy){const ns=Math.min(Math.max(s*f,.04),4);x=cx-(cx-x)*(ns/s);y=cy-(cy-y)*(ns/s);s=ns;apply();}
+  canvas.addEventListener('wheel',e=>{e.preventDefault();const r=canvas.getBoundingClientRect();if(e.ctrlKey||e.metaKey){zoomAt(Math.exp(-e.deltaY*.01),e.clientX-r.left,e.clientY-r.top);}else{x-=e.deltaX;y-=e.deltaY;apply();}},{passive:false});
+  let d=null;
+  canvas.addEventListener('pointerdown',e=>{d={sx:e.clientX,sy:e.clientY,x,y,m:false};canvas.setPointerCapture(e.pointerId);});
+  canvas.addEventListener('pointermove',e=>{if(!d)return;const dx=e.clientX-d.sx,dy=e.clientY-d.sy;if(Math.abs(dx)+Math.abs(dy)>3){d.m=true;canvas.classList.add('drag');}x=d.x+dx;y=d.y+dy;apply();});
+  canvas.addEventListener('pointerup',e=>{if(d&&!d.m){const ab=document.elementFromPoint(e.clientX,e.clientY)?.closest('.fx-ab');select(ab||null);}d=null;canvas.classList.remove('drag');});
+  const c=()=>({cx:canvas.clientWidth/2,cy:canvas.clientHeight/2});
+  zIn.onclick=()=>{const{cx,cy}=c();zoomAt(1.25,cx,cy);};zOut.onclick=()=>{const{cx,cy}=c();zoomAt(.8,cx,cy);};
+  zFit.onclick=()=>fitTo(abs());z100.onclick=()=>{const{cx,cy}=c();zoomAt(1/s,cx,cy);};
+  window.addEventListener('keydown',e=>{if(e.shiftKey&&e.code==='Digit1')fitTo(abs());if(e.shiftKey&&e.code==='Digit0'){const{cx,cy}=c();zoomAt(1/s,cx,cy);}});
+  window.addEventListener('resize',()=>fitTo(abs()));
+  show('p23');
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>fitTo(abs()));
+})();
+</script>
+</body>
+</html>

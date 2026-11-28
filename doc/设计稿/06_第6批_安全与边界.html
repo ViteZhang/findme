@@ -1,0 +1,468 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>照见 · 设计稿 第 6 批：边界</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+<style>
+/* 设计令牌：沿用 v0.2「研究笔记」，不做任何改动 */
+:root{
+  --page-bg:#FAFAFA;--page-surface:#FFFFFF;--page-raised:#F4F4F5;
+  --page-line:rgba(23,23,23,.08);--page-line-2:rgba(23,23,23,.14);
+  --page-ink:#171717;--page-ink-2:#525252;--page-ink-3:#737373;
+  --page-accent:#23406E;--page-accent-700:#1A3154;--page-accent-50:#EDF1F7;
+  --page-neg:#B4332B;--page-neg-50:#FBEFEE;
+  --page-sans:'Noto Sans SC','PingFang SC','Microsoft YaHei',system-ui,sans-serif;
+  --page-mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  --page-ease:cubic-bezier(.22,1,.36,1);
+}
+/* ===== 画布外壳 ===== */
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:#E5E5E5;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;color:#1e1e1e}
+.fx-app{display:grid;grid-template-rows:44px 1fr;grid-template-columns:240px 1fr 260px;height:100vh}
+.fx-top{grid-column:1/-1;display:flex;align-items:center;gap:12px;padding:0 12px;background:#2C2C2C;color:#fff;font-size:12px}
+.fx-top b{font-weight:600}.fx-top .s{color:#B3B3B3}.fx-top .sp{flex:1}
+.fx-btn{background:transparent;border:0;color:#fff;height:28px;min-width:28px;padding:0 8px;border-radius:5px;font:inherit;cursor:pointer}
+.fx-btn:hover{background:#444}.fx-zoom{min-width:48px;text-align:center}
+.fx-side{background:#fff;border-right:1px solid #E5E5E5;overflow:auto;font-size:12px}
+.fx-side.r{border-right:0;border-left:1px solid #E5E5E5}
+.fx-sec{padding:12px 0;border-bottom:1px solid #EEE}
+.fx-sec h4{margin:0 0 6px;padding:0 16px;font-size:11px;font-weight:600}
+.fx-item{display:flex;align-items:center;gap:8px;padding:6px 16px;cursor:pointer;color:#333;border:0;background:none;width:100%;text-align:left;font:inherit}
+.fx-item:hover{background:#F5F5F5}.fx-item.on{background:#E5F4FF;color:#0B6BB3;font-weight:600}
+.fx-item svg{width:14px;height:14px;stroke-width:1.6;flex:none}
+.fx-kv{display:grid;grid-template-columns:48px 1fr;gap:6px 8px;padding:0 16px;color:#555}.fx-kv b{color:#1e1e1e;font-weight:500}
+.fx-note{padding:0 16px;color:#555;line-height:1.6}
+.fx-canvas{position:relative;overflow:hidden;cursor:grab;background-color:#E5E5E5;background-image:radial-gradient(#CFCFCF 1px,transparent 1px);background-size:20px 20px}
+.fx-canvas.drag{cursor:grabbing}
+.fx-world{position:absolute;left:0;top:0;transform-origin:0 0}
+.fx-ab{position:absolute}
+.fx-ab-label{position:absolute;left:0;top:-22px;font-size:12px;color:#7A7A7A;white-space:nowrap}
+.fx-ab-label span{color:#AAA;margin-left:8px}
+.fx-ab.sel .fx-ab-label{color:#0D99FF}.fx-ab.sel>.ab{outline:2px solid #0D99FF}
+.fx-page{display:none}.fx-page.on{display:block}
+.fx-hint{position:absolute;left:12px;bottom:12px;font-size:11px;color:#666;background:rgba(255,255,255,.9);padding:6px 10px;border-radius:6px}
+
+/* ===== 产品基础 ===== */
+.ab{position:relative;background:var(--page-bg);font-family:var(--page-sans);color:var(--page-ink);overflow:hidden;font-size:14px;line-height:22px;font-variant-numeric:tabular-nums}
+.ab *{box-sizing:border-box}
+.ab svg.lucide{width:16px;height:16px;stroke-width:1.5;color:var(--page-ink-3);flex:none}
+.mono{font-family:var(--page-mono);font-size:12px;line-height:16px;color:var(--page-ink-3)}
+.c2{color:var(--page-ink-2)}.c3{color:var(--page-ink-3)}
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 16px;border-radius:8px;border:1px solid transparent;font:500 14px/1 var(--page-sans);white-space:nowrap}
+.btn-p{background:var(--page-accent);color:#fff}
+.btn-s{background:var(--page-raised);color:var(--page-ink);border-color:var(--page-line)}
+.btn-t{background:none;color:var(--page-ink-2);padding:0 4px;height:32px}
+.btn-sm{height:32px;padding:0 12px;font-size:13px}
+.btn-lg{height:44px;padding:0 20px}
+.ibtn{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;background:var(--page-ink)}
+.ibtn svg.lucide{color:#fff}
+.ibtn.off{background:var(--page-raised)}.ibtn.off svg.lucide{color:#A3A3A3}
+.tag{display:inline-flex;align-items:center;height:20px;padding:0 6px;border-radius:4px;font-size:12px;line-height:16px;color:var(--page-ink-2);background:var(--page-raised);white-space:nowrap}
+.tag.dash{background:none;border:1px dashed var(--page-line-2)}
+.tag.ok{background:var(--page-accent-50);color:var(--page-accent)}
+.tally{display:inline-flex;align-items:flex-end;gap:4px;height:20px;vertical-align:middle}
+.tally i{display:block;width:2px;border-radius:1px;background:var(--page-accent)}
+.tally i.s{height:20px}.tally i.m{height:14px}.tally i.w{height:8px}
+.tally i.self{height:14px;background:repeating-linear-gradient(to top,var(--page-ink-3) 0 2px,transparent 2px 4px)}
+.tally i.slot{height:20px;background:rgba(23,23,23,.12)}
+.tally i.new{box-shadow:0 0 0 3px var(--page-accent-50)}
+.tally.lg{height:40px;gap:8px}.tally.lg i{width:3px;border-radius:2px}
+.tally.lg i.s{height:40px}.tally.lg i.m{height:28px}.tally.lg i.slot{height:40px}
+
+/* 侧栏 */
+.side{background:var(--page-bg);border-right:1px solid var(--page-line);display:flex;flex-direction:column;padding:0 12px 16px}
+.brand{height:56px;display:flex;align-items:center;gap:10px;padding:0 8px}
+.brand .mk{display:inline-flex;align-items:flex-end;gap:3px;height:16px}
+.brand .mk i{display:block;width:3px;border-radius:1px;background:var(--page-accent)}
+.brand b{font-size:16px;font-weight:500;line-height:1}
+.nav{display:flex;flex-direction:column;gap:2px;margin-top:8px}
+.nav a{height:36px;display:flex;align-items:center;gap:10px;padding:0 8px;border-radius:8px;color:var(--page-ink-2);font-size:14px}
+.nav a.on{background:var(--page-raised);color:var(--page-ink);box-shadow:inset 0 0 0 1px var(--page-line)}
+.nav a.on svg.lucide{color:var(--page-ink)}
+.nav a .n{margin-left:auto}
+.slab{font-size:12px;color:var(--page-ink-3);padding:0 8px;margin:24px 0 8px}
+.story{height:36px;display:flex;align-items:center;gap:10px;padding:0 8px;border-radius:8px;font-size:13px;color:var(--page-ink-2)}
+.story span:first-child{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.story.on{background:var(--page-raised);color:var(--page-ink)}
+.story.all{color:var(--page-ink-3)}
+.side .grow{flex:1}
+.me{height:44px;display:flex;align-items:center;gap:10px;padding:8px 8px 0;border-top:1px solid var(--page-line);margin-top:8px}
+.av{width:24px;height:24px;border-radius:6px;background:var(--page-raised);display:grid;place-items:center;font-size:12px;color:var(--page-ink-2);box-shadow:inset 0 0 0 1px var(--page-line)}
+.hdr{height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 32px;border-bottom:1px solid var(--page-line);flex:none}
+.hdr h2{margin:0;font-size:15px;font-weight:500}
+.hdr .l{display:flex;align-items:center;gap:16px}
+
+/* ===== 对话页 ===== */
+.cv{width:1440px;height:1000px;display:grid;grid-template-columns:248px 1fr}
+.cv-main{display:flex;flex-direction:column;min-width:0}
+.cv-body{flex:1;display:grid;grid-template-columns:minmax(0,1fr) 320px;min-height:0}
+.cv-col{display:flex;flex-direction:column;min-height:0;border-right:1px solid var(--page-line)}
+.stream{flex:1;overflow:hidden;padding:32px 64px 24px;display:flex;flex-direction:column;gap:24px}
+.stream>*{max-width:680px}
+.seg3{display:inline-flex;background:var(--page-raised);border-radius:8px;padding:2px;gap:2px}
+.seg3 span{height:28px;padding:0 10px;display:inline-flex;align-items:center;border-radius:6px;font-size:13px;color:var(--page-ink-2)}
+.seg3 span.on{background:var(--page-surface);color:var(--page-ink);box-shadow:0 1px 2px rgba(0,0,0,.05)}
+.coach{display:grid;grid-template-columns:24px 1fr;gap:12px}
+.mk2{height:26px;display:flex;align-items:flex-end;gap:2px;padding:0 0 6px 6px}
+.mk2 i{width:2px;border-radius:1px;background:var(--page-accent);display:block}
+.coach p{margin:0;font-size:15px;line-height:26px}
+.mine{align-self:flex-end;max-width:440px;background:var(--page-raised);border-radius:12px;padding:10px 14px;font-size:15px;line-height:26px}
+.rule{display:flex;align-items:center;gap:12px;max-width:680px}
+.rule:before,.rule:after{content:"";height:1px;background:var(--page-line);flex:1}
+.rule:before{flex:0 0 0}
+.fold{font-size:13px;color:var(--page-ink-3);padding-left:36px}
+/* 内联组件 */
+.inl{margin-left:36px;max-width:560px}
+.xcard{border:1px solid var(--page-line-2);border-radius:12px;padding:16px;background:var(--page-surface)}
+.xcard .k{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--page-ink-3)}
+.xcard .s{font-size:16px;line-height:24px;font-weight:500;margin:8px 0 4px}
+.xcard .w{font-size:13px;line-height:20px;color:var(--page-ink-2)}
+.xcard .a{display:flex;gap:8px;margin-top:12px}
+.xcard.done{padding:12px 16px;background:var(--page-bg);border-color:var(--page-line)}
+.xcard.done .s{font-size:14px;line-height:22px;margin:4px 0 0}
+.xcard.no .s{color:var(--page-ink-3)}
+.ta{border:1px solid var(--page-accent);border-radius:8px;padding:8px 12px;font-size:15px;line-height:24px;margin:8px 0 4px;background:var(--page-surface);box-shadow:0 0 0 3px var(--page-accent-50)}
+.merge{display:flex;align-items:center;gap:12px;padding:12px 16px;border-radius:12px;background:var(--page-surface);border:1px solid var(--page-line)}
+.merge .t{flex:1;font-size:13px;line-height:20px;color:var(--page-ink-2)}
+.merge .t b{font-weight:500;color:var(--page-ink)}
+.lvl{display:grid;grid-template-columns:auto 1fr auto;gap:16px;align-items:center;padding:16px;border-radius:12px;border:1px solid var(--page-accent);background:var(--page-accent-50)}
+.lvl .t b{display:block;font-weight:500;font-size:15px;line-height:24px}
+.lvl .t span{font-size:13px;color:var(--page-ink-2)}
+.lvl.down{border-color:var(--page-line);background:var(--page-surface)}
+.sum{border:1px solid var(--page-line-2);border-radius:16px;background:var(--page-surface);padding:20px 24px;box-shadow:0 8px 24px rgba(0,0,0,.06)}
+.sum h4{margin:0;font-size:15px;font-weight:500}
+.sum .nums{display:grid;grid-template-columns:repeat(3,1fr);margin:16px 0;border-top:1px solid var(--page-line);border-bottom:1px solid var(--page-line)}
+.sum .nums div{padding:12px 0}
+.sum .nums b{display:block;font-family:var(--page-mono);font-size:22px;line-height:28px;font-weight:500}
+.sum .li{display:flex;align-items:center;gap:12px;padding:8px 0;font-size:14px}
+.sum .li span:nth-child(2){flex:1}
+.sum .next{margin-top:12px;padding-top:16px;border-top:1px solid var(--page-line);display:flex;align-items:center;justify-content:space-between;gap:16px}
+.sum .next p{margin:0;font-size:13px;line-height:20px;color:var(--page-ink-2)}
+.sum .next p b{display:block;color:var(--page-ink);font-weight:500;font-size:14px}
+.qr{display:flex;gap:8px;margin-left:36px}
+.qr span{height:32px;padding:0 12px;display:inline-flex;align-items:center;border:1px solid var(--page-line-2);border-radius:8px;font-size:13px;background:var(--page-surface)}
+/* 输入区 */
+.dock{padding:12px 64px 24px;flex:none}
+.dock .in{max-width:680px}
+.comp{background:var(--page-surface);border:1px solid var(--page-line-2);border-radius:12px;padding:12px 12px 12px 16px;display:flex;align-items:flex-end;gap:12px}
+.comp .ph{flex:1;color:var(--page-ink-3);font-size:15px;line-height:24px;padding:4px 0;min-height:32px}
+.comp .ph.has{color:var(--page-ink)}
+.comp .tools{display:flex;gap:4px;align-items:center}
+.tb{width:32px;height:32px;display:grid;place-items:center;border-radius:8px}
+.skip{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.dock .foot{margin-top:8px;display:flex;justify-content:space-between}
+/* 本次发现面板 */
+.disc{padding:24px;display:flex;flex-direction:column;gap:24px;background:var(--page-bg)}
+.disc h3{margin:0;font-size:15px;line-height:24px;font-weight:500}
+.disc h5{margin:0 0 8px;font-size:12px;font-weight:400;color:var(--page-ink-3)}
+.star{list-style:none;margin:0;padding:0}
+.star li{height:32px;display:flex;align-items:center;gap:10px;font-size:13px;border-bottom:1px solid var(--page-line)}
+.star li .v{margin-left:auto}
+.ck{width:14px;height:14px;border-radius:4px;border:1.5px solid var(--page-line-2);display:grid;place-items:center;flex:none}
+.ck.on{background:var(--page-accent);border-color:var(--page-accent)}
+.ck.on svg.lucide{width:10px;height:10px;color:#fff;stroke-width:3}
+.ck.cur{border-color:var(--page-accent)}
+.chg{padding:10px 0;border-bottom:1px solid var(--page-line)}
+.chg .s{font-size:13px;line-height:20px}
+.chg .m{display:flex;align-items:center;gap:10px;margin-top:6px}
+
+/* ===== 首页 ===== */
+.d{width:1440px;height:1000px;display:grid;grid-template-columns:248px 1fr}
+.main{display:flex;flex-direction:column;min-width:0}
+.wrap{padding:48px 32px 32px;display:flex;flex-direction:column;gap:56px}
+.hero{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:48px;align-items:center}
+.hero .meta{display:flex;gap:12px;align-items:center}
+.hero h1{margin:16px 0 16px;font-size:36px;line-height:44px;font-weight:500;letter-spacing:-.01em}
+.hero p{margin:0;font-size:16px;line-height:26px;color:var(--page-ink-2);max-width:36em}
+.hero .comp{margin-top:32px}
+.hero .comp .ph{min-height:56px}
+.resume{display:flex;align-items:center;gap:8px;margin-top:16px;font-size:13px;color:var(--page-ink-2)}
+.resume b{font-weight:500;color:var(--page-ink)}
+.card{background:var(--page-surface);border:1px solid var(--page-line);border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,.06);padding:24px 28px}
+.card .top{display:flex;align-items:center;justify-content:space-between}
+.card h3{margin:12px 0 20px;font-size:22px;line-height:30px;font-weight:500}
+.starters{list-style:none;margin:0;padding:0;border-top:1px solid var(--page-line)}
+.starters li{display:grid;grid-template-columns:1fr auto;gap:16px;align-items:center;padding:14px 0;border-bottom:1px solid var(--page-line)}
+.starters li b{display:block;font-weight:500;font-size:15px;line-height:24px}
+.starters li span.d2{font-size:13px;color:var(--page-ink-2)}
+.how{display:flex;align-items:flex-end;gap:16px;padding:20px 0 0}
+.how p{margin:0;font-size:13px;line-height:20px;color:var(--page-ink-2)}
+.ev{display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:baseline;padding:10px 0}
+.ev .src{font-size:12px;color:var(--page-ink-3)}
+.ev.dim .q{color:var(--page-ink-3)}
+.gate{display:grid;grid-template-columns:72px 1fr 56px;align-items:center;gap:12px;height:28px}
+.gate .lab{font-size:13px;color:var(--page-ink-2)}
+.gate .bar{height:4px;border-radius:2px;background:var(--page-raised);position:relative;overflow:hidden}
+.gate .bar b{position:absolute;left:0;top:0;bottom:0;background:var(--page-accent);border-radius:2px}
+.gate .v{font-family:var(--page-mono);font-size:12px;color:var(--page-ink);text-align:right}
+.need{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-top:20px;margin-top:12px;border-top:1px solid var(--page-line)}
+.need p{margin:0;font-size:13px;line-height:20px;color:var(--page-ink-2);max-width:22em}
+.row{display:grid;grid-template-columns:minmax(0,8fr) minmax(0,4fr);gap:48px}
+.blk-h{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px}
+.blk-h h3{margin:0;font-size:15px;line-height:24px;font-weight:500}
+table.cl{width:100%;border-collapse:collapse}
+table.cl th{height:36px;font-size:12px;font-weight:400;color:var(--page-ink-3);text-align:left;border-bottom:1px solid var(--page-line-2);padding:0 12px}
+table.cl td{height:48px;padding:0 12px;border-bottom:1px solid var(--page-line);font-size:14px}
+table.cl th:first-child,table.cl td:first-child{padding-left:0}
+table.cl td.r,table.cl th.r{text-align:right;padding-right:0}
+table.cl tr.sel td{background:var(--page-accent-50)}
+table.cl tr.sel td:first-child{box-shadow:inset 2px 0 0 var(--page-accent);padding-left:12px}
+.empty{padding:28px 0;border-bottom:1px solid var(--page-line);display:flex;align-items:center;gap:16px;color:var(--page-ink-2);font-size:14px}
+.steps{list-style:none;margin:0;padding:0}
+.steps li{height:44px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--page-line);font-size:14px}
+.steps li .st{margin-left:auto}
+.steps li.cur{font-weight:500}.steps li.lock{color:var(--page-ink-3)}
+.dot{width:8px;height:8px;border-radius:50%;border:1.5px solid var(--page-line-2);flex:none}
+.dot.done{background:var(--page-ink-3);border-color:var(--page-ink-3)}
+.dot.cur{background:var(--page-accent);border-color:var(--page-accent)}
+.seg{display:grid;grid-template-columns:repeat(10,1fr);border:1px solid var(--page-line-2);border-radius:8px;overflow:hidden;margin-top:8px}
+.seg span{height:36px;display:grid;place-items:center;font-family:var(--page-mono);font-size:13px;color:var(--page-ink-2);background:var(--page-surface);border-left:1px solid var(--page-line)}
+.seg span:first-child{border-left:0}
+
+/* ===== 移动 ===== */
+.m{width:390px;height:844px;display:flex;flex-direction:column}
+.m-sb{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:14px;font-weight:500;flex:none}
+.m-sb .ic{display:flex;gap:6px}.m-sb .ic svg.lucide{color:var(--page-ink)}
+.m-hd{height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 12px 0 8px;border-bottom:1px solid var(--page-line);flex:none}
+.m-hd .l{display:flex;align-items:center;gap:4px}
+.m-hd h2{margin:0;font-size:15px;font-weight:500}
+.m-hd .back{width:36px;height:36px;display:grid;place-items:center}
+.m-hd .back svg.lucide{width:20px;height:20px;color:var(--page-ink)}
+.m-stream{flex:1;overflow:hidden;padding:20px 20px 12px;display:flex;flex-direction:column;gap:18px}
+.m-stream .coach p{font-size:15px;line-height:25px}
+.m-stream .mine{max-width:300px}
+.m-stream .inl{margin-left:36px}
+.m-dock{padding:8px 12px 12px;border-top:1px solid var(--page-line);background:var(--page-bg);flex:none}
+.m-dock .comp{padding:8px 8px 8px 14px;align-items:center}
+.m-dock .comp .ph{min-height:0;font-size:14px}
+.m-home-hd{height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;flex:none}
+.m-home-hd h2{margin:0;font-size:15px;font-weight:500}
+.m-bd{flex:1;padding:8px 20px 0;overflow:hidden}
+.m-bd h1{margin:0 0 8px;font-size:24px;line-height:32px;font-weight:500}
+.m-bd>p{margin:0 0 20px;font-size:14px;line-height:22px;color:var(--page-ink-2)}
+.m-comp{margin:0 12px 8px;background:var(--page-surface);border:1px solid var(--page-line-2);border-radius:12px;height:48px;display:flex;align-items:center;gap:8px;padding:0 8px 0 16px;color:var(--page-ink-3);font-size:14px;flex:none}
+.m-comp span{flex:1}
+.m-tab{height:83px;border-top:1px solid var(--page-line);background:var(--page-surface);display:grid;grid-template-columns:repeat(4,1fr);padding-top:8px;flex:none}
+.m-tab a{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;line-height:14px;color:var(--page-ink-3)}
+.m-tab a svg.lucide{width:22px;height:22px}
+.m-tab a.on,.m-tab a.on svg.lucide{color:var(--page-ink)}
+
+/* ===== 组件状态板 / 清单 ===== */
+.spec{padding:48px 56px;background:var(--page-surface)}
+.sh{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:16px;border-bottom:1px solid var(--page-ink);margin-bottom:32px}
+.sh h2{margin:0;font-size:28px;line-height:36px;font-weight:500}
+.spec h4{margin:0 0 12px;font-size:13px;line-height:20px;font-weight:500;color:var(--page-ink-2)}
+.st-row{display:grid;gap:24px;margin-bottom:40px}
+.st-row.c5{grid-template-columns:repeat(5,minmax(0,1fr))}
+.st-row.c4{grid-template-columns:repeat(4,minmax(0,1fr))}
+.st-row.c3{grid-template-columns:repeat(3,minmax(0,1fr))}
+.st-row.c2{grid-template-columns:repeat(2,minmax(0,1fr))}
+.st{min-width:0}
+.st .lab{display:flex;justify-content:space-between;margin-bottom:8px}
+.st .lab b{font-size:13px;font-weight:500}
+.st .cap{margin-top:8px;font-size:12px;line-height:18px;color:var(--page-ink-3)}
+.stage{background:var(--page-bg);border-radius:12px;padding:16px}
+.up{display:grid;grid-template-columns:32px 1fr auto;gap:12px;align-items:center;padding:12px 14px;border:1px solid var(--page-line-2);border-radius:12px;background:var(--page-surface)}
+.up .f{width:32px;height:32px;border-radius:8px;background:var(--page-raised);display:grid;place-items:center}
+.up .n{font-size:14px;line-height:20px}
+.up .p{height:3px;border-radius:2px;background:var(--page-raised);margin-top:6px;position:relative;overflow:hidden}
+.up .p b{position:absolute;left:0;top:0;bottom:0;background:var(--page-accent)}
+.up.err{border-color:var(--page-ink-2)}
+.fail{display:flex;align-items:center;gap:8px;justify-content:flex-end;margin-top:6px;font-size:12px;color:var(--page-ink-2)}
+.fail u{text-decoration:none;color:var(--page-accent);font-weight:500}
+.thinking .mk2 i{opacity:.35}
+.thinking .mk2 i:nth-child(1){opacity:1}
+table.chk{width:100%;border-collapse:collapse}
+table.chk th{font-size:12px;font-weight:400;color:var(--page-ink-3);text-align:left;padding:0 12px 8px 0;border-bottom:1px solid var(--page-line-2)}
+table.chk td{font-size:13px;line-height:20px;padding:10px 12px 10px 0;border-bottom:1px solid var(--page-line);vertical-align:top}
+table.chk td.ok{color:var(--page-accent);font-family:var(--page-mono);white-space:nowrap}
+table.chk td.later{color:var(--page-ink-3);font-family:var(--page-mono);white-space:nowrap}
+
+/* ===== 第 2 批新增样式 ===== */
+.gate .bar.done b{background:var(--page-ink-3)}
+.bc{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--page-ink-3)}
+.bc b{color:var(--page-ink);font-weight:500}
+.bc svg.lucide{width:14px;height:14px}
+.banner{display:flex;align-items:center;gap:12px;padding:10px 12px 10px 16px;border-radius:12px;background:var(--page-accent-50);font-size:13px;line-height:20px;color:var(--page-ink)}
+.banner .sp{flex:1}
+.banner svg.lucide{color:var(--page-accent)}
+.filters{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.chipf{height:32px;padding:0 12px;display:inline-flex;align-items:center;gap:6px;border-radius:8px;border:1px solid var(--page-line-2);background:var(--page-surface);font-size:13px;color:var(--page-ink-2);white-space:nowrap}
+.chipf.on{border-color:var(--page-ink);color:var(--page-ink);box-shadow:inset 0 0 0 1px var(--page-ink)}
+.chipf .mono{font-size:11px}
+.fsep{width:1px;height:20px;background:var(--page-line-2);margin:0 4px}
+.tgl{display:inline-flex;align-items:center;gap:8px;font-size:13px;color:var(--page-ink-2);margin-left:auto}
+.tgl i{width:28px;height:16px;border-radius:8px;background:var(--page-line-2);position:relative;display:block}
+.tgl i:after{content:"";position:absolute;left:2px;top:2px;width:12px;height:12px;border-radius:50%;background:#fff}
+.tgl.on i{background:var(--page-accent)}.tgl.on i:after{left:14px}
+.lib{padding:32px;display:flex;flex-direction:column;gap:20px}
+.lib-h{display:flex;justify-content:space-between;align-items:flex-end;gap:24px}
+.lib-h h1{margin:0;font-size:28px;line-height:36px;font-weight:500}
+.lib-h p{margin:6px 0 0;font-size:14px;line-height:22px;color:var(--page-ink-2)}
+.lib-h .a{display:flex;gap:8px}
+table.cl td .sub{display:block;font-size:12px;line-height:16px;color:var(--page-ink-3);margin-top:2px}
+table.cl.tall td{height:60px}
+table.cl th .srt{color:var(--page-ink)}
+table.cl tr.arc td{color:var(--page-ink-3)}
+.archived{display:flex;align-items:center;gap:8px;height:44px;font-size:13px;color:var(--page-ink-3);border-bottom:1px solid var(--page-line)}
+.det{flex:1;display:grid;grid-template-columns:minmax(0,1fr) 320px;min-height:0}
+.det-main{padding:32px 56px 40px 32px;display:flex;flex-direction:column;gap:28px;border-right:1px solid var(--page-line);min-width:0}
+.det-side{padding:32px 24px;display:flex;flex-direction:column;gap:28px}
+.det-side h4,.det-main h4{margin:0 0 10px;font-size:12px;font-weight:400;color:var(--page-ink-3)}
+.stmt{display:flex;align-items:flex-start;gap:12px}
+.stmt h1{margin:0;font-size:28px;line-height:38px;font-weight:500;flex:1}
+.edit{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;border:1px solid var(--page-line);flex:none;margin-top:3px}
+.tags{display:flex;gap:8px;align-items:center;margin-top:12px}
+.score{display:grid;grid-template-columns:auto minmax(0,1fr);gap:40px;align-items:center;padding:24px 0;border-top:1px solid var(--page-line);border-bottom:1px solid var(--page-line)}
+.score .lv{display:flex;align-items:flex-end;gap:16px}
+.score .lv b{display:block;font-size:22px;line-height:28px;font-weight:500}
+.score .lv .mono{display:block;margin-top:4px}
+.pv{padding:16px 20px;border-radius:12px;background:var(--page-raised);font-size:14px;line-height:22px}
+.pv .mono{display:block;margin-bottom:6px}
+.pv b{font-weight:500}
+.evg-h{display:flex;align-items:baseline;justify-content:space-between;padding-bottom:8px;border-bottom:1px solid var(--page-line-2)}
+.evg-h h3{margin:0;font-size:15px;font-weight:500}
+.evrow{display:grid;grid-template-columns:8px 56px minmax(0,1fr) 176px 64px;gap:16px;align-items:baseline;padding:14px 0;border-bottom:1px solid var(--page-line)}
+.evrow .b{width:2px;height:16px;background:var(--page-accent);align-self:center;border-radius:1px}
+.evrow .b.self{background:repeating-linear-gradient(to top,var(--page-ink-3) 0 2px,transparent 2px 4px)}
+.evrow .b.neg{background:none;border-left:2px solid var(--page-ink-2);height:16px}
+.evrow .src{font-size:12px;color:var(--page-ink-3)}
+.evrow .q{font-size:15px;line-height:24px}
+.evrow .q .sub{display:block;font-size:12px;line-height:18px;color:var(--page-ink-3);margin-top:4px}
+.evrow .from{font-size:13px;line-height:20px;color:var(--page-ink-2)}
+.evrow .from .mono{display:block}
+.evrow .st{text-align:right}
+.evrow.dim .q{color:var(--page-ink-3)}
+.none{padding:14px 0;font-size:13px;color:var(--page-ink-3);border-bottom:1px solid var(--page-line)}
+.kv{display:grid;grid-template-columns:80px 1fr;gap:10px 12px;font-size:13px;line-height:20px}
+.kv span:nth-child(odd){color:var(--page-ink-3)}
+.acts-v{display:flex;flex-direction:column;gap:8px}
+.acts-v .btn{justify-content:flex-start;width:100%}
+.rel{list-style:none;margin:0;padding:0}
+.rel li{display:flex;align-items:center;gap:10px;padding:10px 0;border-bottom:1px solid var(--page-line);font-size:13px;line-height:20px}
+.rel li span.t{flex:1;min-width:0}
+.log{list-style:none;margin:0;padding:0}
+.log li{display:grid;grid-template-columns:48px 1fr;gap:12px;padding:8px 0;border-bottom:1px solid var(--page-line);font-size:13px;line-height:20px;color:var(--page-ink-2)}
+.starx{display:grid;grid-template-columns:72px minmax(0,1fr);border-top:1px solid var(--page-line)}
+.starx>div{padding:16px 0;border-bottom:1px solid var(--page-line);font-size:15px;line-height:26px}
+.starx>div:nth-child(odd){font-size:13px;color:var(--page-ink-3);line-height:26px}
+.starx .miss{color:var(--page-ink-3);font-size:14px}
+mark.e{background:none;color:inherit;box-shadow:inset 0 -2px 0 rgba(35,64,110,.5);padding:0 1px}
+sup.n{font-family:var(--page-mono);font-size:10px;color:var(--page-accent);margin-left:2px}
+.quote{padding:16px 20px;border-left:2px solid var(--page-accent);background:var(--page-surface);font-size:17px;line-height:28px;border-radius:0 12px 12px 0}
+.quote .mono{display:block;margin-bottom:6px}
+.prod{list-style:none;margin:0;padding:0}
+.prod li{padding:12px 0;border-bottom:1px solid var(--page-line)}
+.prod li .t{font-size:14px;line-height:22px}
+.prod li .m{display:flex;align-items:center;gap:10px;margin-top:6px}
+.starq{display:inline-flex;gap:3px;vertical-align:middle}
+.starq i{width:10px;height:10px;border-radius:2px;background:var(--page-ink-3);display:block}
+.starq i.no{background:none;box-shadow:inset 0 0 0 1px var(--page-line-2)}
+.overlay{position:absolute;inset:0;background:rgba(23,23,23,.36)}
+.dlg{width:560px;background:var(--page-surface);border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,.12);padding:28px}
+.overlay .dlg{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%)}
+.dlg h3{margin:0;font-size:18px;line-height:26px;font-weight:500}
+.dlg>p{margin:8px 0 0;font-size:14px;line-height:22px;color:var(--page-ink-2)}
+.dlg table{width:100%;border-collapse:collapse;margin-top:20px}
+.dlg th{font-size:12px;font-weight:400;color:var(--page-ink-3);text-align:left;padding:0 0 8px;border-bottom:1px solid var(--page-line-2)}
+.dlg td{font-size:13px;line-height:20px;padding:10px 0;border-bottom:1px solid var(--page-line);vertical-align:top}
+.dlg td.c{font-family:var(--page-mono);font-size:12px;white-space:nowrap;padding-left:16px}
+.dlg .note{margin-top:16px;font-size:13px;line-height:20px;color:var(--page-ink-2)}
+.dlg .ft{display:flex;justify-content:flex-end;gap:8px;margin-top:24px}
+.dlg.sm{width:auto;padding:20px}
+.btn-k{background:var(--page-ink);color:#fff}
+.toast{display:inline-flex;align-items:center;gap:12px;height:44px;padding:0 6px 0 16px;border-radius:10px;background:var(--page-ink);color:#fff;font-size:13px;box-shadow:0 8px 24px rgba(0,0,0,.12)}
+.toast u{text-decoration:none;color:#fff;font-weight:500;height:32px;padding:0 10px;display:inline-flex;align-items:center;border-radius:6px;background:rgba(255,255,255,.12)}
+.toast.n{padding-right:16px}
+.m-scroll{flex:1;overflow:hidden;padding:12px 20px 0}
+.m-scroll h1{margin:0;font-size:22px;line-height:30px;font-weight:500}
+.m-chips{display:flex;gap:8px;margin:12px -20px;padding:0 20px;overflow:hidden}
+.m-r{padding:12px 0;border-bottom:1px solid var(--page-line)}
+.m-r .t{font-size:15px;line-height:22px}
+.m-r .k{display:flex;align-items:center;gap:10px;margin-top:6px}
+.m-r .k .sp{flex:1}
+.m-sec{margin-top:20px}
+.m-sec h4{margin:0 0 4px;font-size:12px;font-weight:400;color:var(--page-ink-3)}
+.m-ev{padding:10px 0;border-bottom:1px solid var(--page-line);font-size:14px;line-height:22px}
+.m-ev .mono{display:block;margin-top:2px}
+.m-act{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;padding:8px 12px 28px;border-top:1px solid var(--page-line);background:var(--page-surface);flex:none}
+.m-act .btn{padding:0 8px}
+
+/* ===== 第 6 批新增样式 ===== */
+.safe2{border-radius:12px;padding:16px 18px;display:grid;grid-template-columns:18px 1fr;gap:12px;font-size:14px;line-height:22px}
+.safe2 .h{font-weight:500;color:var(--page-ink);font-size:15px}
+.safe2.mid{background:var(--page-raised);color:var(--page-ink-2)}
+.safe2.hi{background:var(--page-neg-50);border:1px solid rgba(180,51,43,.35);color:#5B1E19}
+.safe2.hi .h{color:#5B1E19}
+.safe2.hi svg.lucide{color:var(--page-neg)}
+.safe2 .a{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+.btn-neg{background:var(--page-neg);color:#fff}
+.pinbar{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;background:var(--page-neg-50);border:1px solid rgba(180,51,43,.35);font-size:13px;color:#5B1E19;margin-bottom:8px}
+.pinbar svg.lucide{color:var(--page-neg)}
+.pinbar .sp{flex:1}
+.pausebar{display:flex;align-items:center;gap:10px;padding:8px 12px;border-radius:10px;background:var(--page-raised);font-size:13px;color:var(--page-ink-2);margin-bottom:8px}
+.calm{max-width:640px}
+.calm h1{margin:0;font-size:32px;line-height:42px;font-weight:500}
+.calm p{margin:16px 0 0;font-size:16px;line-height:26px;color:var(--page-ink-2)}
+.calm .res{margin-top:32px;border-top:1px solid var(--page-line)}
+.calm .res a{display:flex;align-items:center;justify-content:space-between;height:56px;border-bottom:1px solid var(--page-line);font-size:15px}
+.calm .comp{margin-top:32px}
+.rail2{width:64px;background:var(--page-bg);border-right:1px solid var(--page-line);display:flex;flex-direction:column;align-items:center;padding:12px 0;gap:4px}
+.rail2 a{width:40px;height:40px;border-radius:8px;display:grid;place-items:center}
+.rail2 a.on{background:var(--page-raised);box-shadow:inset 0 0 0 1px var(--page-line)}
+.rail2 a.on svg.lucide{color:var(--page-ink)}
+.rail2 .mk{display:inline-flex;align-items:flex-end;gap:3px;height:16px;margin:8px 0 16px}
+.rail2 .mk i{display:block;width:3px;border-radius:1px;background:var(--page-accent)}
+.mid{width:1024px;height:768px;display:grid;grid-template-columns:64px 1fr}
+.mid .stream{padding:24px 40px}
+.mid .dock{padding:12px 40px 20px}
+.drawer{position:absolute;right:0;top:0;bottom:0;width:320px;background:var(--page-surface);border-left:1px solid var(--page-line);box-shadow:0 8px 24px rgba(0,0,0,.08)}
+.drawer .disc{background:var(--page-surface)}
+.sheet{position:absolute;left:0;right:0;bottom:0;background:var(--page-surface);border-radius:16px 16px 0 0;box-shadow:0 -8px 24px rgba(0,0,0,.08);padding:8px 20px 28px}
+.sheet .grab{width:36px;height:4px;border-radius:2px;background:var(--page-line-2);margin:0 auto 12px}
+.sheet h3{margin:0 0 8px;font-size:15px;font-weight:500}
+.err-pg{flex:1;display:flex;align-items:center;justify-content:center}
+.err-pg .b{max-width:440px}
+.err-pg h1{margin:0;font-size:24px;line-height:32px;font-weight:500}
+.err-pg p{margin:10px 0 20px;font-size:14px;line-height:22px;color:var(--page-ink-2)}
+.offline{display:flex;align-items:center;gap:10px;height:36px;padding:0 32px;background:var(--page-raised);font-size:13px;color:var(--page-ink-2);border-bottom:1px solid var(--page-line)}
+</style></head><body><div class="fx-app"><div class="fx-top"><b>照见（暂定名）</b><span class="s">/ 设计稿 第 6 批：安全与边界 · 基于 v0.2 规范</span><span class="sp"></span><button class="fx-btn" id="zOut">−</button><span class="fx-zoom" id="zLab">100%</span><button class="fx-btn" id="zIn">+</button><button class="fx-btn" id="zFit">适应画布</button><button class="fx-btn" id="z100">100%</button></div><aside class="fx-side"><div class="fx-sec"><h4>页面</h4><button class="fx-item" data-page="safe"><i data-lucide="file"></i>安全守护</button><button class="fx-item" data-page="bp"><i data-lucide="file"></i>中屏与移动抽屉</button><button class="fx-item" data-page="err"><i data-lucide="file"></i>加载 · 错误 · 离线</button><button class="fx-item" data-page="st"><i data-lucide="file"></i>规则与状态</button><button class="fx-item" data-page="chk"><i data-lucide="file"></i>第 6 批检查清单</button></div><div class="fx-sec"><h4>画板</h4><div id="layers"></div></div></aside><main class="fx-canvas" id="canvas"><div class="fx-world" id="world"><section class="fx-page" data-page="safe"><div class="fx-ab" data-name="P2 安全 · 中风险 · 对话中 · 桌面" data-desc="流程 F7。暂停当前模块，但不切断对话：输入框上方说明「已暂停」，教练继续陪伴。没有诊断用语；右侧面板收起，不再显示线索。" style="left:0px;top:0px"><div class="fx-ab-label">P2 安全 · 中风险 · 对话中 · 桌面<span>1440 × 1000</span></div><div class="ab cv" style="width:1440px;height:1000px"><aside class="side"><div class="brand"><span class="mk"><i style="height:16px"></i><i style="height:11px"></i><i style="height:6px"></i></span><b>照见</b></div><nav class="nav"><a class=""><i data-lucide="house"></i>首页</a><a class="on"><i data-lucide="message-circle"></i>对话<span class="n mono">已暂停</span></a><a class=""><i data-lucide="list"></i>线索<span class="n mono">5</span></a><a class=""><i data-lucide="user-round"></i>画像<span class="n mono">未生成</span></a><a class=""><i data-lucide="calendar-check"></i>打卡<span class="n mono">6 天</span></a></nav><div class="slab">你讲过的故事</div><div class="story"><span>第一份工作的主管</span><span class="mono">11-22</span></div><div class="story"><span>临时救场的发布会</span><span class="mono">11-21</span></div><div class="story"><span>接手无文档的项目</span><span class="mono">11-20</span></div><div class="story all"><span>全部故事</span><span class="mono">4</span></div><div class="grow"></div><nav class="nav"><a class=""><i data-lucide="settings"></i>设置</a></nav><div class="me"><span class="av">W</span><span style="font-size:13px">Wortley</span></div></aside><div class="cv-main"><div class="hdr"><div class="l"><h2>经历挖掘</h2><span class="tag">已暂停</span></div><div class="l"><span class="btn btn-s btn-sm">结束本次</span></div></div><div class="cv-body"><div class="cv-col"><div class="stream"><div class="coach"><span class="mk2"><i style="height:14px"></i><i style="height:9px"></i><i style="height:5px"></i></span><div><p>你说像个执行机器，那时候你是怎么撑过来的？</p></div></div><div class="mine">说实话，不只是那时候。最近一个月都睡不好，总觉得自己什么都做不好，挺没用的。</div><div class="coach"><span class="mk2"><i style="height:14px"></i><i style="height:9px"></i><i style="height:5px"></i></span><div><p>谢谢你愿意告诉我这些。一个月都睡不好，还总觉得自己没用，听起来你这段时间真的很辛苦</p></div></div><div class="inl safe2 mid"><i data-lucide="pause"></i><div><div class="h">今天的探索先停一停</div>这种状态持续一段时间的话，找专业的心理咨询师聊聊会很有帮助。这不代表你哪里有问题，就像身体累了会去看医生一样<div class="a"><span class="btn btn-s btn-sm">帮我找咨询渠道</span><span class="btn btn-t btn-sm">我想先说说</span></div></div></div><div class="coach"><span class="mk2"><i style="height:14px"></i><i style="height:9px"></i><i style="height:5px"></i></span><div><p>你现在身边有可以说说话的人吗？</p></div></div></div><div class="dock"><div class="in"><div class="pausebar"><i data-lucide="pause"></i>探索已暂停。你可以继续和我说话，我会陪着你，但不会再问故事</div><div class="comp"><div class="ph">想说什么都可以</div><div class="tools"><span class="tb"><i data-lucide="paperclip"></i></span><span class="tb"><i data-lucide="mic"></i></span><span class="ibtn off"><i data-lucide="arrow-up"></i></span></div></div><div class="foot"><span class="mono">Enter 发送 · Shift + Enter 换行</span><span class="mono">自动保存</span></div></div></div></div><aside class="disc"><h3>本次发现</h3><p style="margin:0;font-size:13px;line-height:20px;color:var(--page-ink-2)">先不整理线索了。这段对话里的内容不会变成证据</p><div class="safe2 mid" style="padding:12px 14px"><i data-lucide="life-buoy"></i><div style="font-size:13px;line-height:20px">求助资源<br><span class="btn btn-t btn-sm" style="padding:0">设置 · 求助资源</span></div></div></aside></div></div></div></div><div class="fx-ab" data-name="P2 安全 · 高风险 · 对话中 · 桌面" data-desc="全产品唯一使用警示红的地方。所有技能中断；求助入口常驻在输入框上方，直到风险解除。标题栏不显示模式，右侧面板隐藏。" style="left:1540px;top:0px"><div class="fx-ab-label">P2 安全 · 高风险 · 对话中 · 桌面<span>1440 × 1000</span></div><div class="ab cv" style="width:1440px;height:1000px"><aside class="side"><div class="brand"><span class="mk"><i style="height:16px"></i><i style="height:11px"></i><i style="height:6px"></i></span><b>照见</b></div><nav class="nav"><a class=""><i data-lucide="house"></i>首页</a><a class="on"><i data-lucide="message-circle"></i>对话</a><a class=""><i data-lucide="list"></i>线索<span class="n mono">5</span></a><a class=""><i data-lucide="user-round"></i>画像<span class="n mono">未生成</span></a><a class=""><i data-lucide="calendar-check"></i>打卡<span class="n mono">6 天</span></a></nav><div class="slab">你讲过的故事</div><div class="story"><span>第一份工作的主管</span><span class="mono">11-22</span></div><div class="story"><span>临时救场的发布会</span><span class="mono">11-21</span></div><div class="story"><span>接手无文档的项目</span><span class="mono">11-20</span></div><div class="story all"><span>全部故事</span><span class="mono">4</span></div><div class="grow"></div><nav class="nav"><a class=""><i data-lucide="settings"></i>设置</a></nav><div class="me"><span class="av">W</span><span style="font-size:13px">Wortley</span></div></aside><div class="cv-main"><div class="hdr"><div class="l"><h2>对话</h2></div><div class="l"></div></div><div class="cv-body" style="grid-template-columns:1fr"><div class="cv-col" style="border:0"><div class="stream"><div class="mine">有时候觉得活着没什么意思。</div><div class="coach"><span class="mk2"><i style="height:14px"></i><i style="height:9px"></i><i style="height:5px"></i></span><div><p>你愿意说出来，这很重要，我很在意你现在的状态。我们先把其他的都放下</p></div></div><div class="inl safe2 hi"><i data-lucide="phone"></i><div><div class="h">你现在安全吗</div>如果你有伤害自己的想法，请马上拨打当地的心理危机干预热线或急救电话，或者告诉一个你信任的人，让他现在陪着你<div class="a"><span class="btn btn-neg btn-sm">拨打危机干预热线</span><span class="btn btn-s btn-sm">我现在是安全的</span></div></div></div><div class="coach"><span class="mk2"><i style="height:14px"></i><i style="height:9px"></i><i style="height:5px"></i></span><div><p>你不需要一个人扛着这些。我在这里，你想说什么都可以</p></div></div></div><div class="dock"><div class="in"><div class="pinbar"><i data-lucide="phone"></i>危机干预热线 · 按地区配置<span class="sp"></span><span class="btn btn-neg btn-sm">拨打</span></div><div class="comp"><div class="ph">想说什么都可以</div><div class="tools"><span class="tb"><i data-lucide="paperclip"></i></span><span class="tb"><i data-lucide="mic"></i></span><span class="ibtn off"><i data-lucide="arrow-up"></i></span></div></div><div class="foot"><span class="mono">Enter 发送 · Shift + Enter 换行</span><span class="mono">自动保存</span></div></div></div></div></div></div></div></div><div class="fx-ab" data-name="P2 安全 · 高风险 · 移动" data-desc="按钮全宽、竖排；热线条固定在输入框上方。" style="left:3080px;top:0px"><div class="fx-ab-label">P2 安全 · 高风险 · 移动<span>390 × 844</span></div><div class="ab m" style="width:390px;height:844px"><div class="m-sb"><span>21:50</span><span class="ic"><i data-lucide="signal"></i><i data-lucide="wifi"></i><i data-lucide="battery-full"></i></span></div><div class="m-hd"><div class="l"><span class="back"><i data-lucide="chevron-left"></i></span><h2>对话</h2></div></div><div class="m-stream"><div class="mine">有时候觉得活着没什么意思。</div><div class="coach"><span class="mk2"><i style="height:14px"></i><i style="height:9px"></i><i style="height:5px"></i></span><div><p>你愿意说出来，这很重要。我们先把其他的都放下</p></div></div><div class="safe2 hi" style="margin-left:36px;padding:14px"><i data-lucide="phone"></i><div><div class="h">你现在安全吗</div>如果有伤害自己的想法，请马上拨打危机干预热线，或告诉一个你信任的人<div class="a" style="flex-direction:column"><span class="btn btn-neg">拨打危机干预热线</span><span class="btn btn-s">我现在是安全的</span></div></div></div></div><div class="m-dock"><div class="pinbar"><i data-lucide="phone"></i>热线 · 按地区配置<span class="sp"></span><span class="btn btn-neg btn-sm">拨打</span></div><div class="comp"><div class="ph">想说什么都可以</div><span class="ibtn off"><i data-lucide="arrow-up"></i></span></div></div></div></div><div class="fx-ab" data-name="P1 首页 · S6 安全暂停 · 桌面" data-desc="风险未解除时，首页不显示线索、进度和打卡，只留一句关心、输入框和求助资源。侧栏线索数照常，用户主动点进去可以查看。" style="left:0px;top:1100px"><div class="fx-ab-label">P1 首页 · S6 安全暂停 · 桌面<span>1440 × 1000</span></div><div class="ab d" style="width:1440px;height:1000px"><aside class="side"><div class="brand"><span class="mk"><i style="height:16px"></i><i style="height:11px"></i><i style="height:6px"></i></span><b>照见</b></div><nav class="nav"><a class="on"><i data-lucide="house"></i>首页</a><a class=""><i data-lucide="message-circle"></i>对话</a><a class=""><i data-lucide="list"></i>线索<span class="n mono">5</span></a><a class=""><i data-lucide="user-round"></i>画像<span class="n mono">未生成</span></a><a class=""><i data-lucide="calendar-check"></i>打卡<span class="n mono">6 天</span></a></nav><div class="slab">你讲过的故事</div><div class="story"><span>第一份工作的主管</span><span class="mono">11-22</span></div><div class="story"><span>临时救场的发布会</span><span class="mono">11-21</span></div><div class="story"><span>接手无文档的项目</span><span class="mono">11-20</span></div><div class="story all"><span>全部故事</span><span class="mono">4</span></div><div class="grow"></div><nav class="nav"><a class=""><i data-lucide="settings"></i>设置</a></nav><div class="me"><span class="av">W</span><span style="font-size:13px">Wortley</span></div></aside><div class="main"><div class="hdr"><h2>首页</h2><span class="mono">第 7 天 · 2026-11-25</span></div><div class="wrap" style="padding-top:96px"><div class="calm"><h1>昨天聊得不轻松。今天不用讲故事，想说什么都可以</h1><p>探索先暂停着。等你觉得好一些了，告诉我，我们再接着来。线索和故事都还在，不会丢</p><div class="comp"><div class="ph">今天感觉怎么样</div><div class="tools"><span class="tb"><i data-lucide="mic"></i></span><span class="ibtn off"><i data-lucide="arrow-up"></i></span></div></div><div class="res"><a><span>当地心理危机干预热线</span><i data-lucide="chevron-right"></i></a><a><span>怎么找一位心理咨询师</span><i data-lucide="chevron-right"></i></a></div></div></div></div></div></div><div class="fx-ab" data-name="P2 安全 · 恢复 · 桌面" data-desc="用户主动说「好多了 / 想继续」，且下一轮没有风险信号，教练确认后恢复。不直接回到低谷话题，先给三个方向让用户选。" style="left:1540px;top:1100px"><div class="fx-ab-label">P2 安全 · 恢复 · 桌面<span>1440 × 1000</span></div><div class="ab cv" style="width:1440px;height:1000px"><aside class="side"><div class="brand"><span class="mk"><i style="height:16px"></i><i style="height:11px"></i><i style="height:6px"></i></span><b>照见</b></div><nav class="nav"><a class=""><i data-lucide="house"></i>首页</a><a class="on"><i data-lucide="message-circle"></i>对话<span class="n mono">进行中</span></a><a class=""><i data-lucide="list"></i>线索<span class="n mono">5</span></a><a class=""><i data-lucide="user-round"></i>画像<span class="n mono">未生成</span></a><a class=""><i data-lucide="calendar-check"></i>打卡<span class="n mono">6 天</span></a></nav><div class="slab">你讲过的故事</div><div class="story"><span>第一份工作的主管</span><span class="mono">11-22</span></div><div class="story"><span>临时救场的发布会</span><span class="mono">11-21</span></div><div class="story"><span>接手无文档的项目</span><span class="mono">11-20</span></div><div class="story all"><span>全部故事</span><span class="mono">4</span></div><div class="grow"></div><nav class="nav"><a class=""><i data-lucide="settings"></i>设置</a></nav><div class="me"><span class="av">W</span><span style="font-size:13px">Wortley</span></div></aside><div class="cv-main"><div class="hdr"><div class="l"><h2>对话</h2></div><div class="l"><span class="mono">11-26</span></div></div><div class="cv-body"><div class="cv-col"><div class="stream"><div class="rule"><span class="mono">上次聊到这里 · 11-24 22:40</span></div><div class="mine">这两天好多了，睡得也还行。想接着聊。</div><div class="coach"><span class="mk2"><i style="height:14px"></i><i style="height:9px"></i><i style="height:5px"></i></span><div><p>听到你好一些，我挺高兴的。我们可以接着来，也可以换个轻松一点的方向，比如先讲一个高光的事。你想怎么来？</p></div></div><div class="qr"><span>接着聊那位主管</span><span>先讲一个高光的</span><span>今天就随便聊聊</span></div></div><div class="dock"><div class="in"><div class="comp"><div class="ph">或者直接说</div><div class="tools"><span class="tb"><i data-lucide="paperclip"></i></span><span class="tb"><i data-lucide="mic"></i></span><span class="ibtn off"><i data-lucide="arrow-up"></i></span></div></div><div class="foot"><span class="mono">Enter 发送 · Shift + Enter 换行</span><span class="mono">自动保存</span></div></div></div></div><aside class="disc"><h3>本次发现</h3><p class="mono" style="margin:0">选好方向后开始记录</p></aside></div></div></div></div></section><section class="fx-page" data-page="bp"><div class="fx-ab" data-name="中屏 1024 · 对话 · 抽屉关闭" data-desc="768–1279 断点（框架 6.5）：侧栏收为 64 宽图标栏，悬停显示名称；「本次发现」改为标题栏按钮，数字表示本次变化条数。" style="left:0px;top:2200px"><div class="fx-ab-label">中屏 1024 · 对话 · 抽屉关闭<span>1024 × 768</span></div><div class="ab mid" style="width:1024px;height:768px"><nav class="rail2"><span class="mk"><i style="height:16px"></i><i style="height:11px"></i><i style="height:6px"></i></span><a><i data-lucide="house"></i></a><a class="on"><i data-lucide="message-circle"></i></a><a><i data-lucide="list"></i></a><a><i data-lucide="user-round"></i></a><a><i data-lucide="calendar-check"></i></a></nav><div class="cv-main"><div class="hdr" style="padding:0 24px"><div class="l"><h2>经历挖掘</h2><span class="seg3"><span class="on">高光</span><span>低谷</span><span>日常</span></span></div><div class="l"><span class="btn btn-s btn-sm"><i data-lucide="panel-right"></i>本次发现 <span class="mono">2</span></span></div></div><div class="cv-body" style="grid-template-columns:1fr"><div class="cv-col" style="border:0"><div class="stream"><div class="coach"><span class="mk2"><i style="height:14px"></i><i style="height:9px"></i><i style="height:5px"></i></span><div><p>整个过程里，哪个环节你最投入，时间过得最快？</p></div></div><div class="mine">画那张系统关系图的时候，画完感觉整个项目一下子通了。</div><div class="inl merge"><span class="tally"><i class="s"></i><i class="m new"></i><i class="slot"></i></span><span class="t"><b>在混乱的局面里，擅长先梳理结构再推进</b><br>这已经是第 2 次出现了</span></div></div><div class="dock"><div class="in"><div class="comp"><div class="ph">回答，或者直接点上面的按钮</div><div class="tools"><span class="tb"><i data-lucide="paperclip"></i></span><span class="tb"><i data-lucide="mic"></i></span><span class="ibtn off"><i data-lucide="arrow-up"></i></span></div></div><div class="foot"><span class="mono">Enter 发送 · Shift + Enter 换行</span><span class="mono">自动保存</span></div></div></div></div></div></div></div></div><div class="fx-ab" data-name="移动 · 本次发现 · 底部抽屉" data-desc="移动端对话标题栏右侧的按钮打开底部抽屉，内容同桌面面板。" style="left:2248px;top:2200px"><div class="fx-ab-label">移动 · 本次发现 · 底部抽屉<span>390 × 844</span></div><div class="ab m" style="width:390px;height:844px"><div class="m-sb"><span>21:50</span><span class="ic"><i data-lucide="signal"></i><i data-lucide="wifi"></i><i data-lucide="battery-full"></i></span></div><div class="m-hd"><div class="l"><span class="back"><i data-lucide="chevron-left"></i></span><h2>经历挖掘 · 高光</h2></div><span class="btn btn-t btn-sm"><i data-lucide="panel-bottom"></i><span class="mono">2</span></span></div><div class="m-stream"><div class="coach"><span class="mk2"><i style="height:14px"></i><i style="height:9px"></i><i style="height:5px"></i></span><div><p>整个过程里，哪个环节你最投入？</p></div></div><div class="mine">画那张系统关系图的时候。</div></div><div class="m-dock"><div class="comp"><div class="ph">回答</div><span class="tb"><i data-lucide="mic"></i></span><span class="ibtn off"><i data-lucide="arrow-up"></i></span></div></div><div class="overlay" style="background:rgba(23,23,23,.24)"></div><div class="sheet"><div class="grab"></div><h3>本次发现</h3><div><h5>线索变化</h5><div class="chg"><div class="s">在混乱的局面里，擅长先梳理结构再推进</div><div class="m"><span class="tally"><i class="s"></i><i class="m"></i><i class="slot"></i></span><span class="mono">+1 证据 · 中</span></div></div><div class="chg"><div class="s">习惯用画图、画表的方式理清思路</div><div class="m"><span class="tally"><i class="m"></i><i class="slot"></i><i class="slot"></i></span><span class="tag dash">等你回应</span></div></div></div></div></div></div><div class="fx-ab" data-name="中屏 1024 · 对话 · 抽屉打开" data-desc="抽屉从右侧滑出，宽 320，盖在对话上；点击对话区或按 Esc 关闭。" style="left:1124px;top:2200px"><div class="fx-ab-label">中屏 1024 · 对话 · 抽屉打开<span>1024 × 768</span></div><div class="ab mid" style="width:1024px;height:768px"><nav class="rail2"><span class="mk"><i style="height:16px"></i><i style="height:11px"></i><i style="height:6px"></i></span><a><i data-lucide="house"></i></a><a class="on"><i data-lucide="message-circle"></i></a><a><i data-lucide="list"></i></a><a><i data-lucide="user-round"></i></a><a><i data-lucide="calendar-check"></i></a></nav><div class="cv-main"><div class="hdr" style="padding:0 24px"><div class="l"><h2>经历挖掘</h2><span class="seg3"><span class="on">高光</span><span>低谷</span><span>日常</span></span></div><div class="l"><span class="btn btn-s btn-sm"><i data-lucide="panel-right"></i>本次发现 <span class="mono">2</span></span></div></div><div class="cv-body" style="grid-template-columns:1fr"><div class="cv-col" style="border:0"><div class="stream"><div class="coach"><span class="mk2"><i style="height:14px"></i><i style="height:9px"></i><i style="height:5px"></i></span><div><p>整个过程里，哪个环节你最投入，时间过得最快？</p></div></div><div class="mine">画那张系统关系图的时候，画完感觉整个项目一下子通了。</div><div class="inl merge"><span class="tally"><i class="s"></i><i class="m new"></i><i class="slot"></i></span><span class="t"><b>在混乱的局面里，擅长先梳理结构再推进</b><br>这已经是第 2 次出现了</span></div></div><div class="dock"><div class="in"><div class="comp"><div class="ph">回答，或者直接点上面的按钮</div><div class="tools"><span class="tb"><i data-lucide="paperclip"></i></span><span class="tb"><i data-lucide="mic"></i></span><span class="ibtn off"><i data-lucide="arrow-up"></i></span></div></div><div class="foot"><span class="mono">Enter 发送 · Shift + Enter 换行</span><span class="mono">自动保存</span></div></div></div></div></div></div><div class="drawer"><aside class="disc" style="height:100%"><h3>本次发现</h3><div><h5>线索变化</h5><div class="chg"><div class="s">在混乱的局面里，擅长先梳理结构再推进</div><div class="m"><span class="tally"><i class="s"></i><i class="m"></i><i class="slot"></i></span><span class="mono">+1 证据 · 中</span></div></div><div class="chg"><div class="s">习惯用画图、画表的方式理清思路</div><div class="m"><span class="tally"><i class="m"></i><i class="slot"></i><i class="slot"></i></span><span class="tag dash">等你回应</span></div></div></div></aside></div></div></div></section><section class="fx-page" data-page="err"><div class="fx-ab" data-name="首页 · 加载骨架 · 桌面" data-desc="首屏骨架只画结构，静止不闪烁。超过 8 秒未加载完，换成下方的错误页。" style="left:0px;top:3200px"><div class="fx-ab-label">首页 · 加载骨架 · 桌面<span>1440 × 800</span></div><div class="ab d" style="width:1440px;height:800px"><aside class="side"><div class="brand"><span class="mk"><i style="height:16px"></i><i style="height:11px"></i><i style="height:6px"></i></span><b>照见</b></div><nav class="nav"><a class="on"><i data-lucide="house"></i>首页</a><a class=""><i data-lucide="message-circle"></i>对话</a><a class=""><i data-lucide="list"></i>线索<span class="n mono">·</span></a><a class=""><i data-lucide="user-round"></i>画像<span class="n mono">·</span></a><a class=""><i data-lucide="calendar-check"></i>打卡<span class="n mono">·</span></a></nav><div class="slab">你讲过的故事</div><div class="story all"><span>还没有</span></div><div class="grow"></div><nav class="nav"><a class=""><i data-lucide="settings"></i>设置</a></nav><div class="me"><span class="av">W</span><span style="font-size:13px">Wortley</span></div></aside><div class="main"><div class="hdr"><h2>首页</h2></div><div class="wrap"><div class="hero"><div><span class="skel" style="width:120px;height:20px"></span><span class="skel" style="width:90%;height:36px;margin-top:20px"></span><span class="skel" style="width:70%;height:36px;margin-top:8px"></span><span class="skel" style="width:100%;height:80px;margin-top:32px;border-radius:12px"></span></div><div class="card" style="box-shadow:none"><span class="skel" style="width:40%;height:14px"></span><span class="skel" style="width:85%;height:24px;margin-top:16px"></span><span class="skel" style="width:30%;height:40px;margin-top:24px"></span><span class="skel" style="width:100%;height:1px;margin:24px 0"></span><span class="skel" style="width:90%;height:16px"></span><span class="skel" style="width:80%;height:16px;margin-top:12px"></span></div></div></div></div></div></div><div class="fx-ab" data-name="加载失败 · 桌面" data-desc="整页加载失败。说清楚发生了什么、数据是否安全、能做什么。" style="left:1540px;top:3200px"><div class="fx-ab-label">加载失败 · 桌面<span>1440 × 800</span></div><div class="ab d" style="width:1440px;height:800px"><aside class="side"><div class="brand"><span class="mk"><i style="height:16px"></i><i style="height:11px"></i><i style="height:6px"></i></span><b>照见</b></div><nav class="nav"><a class="on"><i data-lucide="house"></i>首页</a><a class=""><i data-lucide="message-circle"></i>对话</a><a class=""><i data-lucide="list"></i>线索<span class="n mono">·</span></a><a class=""><i data-lucide="user-round"></i>画像<span class="n mono">·</span></a><a class=""><i data-lucide="calendar-check"></i>打卡<span class="n mono">·</span></a></nav><div class="slab">你讲过的故事</div><div class="story all"><span>还没有</span></div><div class="grow"></div><nav class="nav"><a class=""><i data-lucide="settings"></i>设置</a></nav><div class="me"><span class="av">W</span><span style="font-size:13px">Wortley</span></div></aside><div class="main"><div class="hdr"><h2>首页</h2></div><div class="err-pg"><div class="b"><span class="mono">连接问题</span><h1>现在连不上，你的内容都还在</h1><p>可能是网络断了，或者我们这边临时出了问题。你讲过的故事和线索都保存着，不会因为这次失败丢失</p><div style="display:flex;gap:8px"><span class="btn btn-p"><i data-lucide="rotate-cw"></i>重新加载</span><span class="btn btn-s">查看服务状态</span></div></div></div></div></div></div><div class="fx-ab" data-name="离线 · 对话中 · 桌面" data-desc="对话中断网：顶部出现离线条，已输入的内容保留，恢复后自动发送。" style="left:3080px;top:3200px"><div class="fx-ab-label">离线 · 对话中 · 桌面<span>1440 × 800</span></div><div class="ab cv" style="width:1440px;height:800px"><aside class="side"><div class="brand"><span class="mk"><i style="height:16px"></i><i style="height:11px"></i><i style="height:6px"></i></span><b>照见</b></div><nav class="nav"><a class=""><i data-lucide="house"></i>首页</a><a class="on"><i data-lucide="message-circle"></i>对话<span class="n mono">进行中</span></a><a class=""><i data-lucide="list"></i>线索<span class="n mono">5</span></a><a class=""><i data-lucide="user-round"></i>画像<span class="n mono">未生成</span></a><a class=""><i data-lucide="calendar-check"></i>打卡<span class="n mono">6 天</span></a></nav><div class="slab">你讲过的故事</div><div class="story"><span>第一份工作的主管</span><span class="mono">11-22</span></div><div class="story"><span>临时救场的发布会</span><span class="mono">11-21</span></div><div class="story"><span>接手无文档的项目</span><span class="mono">11-20</span></div><div class="story all"><span>全部故事</span><span class="mono">4</span></div><div class="grow"></div><nav class="nav"><a class=""><i data-lucide="settings"></i>设置</a></nav><div class="me"><span class="av">W</span><span style="font-size:13px">Wortley</span></div></aside><div class="cv-main"><div class="hdr"><div class="l"><h2>经历挖掘</h2><span class="seg3"><span class="on">高光</span><span>低谷</span><span>日常</span></span></div><div class="l"></div></div><div class="offline"><i data-lucide="wifi-off"></i>网络断开了，正在重新连接 · 你输入的内容会保留</div><div class="cv-body"><div class="cv-col"><div class="stream"><div class="coach"><span class="mk2"><i style="height:14px"></i><i style="height:9px"></i><i style="height:5px"></i></span><div><p>哪个环节你最投入？</p></div></div><div class="mine">画那张系统关系图的时候</div><div class="fail" style="max-width:680px"><i data-lucide="clock"></i>等网络恢复后自动发送</div></div><div class="dock"><div class="in"><div class="comp"><div class="ph">可以继续输入，恢复后一起发出</div><div class="tools"><span class="tb"><i data-lucide="paperclip"></i></span><span class="tb"><i data-lucide="mic"></i></span><span class="ibtn off"><i data-lucide="arrow-up"></i></span></div></div><div class="foot"><span class="mono">Enter 发送 · Shift + Enter 换行</span><span class="mono">自动保存</span></div></div></div></div><aside class="disc"><h3>本次发现</h3><p class="mono" style="margin:0">离线时不更新</p></aside></div></div></div></div></section><section class="fx-page" data-page="st"><div class="fx-ab" data-name="安全与边界 · 规则与状态" data-desc="" style="left:0px;top:0px"><div class="fx-ab-label">安全与边界 · 规则与状态<span>1600 × 1100</span></div><div class="ab spec" style="width:1600px;height:1100px"><div class="sh"><h2>安全优先于所有流程，但不吓人、不诊断、不切断对话</h2><span class="mono">安全守护 · 边界状态 · 规则</span></div><table class="chk"><tr><th style="width:12%">等级</th><th style="width:26%">信号举例</th><th style="width:32%">界面</th><th>恢复</th></tr><tr><td>低</td><td>讲到难过的往事、一些消极情绪</td><td>没有特殊组件。教练放慢节奏，问要不要换个话题；低谷模式「跳过」常驻</td><td>不需要</td></tr><tr><td>中</td><td>持续低落、失眠、反复说「我很没用」、长期创伤</td><td>中风险卡片（raised 底）+ 输入框上方「已暂停」条；首页切换为 S6；本次对话不产生证据</td><td>用户主动说好些了，下一轮无信号，教练确认后恢复</td></tr><tr><td>高</td><td>提到自伤、轻生、人身危险</td><td>高风险卡片（警示红）+ 常驻热线条；中断所有技能；标题栏不显示模式；首页切换为 S6</td><td>同上，且至少隔一天；恢复时不直接回到低谷话题</td></tr></table><div class="st-row c4" style="margin-top:32px"><div class="st"><div class="lab"><b>记录</b><span class="mono">SafetyEvent</span></div><div class="stage"><div class="kv"><span>等级</span><span>中</span><span>信号类别</span><span>持续低落 + 睡眠问题</span><span>原话</span><span>不保存</span><span>已采取</span><span>暂停探索 · 给出资源</span></div></div><div class="cap">只存类别，不存原话（数据模型 6.3）</div></div><div class="st"><div class="lab"><b>不能做的</b><span class="mono">文案检查</span></div><div class="stage"><ul class="rl" style="margin:0"><li><b>诊断</b>不说「你可能抑郁了」</li><li><b>治疗</b>不做创伤处理、不给练习</li><li><b>保证</b>不说「一切都会好的」</li><li><b>拖延</b>高风险时不先问别的问题</li></ul></div></div><div class="st"><div class="lab"><b>用户点「我现在是安全的」</b><span class="mono">高风险</span></div><div class="stage"><div class="coach"><span class="mk2"><i style="height:14px"></i><i style="height:9px"></i><i style="height:5px"></i></span><div><p style="font-size:14px;line-height:22px">好，谢谢你告诉我。热线一直在上面，需要的时候随时可以打。你想说说今天发生了什么吗？</p></div></div></div><div class="cap">热线条保留到本次对话结束；不自动恢复探索</div></div><div class="st"><div class="lab"><b>故事里情绪强度 ≥ 4</b><span class="mono">低谷模式</span></div><div class="stage"><div class="kv"><span>动作</span><span>通知安全守护提高敏感度</span><span>界面</span><span>无变化</span><span>用户感知</span><span>教练语气更温和、节奏更慢</span></div></div><div class="cap">技能规格 · 经历挖掘规则</div></div></div><div class="st-row c4"><div class="st"><div class="lab"><b>空状态汇总</b><span class="mono">每页一句 + 一个动作</span></div><div class="stage"><ul class="rl" style="margin:0"><li><b>线索</b>讲完第一个故事，线索会出现在这里</li><li><b>故事</b>还没有故事，从首页开始讲第一个</li><li><b>打卡</b>还没有打卡，今晚 21:30 会提醒你</li><li><b>画像</b>再有 N 条线索到「高」就能生成</li></ul></div></div><div class="st"><div class="lab"><b>错误文案</b><span class="mono">说清三件事</span></div><div class="stage"><ul class="rl" style="margin:0"><li><b>发生了什么</b>现在连不上</li><li><b>数据安全吗</b>你的内容都还在</li><li><b>能做什么</b>重新加载</li></ul></div><div class="cap">不用错误代码，不用感叹号，不道歉三次</div></div><div class="st"><div class="lab"><b>加载</b><span class="mono">骨架规则</span></div><div class="stage"><ul class="rl" style="margin:0"><li><b>首屏</b>骨架，静止</li><li><b>&lt; 300ms</b>不显示任何加载</li><li><b>&gt; 8s</b>换成错误页</li><li><b>对话</b>只用教练「正在想」标识</li></ul></div></div><div class="st"><div class="lab"><b>动效降级</b><span class="mono">prefers-reduced-motion</span></div><div class="stage"><ul class="rl" style="margin:0"><li><b>刻痕长出</b>直接出现</li><li><b>正在想</b>三道刻痕静止</li><li><b>抽屉</b>无滑动，直接出现</li></ul></div></div></div></div></div></section><section class="fx-page" data-page="chk"><div class="fx-ab" data-name="第 6 批检查清单" data-desc="" style="left:0px;top:0px"><div class="fx-ab-label">第 6 批检查清单<span>1200 × 760</span></div><div class="ab spec" style="width:1200px;height:760px"><div class="sh"><h2>第 6 批画了 12 个画板，覆盖流程 F7 安全中断，并补齐所有边界状态</h2><span class="mono">对照框架文档第 8 节</span></div><table class="chk"><tr><th style="width:26%">页面 / 组件</th><th>本批画了</th><th style="width:16%">状态</th></tr><tr><td>安全 · 中风险</td><td>对话中（桌面）· 首页 S6 · 记录规则</td><td class="ok">✓ 完成</td></tr><tr><td>安全 · 高风险</td><td>对话中（桌面 + 移动）· 常驻热线条 · 「我现在是安全的」</td><td class="ok">✓ 完成</td></tr><tr><td>安全 · 恢复</td><td>续聊分隔线 + 三个方向选择</td><td class="ok">✓ 完成</td></tr><tr><td>中屏断点 1024</td><td>图标侧栏 · 本次发现抽屉（关 / 开）</td><td class="ok">✓ 完成</td></tr><tr><td>移动 · 本次发现</td><td>底部抽屉</td><td class="ok">✓ 完成</td></tr><tr><td>加载 / 错误 / 离线</td><td>首页骨架 · 整页加载失败 · 对话中离线</td><td class="ok">✓ 完成</td></tr><tr><td>空状态 · 错误文案 · 动效降级</td><td>规则汇总</td><td class="ok">✓ 完成</td></tr></table><h4 style="margin-top:32px">本批发现并处理的问题</h4><table class="chk"><tr><th style="width:26%">问题</th><th>处理</th></tr><tr><td>高风险时用户仍想继续探索</td><td>不恢复，至少隔一天；恢复时教练先给方向选择，不直接回到低谷话题</td></tr><tr><td>中风险时对话内容是否变成证据</td><td>不产生证据；本次发现面板写明「这段对话里的内容不会变成证据」</td></tr></table><p class="mono" style="margin-top:24px">第 6 批完成后，V0.5 的设计全部完成，见「设计完成 · 总览」</p></div></div></section></div><div class="fx-hint">拖动平移 · 滚轮平移 · Ctrl / ⌘ + 滚轮缩放 · 点击画板看说明</div></main><aside class="fx-side r"><div class="fx-sec"><h4>画板</h4><div class="fx-kv"><span>名称</span><b id="iName">—</b><span>尺寸</span><b id="iSize">—</b></div></div><div class="fx-sec"><h4>说明</h4><div class="fx-note" id="iDesc">点击画布上的画板查看。</div></div><div class="fx-sec"><h4>规范来源</h4><div class="fx-note">设计稿 v0.2「研究笔记」（含补充 1）<br>页面结构与交互框架 v0.2</div></div></aside></div>
+<script>
+(function(){
+  if (window.lucide) lucide.createIcons();
+  const canvas=document.getElementById('canvas'), world=document.getElementById('world');
+  const zLab=document.getElementById('zLab'), layers=document.getElementById('layers');
+  let s=1,x=0,y=0,page='safe';
+  const apply=()=>{world.style.transform=`translate(${x}px,${y}px) scale(${s})`;zLab.textContent=Math.round(s*100)+'%';};
+  const abs=()=>[...document.querySelectorAll(`.fx-page[data-page="${page}"] .fx-ab`)];
+  const box=el=>{const a=el.querySelector('.ab');return {l:parseFloat(el.style.left)||0,t:parseFloat(el.style.top)||0,w:a.offsetWidth,h:a.offsetHeight};};
+  function fitTo(list){let L=1e9,T=1e9,R=-1e9,B=-1e9;list.forEach(e=>{const b=box(e);L=Math.min(L,b.l);T=Math.min(T,b.t-24);R=Math.max(R,b.l+b.w);B=Math.max(B,b.t+b.h);});
+    const W=canvas.clientWidth,H=canvas.clientHeight,p=48;s=Math.max(Math.min((W-p*2)/(R-L),(H-p*2)/(B-T),2),.04);x=(W-(R-L)*s)/2-L*s;y=(H-(B-T)*s)/2-T*s;apply();}
+  function select(el){document.querySelectorAll('.fx-ab.sel').forEach(e=>e.classList.remove('sel'));document.querySelectorAll('#layers .fx-item').forEach(e=>e.classList.toggle('on',e._ab===el));
+    if(!el){iName.textContent='—';iSize.textContent='—';iDesc.textContent='点击画布上的画板查看。';return;}
+    el.classList.add('sel');const b=box(el);iName.textContent=el.dataset.name;iSize.textContent=b.w+' × '+b.h;iDesc.textContent=el.dataset.desc||'';}
+  function show(p){page=p;document.querySelectorAll('.fx-page').forEach(e=>e.classList.toggle('on',e.dataset.page===p));document.querySelectorAll('.fx-item[data-page]').forEach(e=>e.classList.toggle('on',e.dataset.page===p));
+    layers.innerHTML='';abs().forEach(el=>{const b=document.createElement('button');b.className='fx-item';b.innerHTML='<i data-lucide="frame"></i>'+el.dataset.name;b._ab=el;b.onclick=()=>{fitTo([el]);select(el);};layers.appendChild(b);});
+    if(window.lucide) lucide.createIcons();select(null);requestAnimationFrame(()=>fitTo(abs()));}
+  document.querySelectorAll('.fx-item[data-page]').forEach(b=>b.onclick=()=>show(b.dataset.page));
+  function zoomAt(f,cx,cy){const ns=Math.min(Math.max(s*f,.04),4);x=cx-(cx-x)*(ns/s);y=cy-(cy-y)*(ns/s);s=ns;apply();}
+  canvas.addEventListener('wheel',e=>{e.preventDefault();const r=canvas.getBoundingClientRect();if(e.ctrlKey||e.metaKey){zoomAt(Math.exp(-e.deltaY*.01),e.clientX-r.left,e.clientY-r.top);}else{x-=e.deltaX;y-=e.deltaY;apply();}},{passive:false});
+  let d=null;
+  canvas.addEventListener('pointerdown',e=>{d={sx:e.clientX,sy:e.clientY,x,y,m:false};canvas.setPointerCapture(e.pointerId);});
+  canvas.addEventListener('pointermove',e=>{if(!d)return;const dx=e.clientX-d.sx,dy=e.clientY-d.sy;if(Math.abs(dx)+Math.abs(dy)>3){d.m=true;canvas.classList.add('drag');}x=d.x+dx;y=d.y+dy;apply();});
+  canvas.addEventListener('pointerup',e=>{if(d&&!d.m){const ab=document.elementFromPoint(e.clientX,e.clientY)?.closest('.fx-ab');select(ab||null);}d=null;canvas.classList.remove('drag');});
+  const c=()=>({cx:canvas.clientWidth/2,cy:canvas.clientHeight/2});
+  zIn.onclick=()=>{const{cx,cy}=c();zoomAt(1.25,cx,cy);};zOut.onclick=()=>{const{cx,cy}=c();zoomAt(.8,cx,cy);};
+  zFit.onclick=()=>fitTo(abs());z100.onclick=()=>{const{cx,cy}=c();zoomAt(1/s,cx,cy);};
+  window.addEventListener('keydown',e=>{if(e.shiftKey&&e.code==='Digit1')fitTo(abs());if(e.shiftKey&&e.code==='Digit0'){const{cx,cy}=c();zoomAt(1/s,cx,cy);}});
+  window.addEventListener('resize',()=>fitTo(abs()));
+  show('safe');
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>fitTo(abs()));
+})();
+</script>
+</body>
+</html>

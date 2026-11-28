@@ -1,0 +1,800 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>照见 · 设计稿 v0.2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500&family=JetBrains+Mono:wght@400;500&display=swap">
+<script src="https://cdn.jsdelivr.net/npm/lucide@0.460.0/dist/umd/lucide.min.js"></script>
+<style>
+/* =========================================================
+   产品令牌 v0.2（开发直接使用）
+   中性灰阶 + 一个强调色「蓝黑墨水」
+   ========================================================= */
+:root{
+  --page-bg:#FAFAFA;          /* 页面背景 */
+  --page-surface:#FFFFFF;     /* 卡片 */
+  --page-raised:#F4F4F5;      /* 选中行、输入框、次按钮 */
+  --page-line:rgba(23,23,23,.08);   /* 细线 */
+  --page-line-2:rgba(23,23,23,.14); /* 控件边框 */
+  --page-ink:#171717;         /* 主文字 */
+  --page-ink-2:#525252;       /* 次级文字 */
+  --page-ink-3:#737373;       /* 元信息、图标 */
+  --page-accent:#23406E;      /* 蓝黑墨水：主操作、选中、证据刻痕 */
+  --page-accent-700:#1A3154;  /* 按下 */
+  --page-accent-50:#EDF1F7;   /* 选中底 */
+  --page-pos:#16A34A;
+  --page-neg:#B4332B;         /* 只用于高风险安全提示 */
+  --page-neg-50:#FBEFEE;
+  --page-sans:'Noto Sans SC','PingFang SC','Microsoft YaHei',system-ui,sans-serif;
+  --page-mono:'JetBrains Mono',ui-monospace,'SF Mono',Menlo,Consolas,monospace;
+  --page-ease:cubic-bezier(.22,1,.36,1);
+}
+
+/* ================= 画布外壳（类 Figma，非产品样式） ================= */
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:#E5E5E5;font-family:system-ui,-apple-system,'Segoe UI',sans-serif;color:#1e1e1e}
+.fx-app{display:grid;grid-template-rows:44px 1fr;grid-template-columns:240px 1fr 260px;height:100vh}
+.fx-top{grid-column:1/-1;display:flex;align-items:center;gap:12px;padding:0 12px;background:#2C2C2C;color:#fff;font-size:12px}
+.fx-top b{font-weight:600}.fx-top .s{color:#B3B3B3}.fx-top .sp{flex:1}
+.fx-btn{background:transparent;border:0;color:#fff;height:28px;min-width:28px;padding:0 8px;border-radius:5px;font:inherit;cursor:pointer}
+.fx-btn:hover{background:#444}
+.fx-zoom{min-width:48px;text-align:center}
+.fx-side{background:#fff;border-right:1px solid #E5E5E5;overflow:auto;font-size:12px}
+.fx-side.r{border-right:0;border-left:1px solid #E5E5E5}
+.fx-sec{padding:12px 0;border-bottom:1px solid #EEE}
+.fx-sec h4{margin:0 0 6px;padding:0 16px;font-size:11px;font-weight:600}
+.fx-item{display:flex;align-items:center;gap:8px;padding:6px 16px;cursor:pointer;color:#333;border:0;background:none;width:100%;text-align:left;font:inherit}
+.fx-item:hover{background:#F5F5F5}
+.fx-item.on{background:#E5F4FF;color:#0B6BB3;font-weight:600}
+.fx-item svg{width:14px;height:14px;stroke-width:1.6;flex:none}
+.fx-kv{display:grid;grid-template-columns:48px 1fr;gap:6px 8px;padding:0 16px;color:#555}
+.fx-kv b{color:#1e1e1e;font-weight:500}
+.fx-note{padding:0 16px;color:#555;line-height:1.6}
+.fx-sw{display:flex;align-items:center;gap:8px;padding:4px 16px;color:#333}
+.fx-sw i{width:14px;height:14px;border-radius:3px;border:1px solid rgba(0,0,0,.1);flex:none}
+.fx-sw code{margin-left:auto;color:#888;font-family:ui-monospace,monospace;font-size:11px}
+.fx-canvas{position:relative;overflow:hidden;cursor:grab;background-color:#E5E5E5;background-image:radial-gradient(#CFCFCF 1px,transparent 1px);background-size:20px 20px}
+.fx-canvas.drag{cursor:grabbing}
+.fx-world{position:absolute;left:0;top:0;transform-origin:0 0}
+.fx-ab{position:absolute}
+.fx-ab-label{position:absolute;left:0;top:-22px;font-size:12px;color:#7A7A7A;white-space:nowrap}
+.fx-ab-label span{color:#AAA;margin-left:8px}
+.fx-ab.sel .fx-ab-label{color:#0D99FF}
+.fx-ab.sel>.ab{outline:2px solid #0D99FF}
+.fx-page{display:none}.fx-page.on{display:block}
+.fx-hint{position:absolute;left:12px;bottom:12px;font-size:11px;color:#666;background:rgba(255,255,255,.9);padding:6px 10px;border-radius:6px}
+
+/* ================= 产品基础样式 ================= */
+.ab{position:relative;background:var(--page-bg);font-family:var(--page-sans);color:var(--page-ink);overflow:hidden;font-size:14px;line-height:22px;font-variant-numeric:tabular-nums;letter-spacing:0}
+.ab *{box-sizing:border-box}
+.ab svg.lucide{width:16px;height:16px;stroke-width:1.5;color:var(--page-ink-3);flex:none}
+.mono{font-family:var(--page-mono);font-size:12px;line-height:16px;color:var(--page-ink-3)}
+.c2{color:var(--page-ink-2)}.c3{color:var(--page-ink-3)}
+
+/* 按钮 */
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;height:40px;padding:0 16px;border-radius:8px;border:1px solid transparent;font:500 14px/1 var(--page-sans);white-space:nowrap;cursor:pointer;transition:background-color 160ms var(--page-ease),transform 160ms var(--page-ease)}
+.btn-p{background:var(--page-accent);color:#fff}
+.btn-p.press{background:var(--page-accent-700);transform:scale(.98)}
+.btn-s{background:var(--page-raised);color:var(--page-ink);border-color:var(--page-line)}
+.btn-t{background:none;color:var(--page-ink-2);padding:0 4px;height:32px}
+.btn-x{background:var(--page-raised);color:#A3A3A3}
+.btn-sm{height:32px;padding:0 12px;font-size:13px}
+.btn-lg{height:44px;padding:0 20px}
+.focus{box-shadow:0 0 0 2px var(--page-bg),0 0 0 4px var(--page-accent)}
+.ibtn{width:32px;height:32px;border-radius:8px;display:grid;place-items:center;background:var(--page-ink)}
+.ibtn svg.lucide{color:#fff}
+
+/* 标签：全部是安静的文字 */
+.tag{display:inline-flex;align-items:center;height:20px;padding:0 6px;border-radius:4px;font-size:12px;line-height:16px;color:var(--page-ink-2);background:var(--page-raised);white-space:nowrap}
+.tag.dash{background:none;border:1px dashed var(--page-line-2)}
+.tag.ok{background:var(--page-accent-50);color:var(--page-accent)}
+
+/* 签名细节：证据刻痕
+   一笔 = 一条独立证据；笔长 = 强度（强 20 / 中 14 / 弱 8）
+   虚线 = 用户自述（不计数）；浅灰 = 升到下一级还差的空位 */
+.tally{display:inline-flex;align-items:flex-end;gap:4px;height:20px;vertical-align:middle}
+.tally i{display:block;width:2px;border-radius:1px;background:var(--page-accent)}
+.tally i.s{height:20px}.tally i.m{height:14px}.tally i.w{height:8px}
+.tally i.self{height:14px;background:repeating-linear-gradient(to top,var(--page-ink-3) 0 2px,transparent 2px 4px)}
+.tally i.slot{height:20px;background:rgba(23,23,23,.12)}
+.tally.lg{height:40px;gap:8px}
+.tally.lg i{width:3px;border-radius:2px}
+.tally.lg i.s{height:40px}.tally.lg i.m{height:28px}.tally.lg i.w{height:16px}.tally.lg i.slot{height:40px}
+
+/* 门槛条 */
+.gate{display:grid;grid-template-columns:72px 1fr 56px;align-items:center;gap:12px;height:28px}
+.gate .lab{font-size:13px;color:var(--page-ink-2)}
+.gate .bar{height:4px;border-radius:2px;background:var(--page-raised);position:relative;overflow:hidden}
+.gate .bar b{position:absolute;left:0;top:0;bottom:0;background:var(--page-accent);border-radius:2px}
+.gate .bar.done b{background:var(--page-ink-3)}
+.gate .v{font-family:var(--page-mono);font-size:12px;color:var(--page-ink);text-align:right}
+
+/* ================= 首页 · 桌面 ================= */
+.d{width:1440px;height:1100px;display:grid;grid-template-columns:248px 1fr}
+.side{background:var(--page-bg);border-right:1px solid var(--page-line);display:flex;flex-direction:column;padding:0 12px 16px}
+.brand{height:56px;display:flex;align-items:center;gap:10px;padding:0 8px}
+.brand .mk{display:inline-flex;align-items:flex-end;gap:3px;height:16px}
+.brand .mk i{display:block;width:3px;border-radius:1px;background:var(--page-accent)}
+.brand b{font-size:16px;font-weight:500;line-height:1}
+.nav{display:flex;flex-direction:column;gap:2px;margin-top:8px}
+.nav a{height:36px;display:flex;align-items:center;gap:10px;padding:0 8px;border-radius:8px;color:var(--page-ink-2);font-size:14px}
+.nav a.on{background:var(--page-raised);color:var(--page-ink);box-shadow:inset 0 0 0 1px var(--page-line)}
+.nav a.on svg.lucide{color:var(--page-ink)}
+.nav a .n{margin-left:auto}
+.slab{font-size:12px;color:var(--page-ink-3);padding:0 8px;margin:24px 0 8px}
+.story{height:36px;display:flex;align-items:center;gap:10px;padding:0 8px;border-radius:8px;font-size:13px;color:var(--page-ink-2)}
+.story span:first-child{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.side .grow{flex:1}
+.me{height:44px;display:flex;align-items:center;gap:10px;padding:0 8px;border-top:1px solid var(--page-line);margin-top:8px;padding-top:8px}
+.av{width:24px;height:24px;border-radius:6px;background:var(--page-raised);display:grid;place-items:center;font-size:12px;color:var(--page-ink-2);box-shadow:inset 0 0 0 1px var(--page-line)}
+.main{display:flex;flex-direction:column;min-width:0}
+.hdr{height:56px;display:flex;align-items:center;justify-content:space-between;padding:0 32px;border-bottom:1px solid var(--page-line)}
+.hdr h2{margin:0;font-size:15px;font-weight:500}
+.wrap{padding:48px 32px 32px;display:flex;flex-direction:column;gap:56px}
+.hero{display:grid;grid-template-columns:minmax(0,5fr) minmax(0,7fr);gap:48px;align-items:center}
+.hero .meta{display:flex;gap:12px;align-items:center}
+.hero h1{margin:16px 0 16px;font-size:36px;line-height:44px;font-weight:500;letter-spacing:-.01em}
+.hero p{margin:0;font-size:16px;line-height:26px;color:var(--page-ink-2);max-width:36em}
+.comp{margin-top:32px;background:var(--page-surface);border:1px solid var(--page-line-2);border-radius:12px;padding:12px 12px 12px 16px;display:flex;align-items:flex-end;gap:12px}
+.comp .ph{flex:1;color:var(--page-ink-3);font-size:15px;line-height:24px;padding:4px 0;min-height:56px}
+.comp .tools{display:flex;gap:4px;align-items:center}
+.tb{width:32px;height:32px;display:grid;place-items:center;border-radius:8px}
+.resume{display:flex;align-items:center;gap:8px;margin-top:16px;font-size:13px;color:var(--page-ink-2)}
+.resume b{font-weight:500;color:var(--page-ink)}
+
+/* 高光时刻：线索卡 */
+.card{background:var(--page-surface);border:1px solid var(--page-line);border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,.06);padding:24px 28px 24px}
+.card .top{display:flex;align-items:center;justify-content:space-between}
+.card .top .l{display:flex;gap:8px;align-items:center}
+.card h3{margin:12px 0 20px;font-size:22px;line-height:30px;font-weight:500}
+.card .tl{display:flex;align-items:flex-end;gap:16px;padding-bottom:20px;border-bottom:1px solid var(--page-line)}
+.card .tl .cap{font-size:13px;color:var(--page-ink-2);line-height:20px}
+.evs{padding:8px 0;border-bottom:1px solid var(--page-line)}
+.ev{display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:baseline;padding:10px 0}
+.ev .src{font-size:12px;color:var(--page-ink-3)}
+.ev .q{font-size:14px;line-height:22px}
+.ev.dim .q{color:var(--page-ink-3)}
+.gates{padding:16px 0 4px}
+.need{display:flex;align-items:center;justify-content:space-between;gap:16px;padding-top:20px;margin-top:12px;border-top:1px solid var(--page-line)}
+.need p{margin:0;font-size:13px;line-height:20px;color:var(--page-ink-2);max-width:22em}
+.need .acts{display:flex;gap:8px}
+
+/* 第二行：线索表 + 进度 */
+.row{display:grid;grid-template-columns:minmax(0,8fr) minmax(0,4fr);gap:48px}
+.blk-h{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:8px}
+.blk-h h3{margin:0;font-size:15px;line-height:24px;font-weight:500}
+table.cl{width:100%;border-collapse:collapse}
+table.cl th{height:36px;font-size:12px;font-weight:400;color:var(--page-ink-3);text-align:left;border-bottom:1px solid var(--page-line-2);padding:0 12px}
+table.cl td{height:48px;padding:0 12px;border-bottom:1px solid var(--page-line);font-size:14px;vertical-align:middle}
+table.cl th:first-child,table.cl td:first-child{padding-left:0}
+table.cl td.r,table.cl th.r{text-align:right;padding-right:0}
+table.cl tr.sel td{background:var(--page-accent-50)}
+table.cl tr.sel td:first-child{box-shadow:inset 2px 0 0 var(--page-accent);padding-left:12px}
+.steps{list-style:none;margin:0;padding:0}
+.steps li{height:44px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--page-line);font-size:14px}
+.steps li .st{margin-left:auto}
+.steps li.cur{font-weight:500}
+.steps li.lock{color:var(--page-ink-3)}
+.dot{width:8px;height:8px;border-radius:50%;border:1.5px solid var(--page-line-2);flex:none}
+.dot.done{background:var(--page-ink-3);border-color:var(--page-ink-3)}
+.dot.cur{background:var(--page-accent);border-color:var(--page-accent)}
+.energy{margin-top:32px}
+.seg{display:grid;grid-template-columns:repeat(10,1fr);border:1px solid var(--page-line-2);border-radius:8px;overflow:hidden;margin-top:8px}
+.seg span{height:36px;display:grid;place-items:center;font-family:var(--page-mono);font-size:13px;color:var(--page-ink-2);background:var(--page-surface);border-left:1px solid var(--page-line)}
+.seg span:first-child{border-left:0}
+.seg span.on{background:var(--page-accent);color:#fff}
+
+/* ================= 首页 · 移动 ================= */
+.m{width:390px;height:844px;display:flex;flex-direction:column}
+.m-sb{height:44px;display:flex;align-items:center;justify-content:space-between;padding:0 24px;font-size:14px;font-weight:500}
+.m-sb .ic{display:flex;gap:6px}.m-sb .ic svg.lucide{color:var(--page-ink)}
+.m-hd{height:48px;display:flex;align-items:center;justify-content:space-between;padding:0 20px}
+.m-hd h2{margin:0;font-size:15px;font-weight:500}
+.m-bd{flex:1;padding:8px 20px 0;overflow:hidden}
+.m-bd h1{margin:0 0 8px;font-size:24px;line-height:32px;font-weight:500}
+.m-bd p{margin:0 0 20px;font-size:14px;line-height:22px;color:var(--page-ink-2)}
+.m-card{background:var(--page-surface);border:1px solid var(--page-line);border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,.06);padding:20px}
+.m-card h3{margin:8px 0 16px;font-size:17px;line-height:26px;font-weight:500}
+.m-list{margin-top:24px}
+.m-row{height:48px;display:flex;align-items:center;gap:12px;border-bottom:1px solid var(--page-line);font-size:14px}
+.m-row span:first-child{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.m-comp{margin:0 12px 8px;background:var(--page-surface);border:1px solid var(--page-line-2);border-radius:12px;height:48px;display:flex;align-items:center;gap:8px;padding:0 8px 0 16px;color:var(--page-ink-3);font-size:14px}
+.m-comp span{flex:1}
+.m-tab{height:83px;border-top:1px solid var(--page-line);background:var(--page-surface);display:grid;grid-template-columns:repeat(4,1fr);padding-top:8px}
+.m-tab a{display:flex;flex-direction:column;align-items:center;gap:4px;font-size:11px;line-height:14px;color:var(--page-ink-3)}
+.m-tab a svg.lucide{width:22px;height:22px}
+.m-tab a.on{color:var(--page-ink)}.m-tab a.on svg.lucide{color:var(--page-ink)}
+
+/* ================= 设计规范画板 ================= */
+.spec{padding:48px 56px;background:var(--page-surface)}
+.sh{display:flex;justify-content:space-between;align-items:baseline;padding-bottom:16px;border-bottom:1px solid var(--page-ink);margin-bottom:32px}
+.sh h2{margin:0;font-size:28px;line-height:36px;font-weight:500}
+.sh .mono{font-size:12px}
+.spec h4{margin:0 0 12px;font-size:13px;line-height:20px;font-weight:500;color:var(--page-ink-2)}
+.spec .lead{margin:-12px 0 32px;font-size:15px;line-height:24px;color:var(--page-ink-2);max-width:46em}
+.dir{display:grid;grid-template-columns:96px 1fr;border-top:1px solid var(--page-line)}
+.dir>div{padding:14px 0;border-bottom:1px solid var(--page-line);font-size:14px;line-height:22px}
+.dir>div:nth-child(odd){color:var(--page-ink-3);font-size:13px}
+.audit{width:100%;border-collapse:collapse}
+.audit th{font-size:12px;font-weight:400;color:var(--page-ink-3);text-align:left;padding:0 12px 8px 0;border-bottom:1px solid var(--page-line-2)}
+.audit td{font-size:13px;line-height:20px;padding:9px 12px 9px 0;border-bottom:1px solid var(--page-line);vertical-align:top}
+.audit td:first-child{color:var(--page-ink-2);width:48%}
+.credit{position:absolute;left:56px;bottom:28px;font-size:12px;color:var(--page-ink-3)}
+.ramp{display:grid;grid-template-columns:repeat(7,1fr);border:1px solid var(--page-line);border-radius:12px;overflow:hidden}
+.ramp>div{border-left:1px solid var(--page-line)}
+.ramp>div:first-child{border-left:0}
+.ramp .c{height:96px}
+.ramp .t{padding:12px;font-size:13px;line-height:20px}
+.ramp .t .mono{display:block;margin-top:4px}
+.acc{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:16px;margin-top:24px}
+.acc>div{border:1px solid var(--page-line);border-radius:12px;overflow:hidden}
+.acc .c{height:120px}
+.acc .t{padding:12px 14px;font-size:13px;line-height:20px}
+.acc .t b{display:block;font-size:14px;font-weight:500}
+.acc .t .mono{display:block;margin-top:4px}
+.rl{list-style:none;margin:0;padding:0}
+.rl li{display:grid;grid-template-columns:96px 1fr;gap:12px;padding:10px 0;border-bottom:1px solid var(--page-line);font-size:13px;line-height:20px;color:var(--page-ink-2)}
+.rl li b{font-weight:500;color:var(--page-ink)}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:48px;margin-top:40px}
+table.ts{width:100%;border-collapse:collapse}
+table.ts th{font-size:12px;font-weight:400;color:var(--page-ink-3);text-align:left;padding:0 0 8px;border-bottom:1px solid var(--page-line-2)}
+table.ts td{padding:16px 0;border-bottom:1px solid var(--page-line);vertical-align:baseline}
+table.ts td.mono{white-space:nowrap;padding-right:24px}
+.spc{display:flex;align-items:flex-end;gap:16px}
+.spc div{text-align:center}
+.spc i{display:block;background:var(--page-accent-50);box-shadow:inset 0 0 0 1px rgba(35,64,110,.25);margin:0 auto 8px}
+.rads{display:flex;gap:16px}
+.rads div{width:104px;height:72px;border:1.5px solid var(--page-ink-2);display:flex;align-items:flex-end;padding:8px;font-size:12px;color:var(--page-ink-2)}
+.nest{margin-top:16px;width:232px;padding:8px;border-radius:16px;border:1.5px solid var(--page-ink-2)}
+.nest div{height:48px;border-radius:8px;background:var(--page-raised);display:grid;place-items:center;font-size:12px;color:var(--page-ink-2)}
+.lay{position:relative;height:168px;border:1px solid var(--page-line);border-radius:12px;background:var(--page-bg);overflow:hidden;display:grid;grid-template-columns:62px 1fr}
+.lay .sb{border-right:1px solid var(--page-line);background:var(--page-raised)}
+.lay .ct{position:relative}
+.lay .ct .hb{height:14px;border-bottom:1px solid var(--page-line)}
+.lay .ct .cols{position:absolute;left:8px;right:8px;top:22px;bottom:22px;display:grid;grid-template-columns:repeat(12,1fr);gap:6px}
+.lay .ct .cols i{background:rgba(35,64,110,.08)}
+.lay .cap{position:absolute;left:12px;bottom:6px;font-size:11px;color:var(--page-ink-3)}
+.cg{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:40px 48px}
+.cg .w2{grid-column:span 2}
+.cg .stage{display:flex;flex-wrap:wrap;gap:12px;align-items:center}
+.cg .cap{margin-top:12px;font-size:12px;line-height:18px;color:var(--page-ink-3)}
+.legend{display:grid;grid-template-columns:auto 1fr;gap:10px 14px;align-items:center;font-size:13px;color:var(--page-ink-2)}
+.coach{display:grid;grid-template-columns:24px 1fr;gap:12px}
+.coach .mk2{height:24px;display:flex;align-items:flex-end;gap:2px;padding:4px 0 4px 6px}
+.coach .mk2 i{width:2px;border-radius:1px;background:var(--page-accent);display:block}
+.coach p{margin:0;font-size:15px;line-height:26px}
+.mine{margin-left:auto;max-width:360px;background:var(--page-raised);border-radius:12px;padding:10px 14px;font-size:15px;line-height:26px}
+.xcard{margin-top:12px;border:1px solid var(--page-line-2);border-radius:12px;padding:16px;background:var(--page-surface)}
+.xcard .k{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--page-ink-3)}
+.xcard .s{font-size:16px;line-height:24px;font-weight:500;margin:8px 0 4px}
+.xcard .w{font-size:13px;line-height:20px;color:var(--page-ink-2)}
+.xcard .a{display:flex;gap:8px;margin-top:12px}
+.navdemo{width:224px;display:flex;flex-direction:column;gap:2px}
+.navdemo a{height:36px;display:flex;align-items:center;gap:10px;padding:0 8px;border-radius:8px;color:var(--page-ink-2);font-size:14px}
+.navdemo a.on{background:var(--page-raised);color:var(--page-ink);box-shadow:inset 0 0 0 1px var(--page-line)}
+.navdemo a.hv{background:rgba(23,23,23,.04)}
+.safe{border-radius:12px;padding:16px;display:grid;grid-template-columns:16px 1fr;gap:12px;font-size:14px;line-height:22px}
+.safe .h{font-weight:500}
+.safe.mid{background:var(--page-raised);color:var(--page-ink-2)}
+.safe.mid .h{color:var(--page-ink)}
+.safe.hi{background:var(--page-neg-50);color:#5B1E19}
+.safe.hi svg.lucide{color:var(--page-neg)}
+.mt{width:100%;border-collapse:collapse}
+.mt td{padding:10px 0;border-bottom:1px solid var(--page-line);font-size:13px;color:var(--page-ink-2)}
+.mt td.mono{text-align:right}
+
+/* ===== 补充 1（2026-11-24）：只新增，不改动以上规则 ===== */
+.btn-k{background:var(--page-ink);color:#fff}
+.btn-k.press{background:#000;transform:scale(.98)}
+.dlg-s{width:400px;background:var(--page-surface);border:1px solid var(--page-line);border-radius:16px;box-shadow:0 8px 24px rgba(0,0,0,.08);padding:20px}
+.dlg-s h5{margin:0;font-size:16px;line-height:24px;font-weight:500}
+.dlg-s p{margin:6px 0 0;font-size:13px;line-height:20px;color:var(--page-ink-2)}
+.dlg-s .ft{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}
+.rtab{width:100%;border-collapse:collapse}
+.rtab th{font-size:12px;font-weight:400;color:var(--page-ink-3);text-align:left;padding:0 16px 8px 0;border-bottom:1px solid var(--page-line-2)}
+.rtab td{font-size:13px;line-height:20px;padding:10px 16px 10px 0;border-bottom:1px solid var(--page-line);vertical-align:top;color:var(--page-ink-2)}
+.rtab td:first-child{color:var(--page-ink)}
+</style>
+</head>
+<body>
+<div class="fx-app">
+  <div class="fx-top">
+    <b>照见（暂定名）</b><span class="s">/ 设计稿 v0.2</span>
+    <span class="sp"></span>
+    <button class="fx-btn" id="zOut">−</button><span class="fx-zoom" id="zLab">100%</span><button class="fx-btn" id="zIn">+</button>
+    <button class="fx-btn" id="zFit">适应画布</button><button class="fx-btn" id="z100">100%</button>
+  </div>
+
+  <aside class="fx-side">
+    <div class="fx-sec"><h4>页面</h4>
+      <button class="fx-item" data-page="spec"><i data-lucide="file"></i>设计规范</button>
+      <button class="fx-item" data-page="home"><i data-lucide="file"></i>首页</button>
+    </div>
+    <div class="fx-sec"><h4>画板</h4><div id="layers"></div></div>
+  </aside>
+
+  <main class="fx-canvas" id="canvas"><div class="fx-world" id="world">
+
+  <!-- =================== 页面：首页 =================== -->
+  <section class="fx-page" data-page="home">
+    <div class="fx-ab" data-name="首页 · 桌面 1440" data-desc="回访用户，第 6 天。首页只有一个高光：最接近写进画像的那条线索，以及它还差什么。其他内容都是安静的列表。" style="left:0;top:0">
+      <div class="fx-ab-label">首页 · 桌面 1440<span>1440 × 1100</span></div>
+      <div class="ab d">
+        <aside class="side">
+          <div class="brand"><span class="mk"><i style="height:16px"></i><i style="height:11px"></i><i style="height:6px"></i></span><b>照见</b></div>
+          <nav class="nav">
+            <a class="on"><i data-lucide="house"></i>首页</a>
+            <a><i data-lucide="message-circle"></i>对话</a>
+            <a><i data-lucide="list"></i>线索<span class="n mono">5</span></a>
+            <a><i data-lucide="user-round"></i>画像<span class="n mono">未生成</span></a>
+            <a><i data-lucide="calendar-check"></i>打卡<span class="n mono">6 天</span></a>
+          </nav>
+          <div class="slab">故事</div>
+          <div class="story"><span>第一份工作的主管</span><span class="mono">11-22</span></div>
+          <div class="story"><span>带实习生讲了五遍</span><span class="mono">11-21</span></div>
+          <div class="story"><span>接手无文档的项目</span><span class="mono">11-20</span></div>
+          <div class="story"><span>大学组织 200 人活动</span><span class="mono">11-19</span></div>
+          <div class="grow"></div>
+          <nav class="nav"><a><i data-lucide="settings"></i>设置</a></nav>
+          <div class="me"><span class="av">W</span><span style="font-size:13px">Wortley</span></div>
+        </aside>
+
+        <div class="main">
+          <div class="hdr"><h2>首页</h2><span class="mono">第 6 天 · 2026-11-24</span></div>
+          <div class="wrap">
+            <div class="hero">
+              <div>
+                <div class="meta"><span class="tag">优势候选</span><span class="mono">离写进画像最近的一条</span></div>
+                <h1>「梳理结构」这条线索，只差一条别处来的证据</h1>
+                <p>目前 2 条证据都来自你讲的故事，画像要求至少两种来源。上传一份测评，或做一次价值观澄清，它就能写进核心优势。</p>
+                <div class="comp">
+                  <div class="ph">或者说说今天想聊的</div>
+                  <div class="tools"><span class="tb"><i data-lucide="paperclip"></i></span><span class="tb"><i data-lucide="mic"></i></span><span class="ibtn"><i data-lucide="arrow-up"></i></span></div>
+                </div>
+                <div class="resume"><i data-lucide="corner-down-right"></i>上次聊到<b>第一份工作的主管</b><span class="mono">11-22 · 低谷故事</span></div>
+              </div>
+
+              <div class="card">
+                <div class="top"><div class="l"><span class="tag">能力</span><span class="mono">clue_0001</span></div><span class="mono">中 → 高</span></div>
+                <h3>在混乱的局面里，擅长先梳理结构再推进</h3>
+                <div class="tl">
+                  <span class="tally lg"><i class="s"></i><i class="m"></i><i class="slot"></i></span>
+                  <span class="cap">2 条证据，都来自经历<br><span class="c3">空位是升到「高」还差的一笔</span></span>
+                </div>
+                <div class="evs">
+                  <div class="ev"><span class="src">经历</span><span class="q">其实是前期把一团乱麻理清楚的那段，熬夜都不觉得累</span><span class="mono">强</span></div>
+                  <div class="ev"><span class="src">经历</span><span class="q">画那张系统关系图的时候，整个项目一下子通了</span><span class="mono">中</span></div>
+                  <div class="ev dim"><span class="src">自述</span><span class="q">我平时也喜欢列清单</span><span class="mono">不计数</span></div>
+                </div>
+                <div class="gates">
+                  <div class="gate"><span class="lab">证据数</span><span class="bar"><b style="width:66.6%"></b></span><span class="v">2 / 3</span></div>
+                  <div class="gate"><span class="lab">来源种类</span><span class="bar"><b style="width:50%"></b></span><span class="v">1 / 2</span></div>
+                  <div class="gate"><span class="lab">加权分</span><span class="bar"><b style="width:83.3%"></b></span><span class="v">2.5 / 3.0</span></div>
+                </div>
+                <div class="need">
+                  <p>还差 1 条来自测评、价值观澄清或他人反馈的证据</p>
+                  <div class="acts"><span class="btn btn-p">上传测评报告</span><span class="btn btn-s">价值观澄清</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div class="row">
+              <div>
+                <div class="blk-h"><h3>全部线索</h3><span class="mono">5 条 · 0 条到「高」</span></div>
+                <table class="cl">
+                  <tr><th>线索</th><th>类型</th><th>证据</th><th class="r">等级</th></tr>
+                  <tr class="sel"><td>在混乱的局面里，擅长先梳理结构再推进</td><td class="c2">优势候选</td><td><span class="tally"><i class="s"></i><i class="m"></i><i class="slot"></i></span></td><td class="r">中</td></tr>
+                  <tr><td>习惯用画图、画表的方式理清思路</td><td class="c2">行为模式</td><td><span class="tally"><i class="m"></i><i class="m"></i><i class="slot"></i></span></td><td class="r">中</td></tr>
+                  <tr><td>自主权对我很重要</td><td class="c2">价值观</td><td><span class="tally"><i class="s"></i><i class="slot"></i><i class="slot"></i></span></td><td class="r">中</td></tr>
+                  <tr><td>被管得过细会明显消耗我</td><td class="c2">能量消耗</td><td><span class="tally"><i class="s"></i><i class="slot"></i><i class="slot"></i></span></td><td class="r">中</td></tr>
+                  <tr><td>有耐心 <span class="tag dash" style="margin-left:8px">待补例子</span></td><td class="c2">优势候选</td><td><span class="tally"><i class="self"></i><i class="slot"></i><i class="slot"></i></span></td><td class="r c3">线索</td></tr>
+                </table>
+              </div>
+              <div>
+                <div class="blk-h"><h3>探索进度</h3><span class="mono">2 / 5</span></div>
+                <ul class="steps">
+                  <li><span class="dot done"></span>目标设定<span class="st mono">11-19</span></li>
+                  <li class="cur"><span class="dot cur"></span>经历挖掘<span class="st mono">高光 3 · 低谷 1</span></li>
+                  <li><span class="dot"></span>价值观澄清<span class="st mono">可以开始</span></li>
+                  <li><span class="dot"></span>测评解读<span class="st mono">随时上传</span></li>
+                  <li class="lock"><span class="dot"></span>生成画像<span class="st mono">还差 3 条「高」</span></li>
+                </ul>
+                <div class="energy">
+                  <div class="blk-h"><h3>今天的能量</h3><span class="mono">已记录 6 / 14 天</span></div>
+                  <div class="seg"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span><span>10</span></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="fx-ab" data-name="首页 · 移动 390" data-desc="同一状态。线索卡去掉证据原话，保留刻痕和三条门槛；输入框固定在标签栏上方。" style="left:1540px;top:0">
+      <div class="fx-ab-label">首页 · 移动 390<span>390 × 844</span></div>
+      <div class="ab m">
+        <div class="m-sb"><span>21:50</span><span class="ic"><i data-lucide="signal"></i><i data-lucide="wifi"></i><i data-lucide="battery-full"></i></span></div>
+        <div class="m-hd"><h2>首页</h2><span class="mono">第 6 天</span></div>
+        <div class="m-bd">
+          <h1>「梳理结构」只差一条别处来的证据</h1>
+          <p>上传一份测评，或做一次价值观澄清，它就能写进核心优势。</p>
+          <div class="m-card">
+            <div style="display:flex;justify-content:space-between"><span class="tag">优势候选</span><span class="mono">中 → 高</span></div>
+            <h3>在混乱的局面里，擅长先梳理结构再推进</h3>
+            <div style="display:flex;align-items:flex-end;gap:12px;margin-bottom:12px"><span class="tally lg"><i class="s"></i><i class="m"></i><i class="slot"></i></span><span class="mono">2 条 · 都来自经历</span></div>
+            <div class="gate"><span class="lab">证据数</span><span class="bar"><b style="width:66.6%"></b></span><span class="v">2 / 3</span></div>
+            <div class="gate"><span class="lab">来源种类</span><span class="bar"><b style="width:50%"></b></span><span class="v">1 / 2</span></div>
+            <div class="gate"><span class="lab">加权分</span><span class="bar"><b style="width:83.3%"></b></span><span class="v">2.5 / 3.0</span></div>
+            <span class="btn btn-p btn-lg" style="width:100%;margin-top:16px">上传测评报告</span>
+            <div style="text-align:center;margin-top:8px"><span class="btn btn-t">或做一次价值观澄清</span></div>
+          </div>
+          <div class="m-list">
+            <div class="blk-h"><h3>全部线索</h3><span class="mono">5 条</span></div>
+            <div class="m-row"><span>习惯用画图、画表的方式理清思路</span><span class="tally"><i class="m"></i><i class="m"></i><i class="slot"></i></span></div>
+            <div class="m-row"><span>自主权对我很重要</span><span class="tally"><i class="s"></i><i class="slot"></i><i class="slot"></i></span></div>
+          </div>
+        </div>
+        <div class="m-comp"><span>说说今天想聊的</span><span class="ibtn"><i data-lucide="arrow-up"></i></span></div>
+        <nav class="m-tab">
+          <a class="on"><i data-lucide="house"></i>首页</a>
+          <a><i data-lucide="list"></i>线索</a>
+          <a><i data-lucide="calendar-check"></i>打卡</a>
+          <a><i data-lucide="user-round"></i>画像</a>
+        </nav>
+      </div>
+    </div>
+  </section>
+
+  <!-- =================== 页面：设计规范 =================== -->
+  <section class="fx-page" data-page="spec">
+
+    <!-- 00 方向 -->
+    <div class="fx-ab" data-name="00 方向与审查" data-desc="按 unslop 的方法：先列出 v0.1 的问题，再从产品本身定方向。后面所有规范都从这五行推出来。" style="left:0;top:0">
+      <div class="fx-ab-label">00 方向与审查<span>1440 × 900</span></div>
+      <div class="ab spec" style="width:1440px;height:900px">
+        <div class="sh"><h2>颜色只留给证据，界面其余部分保持安静</h2><span class="mono">方向 · Direction</span></div>
+        <div style="display:grid;grid-template-columns:5fr 7fr;gap:64px">
+          <div>
+            <h4>方向</h4>
+            <div class="dir">
+              <div>产品</div><div>通过对话，从你讲的真实经历里收集证据，整理出一份每条结论都有出处的优劣势画像</div>
+              <div>性格</div><div>克制、讲证据、有一点体温</div>
+              <div>世界</div><div>研究者的田野笔记：索引卡、原话摘录、铅笔记下的计数</div>
+              <div>高光时刻</div><div>首页那张线索卡：一条线索的全部证据、原话，以及离「高」还差什么。画像页的核心优势同理</div>
+              <div>签名细节</div><div>证据刻痕。一笔是一条独立证据，笔长表示强度，空位表示还差的一笔。产品里凡是出现置信度的地方都用它</div>
+            </div>
+          </div>
+          <div>
+            <h4>v0.1 审查：12 处</h4>
+            <table class="audit">
+              <tr><th>问题与位置</th><th>改法</th></tr>
+              <tr><td>首页主标题前有问候语「晚上好，Wortley」</td><td>标题栏只写页面名，日期放到右侧</td></tr>
+              <tr><td>衬线大标题 + 偏绿的浅灰底 + 低饱和主色</td><td>界面统一用黑体，靠字号拉开层级</td></tr>
+              <tr><td>背景、浅底、卡片都带了绿色</td><td>表面回到中性灰，颜色只留在强调色和线索卡</td></tr>
+              <tr><td>Logo 是圆角色块里放一个衬线字</td><td>文字标识加三道刻痕，不用色块</td></tr>
+              <tr><td>输入框下堆了 3 个快捷选项，一屏共 4 个动作</td><td>一个主操作，一个次操作</td></tr>
+              <tr><td>每个面板同样的圆角、边框，分量一样</td><td>只有线索卡浮起，其余是细线列表</td></tr>
+              <tr><td>首页没有重点，线索墙、进度、打卡平分右栏</td><td>最接近升级的线索做成唯一的高光</td></tr>
+              <tr><td>置信度用通用的 4 格进度条</td><td>改为证据刻痕</td></tr>
+              <tr><td>灯泡图标提示框，图标只是装饰</td><td>删除，内容并进线索卡</td></tr>
+              <tr><td>72px 纯图标侧栏，看不出去哪</td><td>248px 带文字的侧栏，加「故事」列表</td></tr>
+              <tr><td>标题、短句末尾带句号</td><td>标题、标签、按钮都不加句号</td></tr>
+              <tr><td>加载了 600 和 700 字重</td><td>只用 400 和 500</td></tr>
+            </table>
+          </div>
+        </div>
+        <div class="credit">方法参考 unslop by Damir Sokolovsky（@heydamir），CC BY 4.0 · github.com/heydamir/unslop</div>
+      </div>
+    </div>
+
+    <!-- 01 色彩 -->
+    <div class="fx-ab" data-name="01 色彩" data-desc="一条中性灰阶覆盖所有表面和文字；只有一个强调色蓝黑墨水。警示红只给高风险安全提示。" style="left:1540px;top:0">
+      <div class="fx-ab-label">01 色彩<span>1200 × 900</span></div>
+      <div class="ab spec" style="width:1200px;height:900px">
+        <div class="sh"><h2>一条灰阶，一种墨水色</h2><span class="mono">色彩 · Color</span></div>
+        <p class="lead">用户会在这里坐很久，读自己的故事。背景、卡片、边框和文字全部来自同一条中性灰阶，颜色只出现在主操作、选中状态和证据刻痕上。</p>
+        <h4>中性灰阶</h4>
+        <div class="ramp">
+          <div><div class="c" style="background:var(--page-bg)"></div><div class="t">页面背景<span class="mono">bg #FAFAFA</span></div></div>
+          <div><div class="c" style="background:var(--page-surface)"></div><div class="t">卡片<span class="mono">surface #FFFFFF</span></div></div>
+          <div><div class="c" style="background:var(--page-raised)"></div><div class="t">选中、输入<span class="mono">raised #F4F4F5</span></div></div>
+          <div><div class="c" style="background:#EBEBEB"></div><div class="t">细线<span class="mono">ink 8%</span></div></div>
+          <div><div class="c" style="background:var(--page-ink-3)"></div><div class="t">元信息<span class="mono">ink-3 #737373</span></div></div>
+          <div><div class="c" style="background:var(--page-ink-2)"></div><div class="t">次级文字<span class="mono">ink-2 #525252</span></div></div>
+          <div><div class="c" style="background:var(--page-ink)"></div><div class="t">主文字<span class="mono">ink #171717</span></div></div>
+        </div>
+        <div class="acc">
+          <div><div class="c" style="background:var(--page-accent)"></div><div class="t"><b>蓝黑墨水 · 唯一的强调色</b>主操作、选中、证据刻痕、门槛进度<span class="mono">accent #23406E · 白字对比度约 10 : 1</span></div></div>
+          <div><div class="c" style="background:var(--page-accent-700)"></div><div class="t"><b>按下</b><span class="mono">accent-700 #1A3154</span></div></div>
+          <div><div class="c" style="background:var(--page-accent-50)"></div><div class="t"><b>选中底</b><span class="mono">accent-50 #EDF1F7</span></div></div>
+          <div><div class="c" style="background:var(--page-neg)"></div><div class="t"><b>警示</b>只用于高风险安全提示<span class="mono">neg #B4332B</span></div></div>
+        </div>
+        <div class="two">
+          <ul class="rl">
+            <li><b>强调色</b>一屏只出现在主按钮、当前选中和刻痕上，面积不超过几个百分点</li>
+            <li><b>表面</b>不着色。不用渐变、发光、彩色阴影</li>
+          </ul>
+          <ul class="rl">
+            <li><b>细线</b>主文字色的 8%，控件边框 14%</li>
+            <li><b>阴影</b>只给浮起的线索卡：0 8 24 · 6% 黑</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- 02 字体 -->
+    <div class="fx-ab" data-name="02 字体" data-desc="一个界面字体加一个等宽字体。层级靠字号和颜色，不靠字重。" style="left:2840px;top:0">
+      <div class="fx-ab-label">02 字体<span>1000 × 900</span></div>
+      <div class="ab spec" style="width:1000px;height:900px">
+        <div class="sh"><h2>层级靠字号，不靠加粗</h2><span class="mono">字体 · Type</span></div>
+        <p class="lead">界面全部用思源黑体（Noto Sans SC），只用 400 和 500 两个字重。证据数、日期、分数等元信息用 JetBrains Mono，像笔记边上的批注。</p>
+        <table class="ts">
+          <tr><th style="width:150px">层级</th><th>示例</th></tr>
+          <tr><td class="mono">页面主句<br>36 / 44 · 500<br>移动 24 / 32</td><td><span style="font-size:36px;line-height:44px;font-weight:500;letter-spacing:-.01em">只差一条别处来的证据</span></td></tr>
+          <tr><td class="mono">卡片标题<br>22 / 30 · 500</td><td><span style="font-size:22px;line-height:30px;font-weight:500">在混乱的局面里，擅长先梳理结构再推进</span></td></tr>
+          <tr><td class="mono">区块标题<br>15 / 24 · 500</td><td><span style="font-size:15px;font-weight:500">全部线索</span></td></tr>
+          <tr><td class="mono">对话<br>15 / 26 · 400</td><td><span style="font-size:15px;line-height:26px">当时哪个环节你最投入，时间过得最快？</span></td></tr>
+          <tr><td class="mono">正文<br>14 / 22 · 400</td><td>目前 2 条证据都来自你讲的故事，画像要求至少两种来源。</td></tr>
+          <tr><td class="mono">辅助<br>13 / 20 · 400</td><td><span style="font-size:13px;color:var(--page-ink-2)">还差 1 条来自测评、价值观澄清或他人反馈的证据</span></td></tr>
+          <tr><td class="mono">元信息<br>Mono 12 / 16</td><td><span class="mono">2 / 3 · 2.5 / 3.0 · 11-22 · 第 6 天</span></td></tr>
+        </table>
+        <div class="two" style="margin-top:28px">
+          <ul class="rl"><li><b>文案</b>标题说结论，不说栏目名。不用问候语、感叹号</li><li><b>标点</b>标题、标签、按钮不加句号；多句段落保留</li></ul>
+          <ul class="rl"><li><b>数字</b>等宽数字，同一屏格式统一</li><li><b>不用</b>斜体、全大写、字距收紧的小字</li></ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- 03 间距 / 圆角 / 布局 / 动效 -->
+    <div class="fx-ab" data-name="03 间距 · 圆角 · 布局 · 动效" data-desc="4px 网格；圆角按尺寸分级并满足嵌套公式；一条缓动曲线。" style="left:0;top:1000px">
+      <div class="fx-ab-label">03 间距 · 圆角 · 布局 · 动效<span>1440 × 820</span></div>
+      <div class="ab spec" style="width:1440px;height:820px">
+        <div class="sh"><h2>组内紧，组间松</h2><span class="mono">间距 · 圆角 · 布局 · 动效</span></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:64px">
+          <div>
+            <h4>间距（4px 网格）</h4>
+            <div class="spc">
+              <div><i style="width:4px;height:4px"></i><span class="mono">4</span></div>
+              <div><i style="width:8px;height:8px"></i><span class="mono">8</span></div>
+              <div><i style="width:12px;height:12px"></i><span class="mono">12</span></div>
+              <div><i style="width:16px;height:16px"></i><span class="mono">16</span></div>
+              <div><i style="width:24px;height:24px"></i><span class="mono">24</span></div>
+              <div><i style="width:32px;height:32px"></i><span class="mono">32</span></div>
+              <div><i style="width:48px;height:48px"></i><span class="mono">48</span></div>
+              <div><i style="width:64px;height:64px"></i><span class="mono">64</span></div>
+            </div>
+            <ul class="rl" style="margin-top:20px">
+              <li><b>控件内</b>4–12</li>
+              <li><b>列表行之间</b>2–8；导航行高 36，间距 2</li>
+              <li><b>组之间</b>12–24；分组标签上 24 下 8</li>
+              <li><b>区块之间</b>48–56</li>
+            </ul>
+          </div>
+          <div>
+            <h4>圆角按尺寸分级</h4>
+            <div class="rads"><div style="border-radius:4px">4 · 标签</div><div style="border-radius:8px">8 · 按钮、行</div><div style="border-radius:12px">12 · 输入、卡</div><div style="border-radius:16px">16 · 线索卡</div></div>
+            <div class="nest"><div>内圆角 = 16 − 8 = 8</div></div>
+            <p class="mono" style="margin-top:8px">嵌套：内圆角 = 外圆角 − 内边距，最小 4。不把所有东西做成胶囊</p>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:64px;margin-top:40px">
+          <div>
+            <h4>布局</h4>
+            <div class="lay"><div class="sb"></div><div class="ct"><div class="hb"></div><div class="cols"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div></div><span class="cap">侧栏 248 · 标题栏 56 · 内容区 12 栏，边距 32，槽宽 48 · 移动端边距 20</span></div>
+          </div>
+          <div>
+            <h4>动效：一条曲线，三档时长</h4>
+            <table class="mt">
+              <tr><td>缓动</td><td class="mono">cubic-bezier(.22, 1, .36, 1)</td></tr>
+              <tr><td>悬停、按下、切换</td><td class="mono">160ms · 按下缩放 0.98</td></tr>
+              <tr><td>菜单、提示</td><td class="mono">200ms · 上浮 6px</td></tr>
+              <tr><td>新线索出现、刻痕新增一笔</td><td class="mono">400ms · 笔画从 0 长到全长</td></tr>
+              <tr><td>不做</td><td class="mono">循环动画、弹跳、悬停放大</td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 04 组件 -->
+    <div class="fx-ab" data-name="04 组件" data-desc="V0.5 用到的基础组件。证据刻痕和门槛条是本产品特有的，其余组件都尽量安静。" style="left:1540px;top:1000px">
+      <div class="fx-ab-label">04 组件<span>1500 × 1180</span></div>
+      <div class="ab spec" style="width:1500px;height:1180px">
+        <div class="sh"><h2>每个组件都回答同一个问题：这条结论有多少依据</h2><span class="mono">组件 · Components</span></div>
+        <div class="cg">
+          <div>
+            <h4>证据刻痕（签名细节）</h4>
+            <div class="legend">
+              <span class="tally"><i class="s"></i></span><span>强证据：有行为、结果和能量信号</span>
+              <span class="tally"><i class="m"></i></span><span>中证据：有具体事例</span>
+              <span class="tally"><i class="w"></i></span><span>弱证据：间接关联</span>
+              <span class="tally"><i class="self"></i></span><span>自述：不计入证据数</span>
+              <span class="tally"><i class="slot"></i></span><span>空位：升到下一级还差的一笔</span>
+            </div>
+            <div class="cap">一笔 = 一条独立证据（同一个故事只画一笔）· 新证据写入时，那一笔用 400ms 长出来</div>
+          </div>
+          <div>
+            <h4>门槛条</h4>
+            <div class="gate"><span class="lab">证据数</span><span class="bar"><b style="width:66.6%"></b></span><span class="v">2 / 3</span></div>
+            <div class="gate"><span class="lab">来源种类</span><span class="bar"><b style="width:50%"></b></span><span class="v">1 / 2</span></div>
+            <div class="gate"><span class="lab">加权分</span><span class="bar"><b style="width:83.3%"></b></span><span class="v">2.5 / 3.0</span></div>
+            <div class="cap">对应「高」的三道门槛 N ≥ 3、S ≥ 2、W+ ≥ 3.0 · 达标的条变灰，没达标的保持墨水色</div>
+          </div>
+          <div>
+            <h4>按钮</h4>
+            <div class="stage"><span class="btn btn-p">上传测评报告</span><span class="btn btn-p press">按下</span><span class="btn btn-s">价值观澄清</span><span class="btn btn-t">或做一次价值观澄清</span><span class="btn btn-x">生成画像</span><span class="btn btn-p focus">键盘聚焦</span></div>
+            <div class="cap">高 40，移动端主操作 44 · 一屏一个主按钮 · 不加箭头</div>
+          </div>
+
+          <div class="w2">
+            <h4>对话：教练消息、你的消息、线索提炼</h4>
+            <div style="background:var(--page-bg);border-radius:16px;padding:24px;display:flex;flex-direction:column;gap:20px">
+              <div class="coach"><span class="mk2"><i style="height:14px"></i><i style="height:9px"></i><i style="height:5px"></i></span><p>听起来很有成就感。当时哪个环节你最投入，时间过得最快？</p></div>
+              <div class="mine">其实是前期把一团乱麻理清楚的那几天，熬夜都不觉得累</div>
+              <div class="coach"><span class="mk2"><i style="height:14px"></i><i style="height:9px"></i><i style="height:5px"></i></span>
+                <div><p>我注意到一个可能的线索，你看准不准</p>
+                  <div class="xcard" style="max-width:460px">
+                    <div class="k"><span class="tally"><i class="s"></i></span>新线索 · 第 1 条证据</div>
+                    <div class="s">在混乱的局面里，擅长先梳理结构再推进</div>
+                    <div class="w">依据：你最投入的是理清乱麻那段，而且熬夜也不觉得累</div>
+                    <div class="a"><span class="btn btn-s btn-sm">准</span><span class="btn btn-s btn-sm">部分准，我改一下</span><span class="btn btn-t btn-sm">不准</span></div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="cap">教练消息不加气泡，前面是三道刻痕的小标识 · 你的消息用 raised 底 · 线索卡三个按钮对应认同、部分认同、否认</div>
+          </div>
+          <div>
+            <h4>导航行</h4>
+            <div class="navdemo">
+              <a class="on"><i data-lucide="house"></i>首页</a>
+              <a class="hv"><i data-lucide="message-circle"></i>对话<span style="margin-left:auto" class="mono">悬停</span></a>
+              <a><i data-lucide="list"></i>线索<span style="margin-left:auto" class="mono">5</span></a>
+            </div>
+            <div class="cap">行高 36，间距 2 · 选中用 raised 底加细线描边，不用强调色</div>
+            <h4 style="margin-top:28px">标签</h4>
+            <div class="stage"><span class="tag">优势候选</span><span class="tag ok">已验证</span><span class="tag dash">待补例子</span><span class="tag">你修改过</span><span class="tag">他人未提及</span></div>
+          </div>
+
+          <div class="w2">
+            <h4>线索表</h4>
+            <table class="cl">
+              <tr><th>线索</th><th>类型</th><th>证据</th><th class="r">等级</th></tr>
+              <tr class="sel"><td>在混乱的局面里，擅长先梳理结构再推进</td><td class="c2">优势候选</td><td><span class="tally"><i class="s"></i><i class="m"></i><i class="slot"></i></span></td><td class="r">中</td></tr>
+              <tr><td>答应的事一定做到，让人放心</td><td class="c2">优势候选</td><td><span class="tally"><i class="m"></i><i class="m"></i><i class="m"></i><i class="w"></i></span></td><td class="r">高</td></tr>
+              <tr><td>有耐心 <span class="tag dash" style="margin-left:8px">待补例子</span></td><td class="c2">优势候选</td><td><span class="tally"><i class="self"></i><i class="slot"></i><i class="slot"></i></span></td><td class="r c3">线索</td></tr>
+            </table>
+            <div class="cap">行高 48 · 选中行用 accent-50 底和左侧 2px 墨水线 · 「线索」级用 ink-3 文字</div>
+          </div>
+          <div>
+            <h4>输入框</h4>
+            <div class="comp" style="margin-top:0"><div class="ph">或者说说今天想聊的</div><div class="tools"><span class="tb"><i data-lucide="paperclip"></i></span><span class="ibtn"><i data-lucide="arrow-up"></i></span></div></div>
+            <div class="cap">圆角 12 · 聚焦时边框为墨水色 · 发送用主文字色方块，不和主操作抢颜色</div>
+            <h4 style="margin-top:28px">能量打卡</h4>
+            <div class="seg"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span class="on">7</span><span>8</span><span>9</span><span>10</span></div>
+          </div>
+
+          <div class="w2">
+            <h4>安全提示</h4>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px">
+              <div class="safe mid"><i data-lucide="pause"></i><div><div class="h">今天的探索先停一停</div>这种状态持续一段时间的话，找专业的心理咨询师聊聊会有帮助。需要的话，我可以帮你找咨询渠道</div></div>
+              <div class="safe hi"><i data-lucide="phone"></i><div><div class="h">你现在安全吗</div>如果有伤害自己的想法，请马上拨打当地的心理危机干预热线，或告诉一个你信任的人<div style="margin-top:12px"><span class="btn btn-sm" style="background:var(--page-neg);color:#fff">查看求助热线</span></div></div></div>
+            </div>
+            <div class="cap">中风险用中性底，语气平和 · 高风险是全产品唯一用警示红的地方，出现时暂停其他输入</div>
+          </div>
+          <div>
+            <h4>证据条目</h4>
+            <div class="ev" style="border-bottom:1px solid var(--page-line)"><span class="src">经历</span><span class="q">其实是前期把一团乱麻理清楚的那段</span><span class="mono">强</span></div>
+            <div class="ev dim"><span class="src">自述</span><span class="q">我平时也喜欢列清单</span><span class="mono">不计数</span></div>
+            <div class="cap">原话在中间，来源在左，强度在右 · 自述用 ink-3，标「不计数」</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 05 补充规则（补充 1） -->
+    <div class="fx-ab" data-name="05 补充规则 · 补充 1" data-desc="第 2 批设计时发现的两处规范空白。只新增，不改动 00–04 画板的任何规则。" style="left:0;top:2280px">
+      <div class="fx-ab-label">05 补充规则 · 补充 1<span>1440 × 1000</span></div>
+      <div class="ab spec" style="width:1440px;height:1000px">
+        <div class="sh"><h2>两条新规则：危险操作不用红色，优势要看得到你自己的经历</h2><span class="mono">补充 1 · 2026-11-24 · 来自第 2 批</span></div>
+        <p class="lead">以下两条在第 2 批画线索详情和删除故事时发现。00–04 画板的内容保持不变；如有出入，以本画板为准。</p>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:64px">
+          <div>
+            <h4>规则 1 · 危险操作按钮：主文字色实底</h4>
+            <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap">
+              <span class="btn btn-k">删除故事</span><span class="btn btn-k press">按下</span><span class="btn btn-k focus">键盘聚焦</span><span class="btn btn-s">取消</span>
+            </div>
+            <div class="cap" style="font-size:12px;color:var(--page-ink-3);margin-top:12px">btn-k · 背景 ink #171717 · 白字 · 按下 #000 并缩放 0.98 · 高 40，小号 32</div>
+            <div style="display:flex;gap:16px;margin-top:24px">
+              <div class="dlg-s"><h5>删除「大学组织 200 人活动」？</h5><p>3 条证据会一起失效，3 条线索会重新计算。删除后不能恢复</p><div class="ft"><span class="btn btn-s btn-sm">取消</span><span class="btn btn-k btn-sm">删除故事</span></div></div>
+            </div>
+            <ul class="rl" style="margin-top:24px">
+              <li><b>用在</b>确认弹层里的破坏性操作：删除故事、删除全部数据、归档线索、往后放线索</li>
+              <li><b>不用红色</b>警示红只留给高风险安全提示。删除自己的数据不是危险，是用户的权利，语气保持平和</li>
+              <li><b>位置</b>弹层右下角，「取消」在左、危险操作在右；默认焦点在「取消」</li>
+              <li><b>页面上</b>入口本身用文字按钮 btn-t 加图标（如「删除这个故事」），不直接用 btn-k，只有进入确认弹层后才出现实底按钮</li>
+              <li><b>不可撤销时</b>弹层必须先列出影响（会失效的证据、会降级的线索），再给按钮</li>
+            </ul>
+          </div>
+
+          <div>
+            <h4>规则 2 · 门槛条增加「本人经历」，只对优势候选显示</h4>
+            <div style="max-width:420px">
+              <div class="gate"><span class="lab">证据数</span><span class="bar done"><b style="width:100%"></b></span><span class="v">4 / 3</span></div>
+              <div class="gate"><span class="lab">来源种类</span><span class="bar done"><b style="width:100%"></b></span><span class="v">2 / 2</span></div>
+              <div class="gate"><span class="lab">加权分</span><span class="bar done"><b style="width:100%"></b></span><span class="v">3.5 / 3.0</span></div>
+              <div class="gate"><span class="lab">本人经历</span><span class="bar"><b style="width:0"></b></span><span class="v">无</span></div>
+            </div>
+            <div class="cap" style="font-size:12px;color:var(--page-ink-3);margin-top:12px">例：「答应的事一定做到」，3 位反馈人 + 1 份测评，数值都达标，但没有你自己的故事，所以停在「中」，画像里放进「别人眼中的你」</div>
+            <table class="rtab" style="margin-top:24px">
+              <tr><th style="width:120px">项</th><th>规则</th></tr>
+              <tr><td>对应数据规则</td><td>B5：优势候选要到「高」，至少要有 1 条来源为「经历」或「实验」的证据</td></tr>
+              <tr><td>显示条件</td><td>只对 type = 优势候选 的线索显示第 4 条；其他类型保持三条门槛</td></tr>
+              <tr><td>满足</td><td>右侧写「有」，条为满格，达标后和其他条一样变为 ink-3</td></tr>
+              <tr><td>不满足</td><td>右侧写「无」，条为空，保持墨水色轨道；「还差什么」区域写「还差 1 个你自己的例子」，主操作换成「补一个例子」</td></tr>
+              <tr><td>移动端</td><td>同样四条，顺序不变</td></tr>
+              <tr><td>首页线索卡</td><td>只显示没达标的门槛；本人经历未满足时一并显示</td></tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  </div><div class="fx-hint">拖动平移 · 滚轮平移 · Ctrl / ⌘ + 滚轮缩放 · 点击画板看说明</div></main>
+
+  <aside class="fx-side r">
+    <div class="fx-sec"><h4>画板</h4><div class="fx-kv"><span>名称</span><b id="iName">—</b><span>尺寸</span><b id="iSize">—</b></div></div>
+    <div class="fx-sec"><h4>说明</h4><div class="fx-note" id="iDesc">点击画布上的画板查看。</div></div>
+    <div class="fx-sec"><h4>字体</h4><div class="fx-note">界面：Noto Sans SC 400 / 500<br>元信息：JetBrains Mono 400</div></div>
+    <div class="fx-sec"><h4>色彩令牌</h4>
+      <div class="fx-sw"><i style="background:#23406E"></i>强调 accent<code>#23406E</code></div>
+      <div class="fx-sw"><i style="background:#EDF1F7"></i>选中底<code>#EDF1F7</code></div>
+      <div class="fx-sw"><i style="background:#171717"></i>主文字<code>#171717</code></div>
+      <div class="fx-sw"><i style="background:#525252"></i>次级文字<code>#525252</code></div>
+      <div class="fx-sw"><i style="background:#737373"></i>元信息<code>#737373</code></div>
+      <div class="fx-sw"><i style="background:#F4F4F5"></i>raised<code>#F4F4F5</code></div>
+      <div class="fx-sw"><i style="background:#FAFAFA"></i>背景<code>#FAFAFA</code></div>
+      <div class="fx-sw"><i style="background:#B4332B"></i>警示<code>#B4332B</code></div>
+    </div>
+  </aside>
+</div>
+
+<script>
+(function(){
+  if (window.lucide) lucide.createIcons();
+  const canvas=document.getElementById('canvas'), world=document.getElementById('world');
+  const zLab=document.getElementById('zLab'), layers=document.getElementById('layers');
+  let s=1,x=0,y=0,page='spec';
+  const apply=()=>{world.style.transform=`translate(${x}px,${y}px) scale(${s})`;zLab.textContent=Math.round(s*100)+'%';};
+  const abs=()=>[...document.querySelectorAll(`.fx-page[data-page="${page}"] .fx-ab`)];
+  const box=el=>{const a=el.querySelector('.ab');return {l:parseFloat(el.style.left)||0,t:parseFloat(el.style.top)||0,w:a.offsetWidth,h:a.offsetHeight};};
+  function fitTo(list){let L=1e9,T=1e9,R=-1e9,B=-1e9;list.forEach(e=>{const b=box(e);L=Math.min(L,b.l);T=Math.min(T,b.t-24);R=Math.max(R,b.l+b.w);B=Math.max(B,b.t+b.h);});
+    const W=canvas.clientWidth,H=canvas.clientHeight,p=48;s=Math.max(Math.min((W-p*2)/(R-L),(H-p*2)/(B-T),2),.04);x=(W-(R-L)*s)/2-L*s;y=(H-(B-T)*s)/2-T*s;apply();}
+  function select(el){document.querySelectorAll('.fx-ab.sel').forEach(e=>e.classList.remove('sel'));document.querySelectorAll('#layers .fx-item').forEach(e=>e.classList.toggle('on',e._ab===el));
+    if(!el){document.getElementById('iName').textContent='—';document.getElementById('iSize').textContent='—';document.getElementById('iDesc').textContent='点击画布上的画板查看。';return;}
+    el.classList.add('sel');const b=box(el);document.getElementById('iName').textContent=el.dataset.name;document.getElementById('iSize').textContent=b.w+' × '+b.h;document.getElementById('iDesc').textContent=el.dataset.desc||'';}
+  function show(p){page=p;document.querySelectorAll('.fx-page').forEach(e=>e.classList.toggle('on',e.dataset.page===p));document.querySelectorAll('.fx-item[data-page]').forEach(e=>e.classList.toggle('on',e.dataset.page===p));
+    layers.innerHTML='';abs().forEach(el=>{const b=document.createElement('button');b.className='fx-item';b.innerHTML='<i data-lucide="frame"></i>'+el.dataset.name;b._ab=el;b.onclick=()=>{fitTo([el]);select(el);};layers.appendChild(b);});
+    if(window.lucide) lucide.createIcons();select(null);requestAnimationFrame(()=>fitTo(abs()));}
+  document.querySelectorAll('.fx-item[data-page]').forEach(b=>b.onclick=()=>show(b.dataset.page));
+  function zoomAt(f,cx,cy){const ns=Math.min(Math.max(s*f,.04),4);x=cx-(cx-x)*(ns/s);y=cy-(cy-y)*(ns/s);s=ns;apply();}
+  canvas.addEventListener('wheel',e=>{e.preventDefault();const r=canvas.getBoundingClientRect();if(e.ctrlKey||e.metaKey){zoomAt(Math.exp(-e.deltaY*.01),e.clientX-r.left,e.clientY-r.top);}else{x-=e.deltaX;y-=e.deltaY;apply();}},{passive:false});
+  let d=null;
+  canvas.addEventListener('pointerdown',e=>{d={sx:e.clientX,sy:e.clientY,x,y,m:false};canvas.setPointerCapture(e.pointerId);});
+  canvas.addEventListener('pointermove',e=>{if(!d)return;const dx=e.clientX-d.sx,dy=e.clientY-d.sy;if(Math.abs(dx)+Math.abs(dy)>3){d.m=true;canvas.classList.add('drag');}x=d.x+dx;y=d.y+dy;apply();});
+  canvas.addEventListener('pointerup',e=>{if(d&&!d.m){const ab=document.elementFromPoint(e.clientX,e.clientY)?.closest('.fx-ab');select(ab||null);}d=null;canvas.classList.remove('drag');});
+  const c=()=>({cx:canvas.clientWidth/2,cy:canvas.clientHeight/2});
+  zIn.onclick=()=>{const{cx,cy}=c();zoomAt(1.25,cx,cy);};zOut.onclick=()=>{const{cx,cy}=c();zoomAt(.8,cx,cy);};
+  zFit.onclick=()=>fitTo(abs());z100.onclick=()=>{const{cx,cy}=c();zoomAt(1/s,cx,cy);};
+  window.addEventListener('keydown',e=>{if(e.shiftKey&&e.code==='Digit1')fitTo(abs());if(e.shiftKey&&e.code==='Digit0'){const{cx,cy}=c();zoomAt(1/s,cx,cy);}});
+  window.addEventListener('resize',()=>fitTo(abs()));
+  show('home');
+  if(document.fonts&&document.fonts.ready) document.fonts.ready.then(()=>fitTo(abs()));
+})();
+</script>
+</body>
+</html>
